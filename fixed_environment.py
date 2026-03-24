@@ -140,8 +140,9 @@ class PartitionBoundEnv:
         )
         self.internal_session_count = sum(self.internal_per_part)
 
-        self.current_phase = Phase.PHASE2
-        self.phase2_steps  = 0
+        self.current_phase    = Phase.PHASE2
+        self.phase2_steps     = 0
+        self.combination_log  = []   # records each combination step
 
     def _cap_pool(self):
         """
@@ -180,9 +181,19 @@ class PartitionBoundEnv:
         self.current_node_idx += 1
 
         cur_internal = self._count_current_internal()
-        newly        = cur_internal - self.prev_internal_count
+        # FIX: reward = improvement in partition bound from this assignment
+        # prev_bound - curr_bound is positive when bound tightened
+        # this gives a meaningful gradient signal at every step
+        num_sessions = len(self.sessions)
+        num_edges    = len(self.edges)
+        prev_bound = (num_edges / (num_sessions + self.prev_internal_count)
+                      if num_sessions + self.prev_internal_count > 0
+                      else num_edges / max(num_sessions, 1))
+        curr_bound = (num_edges / (num_sessions + cur_internal)
+                      if num_sessions + cur_internal > 0
+                      else num_edges / max(num_sessions, 1))
+        reward = prev_bound - curr_bound   # positive when bound improved
         self.prev_internal_count = cur_internal
-        reward = 0.01 * newly
 
         if self.current_node_idx >= len(self.nodes):
             self.partition = self._build_partition()
@@ -227,9 +238,22 @@ class PartitionBoundEnv:
                 # derived inequalities go to the end of pool
                 self.pool.append(union_ineq)
                 self.pool.append(inter_ineq)
+                self.combination_log.append({
+                    'step'   : self.phase2_steps,
+                    'action' : 'PAIRWISE',
+                    'idx_i'  : idx_i,
+                    'idx_j'  : idx_j,
+                    'yi_a'   : round(a.yi_coeff(), 4),
+                    'yi_b'   : round(b.yi_coeff(), 4),
+                    'yi_union': round(union_ineq.yi_coeff(), 4),
+                })
             return self._get_state(), self._compute_ratio_reward(), False
 
         elif action_type == ActionType.APPLY_PROOF2:
+            # Small penalty to discourage always taking the easy Proof 2 route.
+            # Agent still gets the bound via Proof2 but pays a cost.
+            # Pairwise combinations that find 1.67 get full reward with no penalty.
+            PROOF2_PENALTY = 0.2
             try:
                 final = apply_n2_submodularity_all_at_once(
                     self.base_inequalities, self.index, self.sessions
@@ -237,7 +261,12 @@ class PartitionBoundEnv:
                 self.pool.append(final)
             except Exception:
                 pass
-            return self._get_state(), self._compute_ratio_reward(), False
+            self.combination_log.append({
+                'step'  : self.phase2_steps,
+                'action': 'PROOF2',
+            })
+            reward = self._compute_ratio_reward() - PROOF2_PENALTY
+            return self._get_state(), reward, False
 
         elif action_type == ActionType.STORE_AND_RESET:
             if self.accumulator:
@@ -312,7 +341,14 @@ class PartitionBoundEnv:
                         'idx_j': j
                     })
 
-            valid.append({'type': ActionType.APPLY_PROOF2})
+            # FIX: PROOF2 only available after at least 2 pairwise steps
+            # forces agent to explore pairwise combinations first
+            pairwise_done = sum(
+                1 for e in self.combination_log
+                if e.get('action') == 'PAIRWISE'
+            )
+            if pairwise_done >= 2:
+                valid.append({'type': ActionType.APPLY_PROOF2})
 
             if self.accumulator:
                 valid.append({'type': ActionType.STORE_AND_RESET})
@@ -370,6 +406,10 @@ class PartitionBoundEnv:
             state['current_node_idx'] = self.current_node_idx
             state['num_groups']       = self.num_groups
             state['assignment']       = dict(self.assignment)
+            # FIX: expose sessions and edges so GNN can reason about
+            # which nodes are session partners
+            state['sessions'] = list(self.sessions)
+            state['edges']    = list(self.edges)
         else:
             state['pool_size']           = len(self.pool)
             state['accumulator_size']    = len(self.accumulator)
@@ -377,6 +417,7 @@ class PartitionBoundEnv:
             state['phase2_steps']        = self.phase2_steps
             state['internal_sessions']   = self.internal_session_count
 
+            state['combination_log'] = list(self.combination_log)
             if self.pool:
                 # send base inequalities + last MAX_DERIVED derived ones
                 base_part    = self.pool[:self.num_base]

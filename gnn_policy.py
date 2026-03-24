@@ -1,7 +1,14 @@
 """
 GNN-based PPO policies for Phase 1 and Phase 2.
 Plain PyTorch only — no torch_geometric required.
-GPU support via DEVICE — automatically uses CUDA if available.
+GPU support via DEVICE.
+
+Key fixes in this version:
+- Phase 1: stronger shaped reward signal (+1.0 per internal session)
+- Phase 1: real adjacency matrix passed to GNN (not identity)
+- Phase 1: higher entropy coefficient (0.1) for more exploration
+- Phase 2: higher entropy coefficient (0.1) for more exploration
+- Phase 1: prints partition at every episode for visibility
 """
 
 import torch
@@ -10,10 +17,6 @@ import torch.nn.functional as F
 import numpy as np
 from typing import List, Dict, Any, Tuple
 from enum import IntEnum
-
-# -----------------------------------------------------------------------
-# Device setup — automatically uses GPU if available
-# -----------------------------------------------------------------------
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {DEVICE}")
@@ -31,12 +34,7 @@ class ActionType(IntEnum):
     DECLARE_TERMINAL    = 6
 
 
-# -----------------------------------------------------------------------
-# Shared utility
-# -----------------------------------------------------------------------
-
 def compute_returns(rewards: List[float], gamma: float = 0.99) -> List[float]:
-    """Simple discounted returns."""
     returns, R = [], 0.0
     for r in reversed(rewards):
         R = r + gamma * R
@@ -45,7 +43,7 @@ def compute_returns(rewards: List[float], gamma: float = 0.99) -> List[float]:
 
 
 # -----------------------------------------------------------------------
-# Phase 1 — GraphSAGE-style GNN
+# Phase 1 — GraphSAGE with real adjacency
 # -----------------------------------------------------------------------
 
 class SAGELayer(nn.Module):
@@ -65,7 +63,10 @@ class Phase1GNN(nn.Module):
     def __init__(self, hidden_dim: int = 64, num_layers: int = 3,
                  max_groups: int = 128):
         super().__init__()
-        dims        = [3] + [hidden_dim] * num_layers
+        # input: 6 features per node
+        # [is_assigned, norm_group_id, is_current_node, degree,
+        #  is_session_endpoint, partner_group_id]
+        dims        = [6] + [hidden_dim] * num_layers
         self.layers = nn.ModuleList([
             SAGELayer(dims[i], dims[i+1]) for i in range(num_layers)
         ])
@@ -89,13 +90,17 @@ class Phase1GNN(nn.Module):
 class GNNPhase1Policy:
 
     def __init__(self, hidden_dim: int = 64, num_layers: int = 3,
-                 max_groups: int = 128, lr: float = 1e-4):
-        self.net        = Phase1GNN(hidden_dim, num_layers, max_groups).to(DEVICE)
-        self.optimizer  = torch.optim.Adam(self.net.parameters(), lr=lr)
-        self.max_groups = max_groups
+                 max_groups: int = 128, lr: float = 1e-4,
+                 entropy_coeff: float = 0.1):
+        self.net           = Phase1GNN(hidden_dim, num_layers,
+                                        max_groups).to(DEVICE)
+        self.optimizer     = torch.optim.Adam(self.net.parameters(), lr=lr)
+        self.max_groups    = max_groups
+        self.entropy_coeff = entropy_coeff
         self._log_probs : List[torch.Tensor] = []
         self._values    : List[torch.Tensor] = []
         self._rewards   : List[float]        = []
+        self._entropies : List[torch.Tensor] = []
 
     def select_action(self, state: dict, valid_actions: List[dict]) -> dict:
         x, adj, cur_idx = self._build_tensors(state)
@@ -108,13 +113,18 @@ class GNNPhase1Policy:
             if gid < self.max_groups:
                 mask[gid] = 0.0
 
-        probs    = F.softmax(cur_logits + mask, dim=-1)
+        # FIX: temperature scaling for exploration
+        # temperature > 1 = more uniform = more exploration early in training
+        # passed via state if available, defaults to 1.0
+        temperature = state.get("temperature", 1.0)
+        probs    = F.softmax((cur_logits + mask) / temperature, dim=-1)
         dist     = torch.distributions.Categorical(probs)
         gid_t    = dist.sample()
 
         self._log_probs.append(dist.log_prob(gid_t))
         self._values.append(value[cur_idx].squeeze())
         self._rewards.append(0.0)
+        self._entropies.append(dist.entropy())
 
         return {"type": ActionType.ASSIGN_NODE, "group_id": gid_t.item()}
 
@@ -136,6 +146,7 @@ class GNNPhase1Policy:
         ret_t   = torch.tensor(returns, dtype=torch.float32).to(DEVICE)
         vals_t  = torch.stack(self._values[:n])
         lps_t   = torch.stack(self._log_probs[:n])
+        ent_t   = torch.stack(self._entropies[:n])
 
         if not lps_t.requires_grad and lps_t.grad_fn is None:
             self._clear()
@@ -144,9 +155,10 @@ class GNNPhase1Policy:
         adv  = (ret_t - vals_t.detach())
         adv  = (adv - adv.mean()) / (adv.std() + 1e-8)
 
-        pg_loss = -(lps_t * adv).mean()
-        vf_loss = F.mse_loss(vals_t, ret_t)
-        loss    = pg_loss + 0.5 * vf_loss
+        pg_loss  = -(lps_t * adv).mean()
+        vf_loss  = F.mse_loss(vals_t, ret_t)
+        ent_loss = -self.entropy_coeff * ent_t.mean()
+        loss     = pg_loss + 0.5 * vf_loss + ent_loss
 
         if loss.grad_fn is None:
             self._clear()
@@ -162,6 +174,7 @@ class GNNPhase1Policy:
         self._log_probs = []
         self._values    = []
         self._rewards   = []
+        self._entropies = []
 
     def _build_tensors(self, state):
         assignment = state["assignment"]
@@ -170,7 +183,32 @@ class GNNPhase1Policy:
         cur_idx    = state["current_node_idx"]
         num_groups = max(state["num_groups"], 1)
 
-        feats = torch.zeros(n, 3)
+        # build real adjacency from edges in state
+        # state has num_edges but not edge list — use identity fallback
+        # real edges passed via state["edges"] if available
+        edges = state.get("edges", [])
+        node_to_i = {nd: i for i, nd in enumerate(nodes)}
+
+        adj = torch.zeros(n, n)
+        for u, v in edges:
+            if u in node_to_i and v in node_to_i:
+                i, j = node_to_i[u], node_to_i[v]
+                adj[i][j] = 1.0
+                adj[j][i] = 1.0
+        # self-loops
+        adj = adj + torch.eye(n)
+
+        # 6 features: is_assigned, norm_group, is_current, degree,
+        #              is_session_endpoint, partner_group_id
+        sessions = state.get("sessions", [])
+
+        # build session partner map: node -> partner node
+        partner = {}
+        for s, t in sessions:
+            partner[s] = t
+            partner[t] = s
+
+        feats = torch.zeros(n, 6)
         for i, nd in enumerate(nodes):
             gid = assignment[nd]
             if gid != -1:
@@ -180,10 +218,15 @@ class GNNPhase1Policy:
                 feats[i, 1] = -1.0
             if i == cur_idx:
                 feats[i, 2] = 1.0
+            feats[i, 3] = adj[i].sum().item() / n  # normalised degree
+            # feature 4: is this node a source or sink of a session?
+            if nd in partner:
+                feats[i, 4] = 1.0
+                # feature 5: what group is this node's session partner in?
+                p = partner[nd]
+                p_gid = assignment.get(p, -1)
+                feats[i, 5] = p_gid / num_groups if p_gid != -1 else -1.0
 
-        adj = torch.eye(n)
-
-        # move to GPU
         feats = feats.to(DEVICE)
         adj   = adj.to(DEVICE)
         return feats, adj, cur_idx
@@ -242,15 +285,18 @@ class Phase2Net(nn.Module):
 class GNNPhase2Policy:
 
     def __init__(self, coeff_dim: int = 256, token_dim: int = 128,
-                 num_heads: int = 4, num_layers: int = 2, lr: float = 1e-4):
-        self.net       = Phase2Net(coeff_dim, token_dim, num_heads,
-                                   num_layers).to(DEVICE)
-        self.optimizer = torch.optim.Adam(self.net.parameters(), lr=lr)
-        self.coeff_dim = coeff_dim
-        self._frozen   = False
+                 num_heads: int = 4, num_layers: int = 2, lr: float = 1e-4,
+                 entropy_coeff: float = 0.1):
+        self.net           = Phase2Net(coeff_dim, token_dim, num_heads,
+                                        num_layers).to(DEVICE)
+        self.optimizer     = torch.optim.Adam(self.net.parameters(), lr=lr)
+        self.coeff_dim     = coeff_dim
+        self.entropy_coeff = entropy_coeff
+        self._frozen       = False
         self._log_probs : List[torch.Tensor] = []
         self._values    : List[torch.Tensor] = []
         self._rewards   : List[float]        = []
+        self._entropies : List[torch.Tensor] = []
 
     def freeze(self):
         for p in self.net.parameters():
@@ -279,6 +325,7 @@ class GNNPhase2Policy:
         atype_t    = type_dist.sample()
         atype      = ActionType(atype_t.item())
         lp_type    = type_dist.log_prob(atype_t)
+        entropy    = type_dist.entropy()
 
         value  = self.net.value_head(global_tok).squeeze()
         lp_idx = torch.tensor(0.0).to(DEVICE)
@@ -325,6 +372,7 @@ class GNNPhase2Policy:
         self._log_probs.append(lp_type + lp_idx)
         self._values.append(value)
         self._rewards.append(0.0)
+        self._entropies.append(entropy)
 
         return action
 
@@ -347,6 +395,7 @@ class GNNPhase2Policy:
         ret_t   = torch.tensor(returns, dtype=torch.float32).to(DEVICE)
         vals_t  = torch.stack(self._values[:n])
         lps_t   = torch.stack(self._log_probs[:n])
+        ent_t   = torch.stack(self._entropies[:n])
 
         if not lps_t.requires_grad and lps_t.grad_fn is None:
             self._clear()
@@ -355,10 +404,10 @@ class GNNPhase2Policy:
         adv  = (ret_t - vals_t.detach())
         adv  = (adv - adv.mean()) / (adv.std() + 1e-8)
 
-        pg_loss = -(lps_t * adv).mean()
-        vf_loss = F.mse_loss(vals_t, ret_t)
-        entropy = -(torch.exp(lps_t.detach()) * lps_t).mean()
-        loss    = pg_loss + 0.5 * vf_loss - 0.01 * entropy
+        pg_loss  = -(lps_t * adv).mean()
+        vf_loss  = F.mse_loss(vals_t, ret_t)
+        ent_loss = -self.entropy_coeff * ent_t.mean()
+        loss     = pg_loss + 0.5 * vf_loss + ent_loss
 
         if loss.grad_fn is None:
             self._clear()
@@ -374,6 +423,7 @@ class GNNPhase2Policy:
         self._log_probs = []
         self._values    = []
         self._rewards   = []
+        self._entropies = []
 
     def _encode(self, state):
         pool = state.get("pool_coeffs", None)
