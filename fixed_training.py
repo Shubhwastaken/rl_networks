@@ -7,7 +7,7 @@ Features:
 - 3-stage curriculum: 1500 episodes each, 750 evaluation episodes
 - Prints partition details whenever agent finds optimal bound
 """
-
+import time
 import random
 import numpy as np
 from collections import defaultdict
@@ -563,14 +563,23 @@ def train(stage1_episodes=1500, stage2_episodes=1500,
 
 
 if __name__ == "__main__":
+    start_time = time.perf_counter()   # start timing
+
     phase1_policy, phase2_policy = train(
         stage1_episodes=5000,
         stage2_episodes=5000,
         stage3_episodes=5000,
         graph_dataset_size=5
     )
+
     evaluate(
         phase1_policy, phase2_policy,
         num_episodes=1000,
         graph_dataset_size=5
     )
+
+    end_time = time.perf_counter()     # end timing
+
+    total_time = end_time - start_time
+    print(f"\nTOTAL RUNTIME: {total_time:.2f} seconds "
+          f"({total_time/60:.2f} minutes)")
