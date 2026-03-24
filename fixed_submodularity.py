@@ -3,21 +3,18 @@ Submodularity operations for Phase 2.
 
 TWO PROOF STRATEGIES:
 
-apply_n2_submodularity_all_at_once  — Proof 2:
+apply_n2_submodularity_all_at_once  -- Proof 2:
     Applies (n,2)-way submodularity to ALL n base inequalities at once.
     Always produces the standard partition bound exactly.
     RHS uses ALL edges including internal ones.
 
-apply_pairwise_submodularity  — Proof 1 style:
+apply_pairwise_submodularity  -- Proof 1 style:
     Agent chooses exactly two inequalities to combine (idx_i, idx_j).
     Y_I collapse fires when union of active ST sets covers all sessions.
     This is what the RL agent explores.
 
-FIX in apply_pairwise_submodularity:
-    Removed the hardcoded `union_ineq.coeffs[index.yi_idx()] = 1.0`
-    that was setting Y_I unconditionally before the collapse check ran.
-    Y_I is now set ONLY inside _collapse_to_yi_if_valid when the
-    session-coverage condition is actually met.
+FIX: Removed cross-partition group variable (U_P{i}_P{j}) handling
+     from intersection since those variables no longer exist in the index.
 """
 
 from typing import List, Tuple, Set
@@ -53,12 +50,12 @@ def apply_n2_submodularity_all_at_once(
     if all_covered != index.all_sessions():
         raise ValueError("Partition does not cover all sessions")
 
-    # Step 2: n Y_ST terms → 2*h(Y_I)
+    # Step 2: n Y_ST terms -> 2*h(Y_I)
     for i in range(n):
         result.coeffs[index.yst_idx(i)] = 0.0
     result.coeffs[index.yi_idx()] += 2.0
 
-    # Step 3: source independence — cancel one h(Y_I) with source terms
+    # Step 3: source independence -- cancel one h(Y_I) with source terms
     result.coeffs[index.yi_idx()] -= 1.0
     for v in index.nodes:
         result.coeffs[index.source_idx(v)] = 0.0
@@ -77,7 +74,7 @@ def apply_pairwise_submodularity(
     sessions : List[Tuple[str, str]]
 ) -> Tuple[Inequality, Inequality]:
     """
-    Applies h(A) + h(B) >= h(A∪B) + h(A∩B) to two chosen inequalities.
+    Applies h(A) + h(B) >= h(A|B) + h(A&B) to two chosen inequalities.
 
     Returns (union_ineq, intersection_ineq).
     Y_I collapse fires in union if union covers all sessions.
@@ -101,10 +98,6 @@ def apply_pairwise_submodularity(
         if c > 1e-9:
             union_ineq.coeffs[index.yi_pi_idx(i)] = c
 
-    # FIX: do NOT set Y_I unconditionally here.
-    # Y_I is set only inside _collapse_to_yi_if_valid
-    # when the session-coverage condition is verified.
-
     # RHS sources: union = more negative (min)
     for v in index.nodes:
         c = min(ineq_a.coeffs[index.source_idx(v)],
@@ -119,7 +112,7 @@ def apply_pairwise_submodularity(
         if c < -1e-9:
             union_ineq.coeffs[index.edge_idx(e)] = c
 
-    # Collapse Y_ST → h(Y_I) if all sessions covered
+    # Collapse Y_ST -> h(Y_I) if all sessions covered
     union_ineq = _collapse_to_yi_if_valid(union_ineq, index, sessions)
 
     # --- INTERSECTION ---
@@ -135,13 +128,8 @@ def apply_pairwise_submodularity(
         if c > 1e-9:
             intersection_ineq.coeffs[index.yi_pi_idx(i)] = c
 
-    # Cross-partition edge groups: take min
-    for i in range(index.n()):
-        for j in range(i + 1, index.n()):
-            c = min(ineq_a.coeffs[index.cross_idx(i, j)],
-                    ineq_b.coeffs[index.cross_idx(i, j)])
-            if c > 1e-9:
-                intersection_ineq.coeffs[index.cross_idx(i, j)] = c
+    # FIX: Removed cross-partition group variable handling.
+    # Those variables no longer exist in the index.
 
     # RHS sources: intersection = less negative (max)
     for v in index.nodes:
@@ -169,9 +157,9 @@ def _collapse_to_yi_if_valid(
     Collapses Y_ST terms to h(Y_I) when union covers ALL sessions.
 
     Condition: sessions covered by active Y_ST == all sessions.
-    Does NOT require all nodes to be covered — sessions only.
+    Does NOT require all nodes to be covered -- sessions only.
 
-    Effect: n_active Y_ST terms → (n_active - 1) * h(Y_I)
+    Effect: n_active Y_ST terms -> (n_active - 1) * h(Y_I)
             source terms for covered nodes zeroed out.
     """
     active = ineq.active_yst()

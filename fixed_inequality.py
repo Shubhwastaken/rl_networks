@@ -1,3 +1,17 @@
+"""
+Entropy inequality representation and variable indexing.
+
+FIX: Removed U_P{i}_P{j} cross-partition group variables from
+     EntropyIndex. They were allocated but NEVER written to by
+     any base inequality or submodularity operation. They added
+     noise to the coefficient vector and wasted dimensions in
+     the Transformer encoder.
+
+     If cross-partition group variables are needed later, they
+     can be re-added — but the current proof strategy only uses
+     individual edge variables (U_{u}_{v}).
+"""
+
 from dataclasses import dataclass, field
 from typing import Dict, List, Tuple, Set
 import numpy as np
@@ -7,8 +21,8 @@ import numpy as np
 class EntropyIndex:
     partitions : List[List[str]]
     nodes      : List[str]
-    edges      : List[Tuple[str,str]]
-    sessions   : List[Tuple[str,str]]
+    edges      : List[Tuple[str, str]]
+    sessions   : List[Tuple[str, str]]
 
     var_to_idx : Dict[str, int] = field(default_factory=dict)
     idx_to_var : Dict[int, str] = field(default_factory=dict)
@@ -35,13 +49,9 @@ class EntropyIndex:
             self.idx_to_var[idx] = key
             idx += 1
 
-        # U_P{i}_P{j}  (cross-partition edge groups)
-        for i in range(n):
-            for j in range(i + 1, n):
-                key = f"U_P{i}_P{j}"
-                self.var_to_idx[key] = idx
-                self.idx_to_var[idx] = key
-                idx += 1
+        # FIX: REMOVED U_P{i}_P{j} cross-partition group variables.
+        # They were never written to and only wasted dimensions.
+        # Backward compat: cross_idx() raises KeyError if called.
 
         # Y_S_{v}  (source entropy per node)
         for v in self.nodes:
@@ -80,7 +90,7 @@ class EntropyIndex:
             self.st_sessions.append(st)
             self.internal_sessions.append(internal)
 
-    # --- index accessors (all naming conventions supported) ---
+    # --- index accessors ---
 
     def get_yi_idx(self):            return self.var_to_idx["Y_I"]
     def yi_idx(self):                return self.get_yi_idx()
@@ -100,7 +110,13 @@ class EntropyIndex:
 
     def get_cross_edge_idx(self, i, j):
         lo, hi = min(i, j), max(i, j)
-        return self.var_to_idx[f"U_P{lo}_P{hi}"]
+        key = f"U_P{lo}_P{hi}"
+        if key not in self.var_to_idx:
+            raise KeyError(
+                f"Cross-partition variable {key} not in index. "
+                f"Cross-partition group variables were removed in this version."
+            )
+        return self.var_to_idx[key]
     def cross_idx(self, i, j):       return self.get_cross_edge_idx(i, j)
 
     def n(self):                     return len(self.partitions)
@@ -135,8 +151,6 @@ class Inequality:
         return result
 
     def active_yst(self) -> Set[int]:
-        # Read directly from coefficient vector — always accurate
-        # regardless of how the inequality was built or combined.
         return {
             i for i in range(len(self.index.partitions))
             if self.coeffs[self.index.get_yst_idx(i)] > 1e-9
@@ -148,9 +162,6 @@ class Inequality:
         return float(self.coeffs[self.index.get_yi_idx()])
 
     def yi_coeff(self) -> float:
-        # FIX: return the actual Y_I coefficient only.
-        # The original fabricated a 1.0 when internal session terms existed —
-        # those are completely different variables (Y_I_P{i} != Y_I).
         return self.get_yi_coefficient()
 
     def get_rhs_edge_coefficient(self) -> float:
@@ -162,7 +173,6 @@ class Inequality:
         return total
 
     def rhs_edge_sum(self) -> float:
-        # alias used by verify_math.py
         return self.get_rhs_edge_coefficient()
 
     def get_lhs_internal_coefficient(self) -> float:
@@ -174,7 +184,6 @@ class Inequality:
         return total
 
     def internal_coeff_sum(self) -> float:
-        # alias used by verify_math.py
         return self.get_lhs_internal_coefficient()
 
     # --- terminal form check ---
@@ -182,12 +191,11 @@ class Inequality:
     def check_valid_terminal_form(self, tol: float = 1e-4) -> bool:
         """
         Valid terminal form:
-            c1*h(Y_I) + Σ coeff_i*h(Y_I(Pi,Pi)) <= c3*Σh(U_e)
+            c1*h(Y_I) + Sigma coeff_i*h(Y_I(Pi,Pi)) <= c3*Sigma h(U_e)
 
         Conditions:
         1. h(Y_I) coefficient c1 > 0
         2. All Y_ST coefficients negligible (< tol * c1)
-           Tolerance handles floating point residuals from combinations.
         3. RHS edge sum c3 > 0
         4. No positive source entropy terms remaining on LHS
         """
@@ -217,14 +225,9 @@ class Inequality:
         internal_per_part : List[int]
     ) -> float:
         """
-        From: c1*h(Y_I) + Σ_i coeff_i*h(Y_I(Pi,Pi)) <= c3*Σh(U_e)
+        From: c1*h(Y_I) + Sigma_i coeff_i*h(Y_I(Pi,Pi)) <= c3*Sigma h(U_e)
         Using h(Y_i) >= r*log_b and h(U_e) <= log_b:
-            r <= c3 / (c1*|I| + Σ_i coeff_i*|I(Pi,Pi)|)
-
-        Args:
-            num_sessions      : |I| total number of sessions
-            num_edges         : |E| total edges (for reference only)
-            internal_per_part : list of |I(Pi,Pi)| for each partition Pi
+            r <= c3 / (c1*|I| + Sigma_i coeff_i*|I(Pi,Pi)|)
 
         NOTE: c3 already counts edge capacity — do NOT multiply by num_edges.
         """
@@ -255,7 +258,7 @@ class Inequality:
             if abs(coeff) > 1e-9:
                 var = self.index.idx_to_var[idx]
                 if coeff > 0:
-                    lhs.append(f"{coeff:.2f}·{var}")
+                    lhs.append(f"{coeff:.2f}*{var}")
                 else:
-                    rhs.append(f"{abs(coeff):.2f}·{var}")
-        return f"{' + '.join(lhs) or '0'} ≤ {' + '.join(rhs) or '0'}" 
+                    rhs.append(f"{abs(coeff):.2f}*{var}")
+        return f"{' + '.join(lhs) or '0'} <= {' + '.join(rhs) or '0'}"

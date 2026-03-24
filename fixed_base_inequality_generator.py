@@ -8,11 +8,6 @@ For each Pi:
          +1 on Y_I_Pi    (sessions internal to Pi)
     RHS: -1 on Y_S_v     for each v in Pi
          -1 on U_{u}_{v} for each boundary edge of Pi
-
-FIX: RHS uses ONLY individual edge variables (U_{u}_{v}).
-The previous version also wrote cross-partition group variables
-(U_P{i}_P{j}) on the RHS, double-counting every boundary edge.
-That has been removed.
 """
 
 from typing import List, Tuple, Set
@@ -44,8 +39,6 @@ def generate_base_inequalities(
             ineq.set_rhs(f"Y_S_{v}", 1.0)
 
         # RHS: individual edge signal entropy for boundary edges only
-        # FIX: removed the cross-partition group loop that was here —
-        # it was double-counting every boundary edge.
         for (u, v) in edges:
             if (u in Pi_set) != (v in Pi_set):
                 ineq.set_rhs(f"U_{u}_{v}", 1.0)
@@ -60,7 +53,7 @@ def count_internal_sessions(
     partition : List[List[str]],
     sessions  : List[Tuple[str, str]]
 ) -> int:
-    """Returns total Σ|I(Pi,Pi)| across all partition sets."""
+    """Returns total Sigma |I(Pi,Pi)| across all partition sets."""
     count = 0
     for Pi in partition:
         Pi_set = set(Pi)
@@ -87,9 +80,9 @@ def internal_per_partition(
 
 def verify_base_inequality(ineq, i, partition, sessions, edges) -> bool:
     """Verifies a base inequality has correct structure."""
-    Pi    = partition[i]
+    Pi     = partition[i]
     Pi_set = set(Pi)
-    index = ineq.index
+    index  = ineq.index
 
     if abs(ineq.coeffs[index.yst_idx(i)] - 1.0) > 1e-9:
         return False
@@ -101,9 +94,9 @@ def verify_base_inequality(ineq, i, partition, sessions, edges) -> bool:
             return False
 
     for (u, v) in edges:
-        c          = ineq.coeffs[index.edge_idx((u, v))]
+        c           = ineq.coeffs[index.edge_idx((u, v))]
         is_boundary = (u in Pi_set) != (v in Pi_set)
-        expected   = -1.0 if is_boundary else 0.0
+        expected    = -1.0 if is_boundary else 0.0
         if abs(c - expected) > 1e-9:
             return False
 
