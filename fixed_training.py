@@ -634,11 +634,11 @@ def train(stage1_episodes=10000, stage2_episodes=10000,
 if __name__ == "__main__":
     t0 = time.time()
     phase1_policy, phase2_policy, train_metrics = train(
-        stage1_episodes=100, stage2_episodes=100,
-        stage3_episodes=100, graph_dataset_size=5)
+        stage1_episodes=20000, stage2_episodes=20000,
+        stage3_episodes=20000, graph_dataset_size=5)
     eval_metrics = evaluate(
         phase1_policy, phase2_policy,
-        num_episodes=100, graph_dataset_size=5)
+        num_episodes=5000, graph_dataset_size=5)
 
     all_metrics = {**train_metrics, 'eval': eval_metrics}
     with open('training_metrics.json', 'w') as f:
