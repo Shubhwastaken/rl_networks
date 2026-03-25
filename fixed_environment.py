@@ -54,10 +54,11 @@ class ActionType(IntEnum):
     FINALIZE_PARTITION   = 9
 
 
-MAX_PHASE2_STEPS     = 40
+MAX_PHASE2_STEPS     = 20    # 40 was too generous — agent stalls
 MAX_DERIVED          = 15
 MAX_REFINEMENT_STEPS = 20
-STEP_COST            = -0.01
+STEP_COST            = -0.02 # base cost per step
+STEP_COST_AFTER_TERMINAL = -0.15  # heavy cost once terminal form exists — stop exploring
 PROOF2_PENALTY       = 0.05
 
 
@@ -309,7 +310,7 @@ class PartitionBoundEnv:
                 if idx < self.num_base:
                     self.num_base -= 1
                 self.accumulator.append(ineq)
-            return self._get_state(), STEP_COST, False
+            return self._get_state(), self._current_step_cost(), False
 
         elif action_type == ActionType.APPLY_SUBMODULARITY:
             idx_i = action.get('idx_i', 0)
@@ -343,12 +344,12 @@ class PartitionBoundEnv:
                     self._found_yi_collapse = True
                     bonus = 0.3
 
-            reward = STEP_COST + bonus + self._terminal_discovery_bonus()
+            reward = self._current_step_cost() + bonus + self._terminal_discovery_bonus()
             return self._get_state(), reward, False
 
         elif action_type == ActionType.APPLY_PROOF2:
             if self._proof2_used:
-                return self._get_state(), STEP_COST - 0.1, False
+                return self._get_state(), self._current_step_cost() - 0.1, False
             self._proof2_used = True
             try:
                 final = apply_n2_submodularity_all_at_once(
@@ -360,8 +361,28 @@ class PartitionBoundEnv:
             self.combination_log.append({
                 'step': self.phase2_steps, 'action': 'PROOF2',
             })
-            reward = STEP_COST - PROOF2_PENALTY + self._terminal_discovery_bonus()
-            return self._get_state(), reward, False
+
+            # Check if PROOF2 produced a valid terminal form — if so, auto-terminate
+            # This is the key fix: the agent was doing PROOF2 then continuing to
+            # ADD/SUB for 30+ more steps without ever declaring terminal
+            best_bound = None
+            for ineq in self.pool + self.accumulator + self.stored_derived:
+                if ineq.check_valid_terminal_form():
+                    bound = ineq.extract_bound(
+                        len(self.sessions), len(self.edges),
+                        self.internal_per_part
+                    )
+                    if best_bound is None or bound < best_bound:
+                        best_bound = bound
+
+            if best_bound is not None:
+                # Auto-terminate with the bound — small penalty for using PROOF2
+                reward = -best_bound - PROOF2_PENALTY
+                return self._get_state(), reward, True
+            else:
+                # PROOF2 failed to produce terminal form (shouldn't happen but be safe)
+                reward = self._current_step_cost() - PROOF2_PENALTY
+                return self._get_state(), reward, False
 
         elif action_type == ActionType.STORE_AND_RESET:
             if self.accumulator:
@@ -370,7 +391,7 @@ class PartitionBoundEnv:
                     combined = combined.add(ineq)
                 self.stored_derived.append(combined)
                 self.accumulator = []
-            return self._get_state(), STEP_COST, False
+            return self._get_state(), self._current_step_cost(), False
 
         elif action_type == ActionType.COMBINE_STORED:
             idx_i = action.get('idx_i', 0)
@@ -386,7 +407,7 @@ class PartitionBoundEnv:
                     if k not in (idx_i, idx_j)
                 ]
                 self.pool.append(combined)
-            return self._get_state(), STEP_COST, False
+            return self._get_state(), self._current_step_cost(), False
 
         elif action_type == ActionType.DECLARE_TERMINAL:
             if self.phase2_steps < self.min_phase2_steps:
@@ -406,7 +427,13 @@ class PartitionBoundEnv:
             reward = -best_bound if best_bound is not None else -worst_case_bound
             return self._get_state(), reward, True
 
-        return self._get_state(), STEP_COST, False
+        return self._get_state(), self._current_step_cost(), False
+
+    def _current_step_cost(self) -> float:
+        """Escalating step cost: heavier once a valid terminal form exists."""
+        if self._found_terminal:
+            return STEP_COST_AFTER_TERMINAL
+        return STEP_COST
 
     def _terminal_discovery_bonus(self) -> float:
         if self._found_terminal:

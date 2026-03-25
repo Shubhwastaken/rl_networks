@@ -128,6 +128,16 @@ class GNNPhase1Policy:
         self._rewards: List[float] = []
         self._entropies: List[torch.Tensor] = []
 
+    def reset_scheduler(self, total_episodes: int = None):
+        """Reset LR scheduler and entropy for a new training stage."""
+        if total_episodes is not None:
+            self.total_episodes = total_episodes
+        self._episode_count = 0
+        self.entropy_coeff = self.entropy_coeff_start
+        self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            self.optimizer, T_max=max(self.total_episodes, 1), eta_min=1e-5
+        )
+
     def select_action(self, state: dict, valid_actions: List[dict]) -> dict:
         x, adj, node_map = self._build_tensors(state)
         h = self.net(x, adj)
@@ -407,6 +417,16 @@ class GNNPhase2Policy:
         for p in self.net.parameters():
             p.requires_grad = True
         self._frozen = False
+
+    def reset_scheduler(self, total_episodes: int = None):
+        """Reset LR scheduler and entropy for a new training stage."""
+        if total_episodes is not None:
+            self.total_episodes = total_episodes
+        self._episode_count = 0
+        self.entropy_coeff = self.entropy_coeff_start
+        self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            self.optimizer, T_max=max(self.total_episodes, 1), eta_min=1e-5
+        )
 
     def select_action(self, state: dict, valid_actions: List[dict]) -> dict:
         if not valid_actions:

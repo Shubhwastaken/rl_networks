@@ -1,18 +1,40 @@
 """
-Training visualization — generates 7 plots from training_metrics.json.
+Training visualization — generates publication-quality plots.
 
 Run after training:
     python fixed_training.py   # produces training_metrics.json
-    python plot_training.py    # produces training_plots.png
+    python plot_training.py    # produces training_plots.png + individual PNGs
 
-Plots:
-  1. Reward curve per stage (convergence)
-  2. Internal sessions over training (Phase 1 learning)
-  3. Per-graph optimal rate over time (rolling window)
-  4. Episode length over training (reward hacking check)
-  5. Action distribution per stage (strategy analysis)
-  6. Per-graph bound gap boxplot (evaluation quality)
-  7. Optimal hit rate bar chart (evaluation summary)
+6 plots that tell the complete story:
+
+1. BOUND CONVERGENCE (full training timeline)
+   - X: episode (all 3 stages concatenated)  
+   - Y: bound extracted by RL agent
+   - Shows: how the agent's bound quality improves from trivial → optimal
+   - Per-graph colored lines with rolling average
+
+2. PHASE 1: INTERNAL SESSION LEARNING CURVE
+   - X: episode (Stages 2+3)
+   - Y: rolling optimal partition rate (%) per graph
+   - Shows: which graphs Phase 1 masters first
+
+3. PHASE 2: EPISODE LENGTH OVER TRAINING
+   - X: episode (Stages 1+3)
+   - Y: steps per episode
+   - Shows: agent learns efficient action sequences (not too short, not runaway)
+
+4. BOUND GAP DISTRIBUTION (evaluation)
+   - Per-graph violin/box plot of (RL bound - optimal)
+   - Shows: final quality per graph topology
+
+5. OPTIMAL HIT RATE (evaluation)
+   - Per-graph bar chart: % of episodes where RL = optimal
+   - The bottom-line metric
+
+6. TRAINING REWARD ACROSS ALL STAGES
+   - 3 panels side by side
+   - Raw reward + smoothed curve per stage
+   - Shows: convergence within each stage
 """
 
 import json
@@ -20,359 +42,344 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 from collections import defaultdict
 
-# Graph colors — consistent across all plots
+# Consistent colors
 GRAPH_COLORS = {
-    'paper_7N':      '#1f77b4',
-    'diamond_6N':    '#ff7f0e',
-    'butterfly_8N':  '#2ca02c',
-    'grid_9N':       '#d62728',
-    'star_8N':       '#9467bd',
+    'paper_7N':      '#2166ac',
+    'diamond_6N':    '#d6604d',
+    'butterfly_8N':  '#4dac26',
+    'grid_9N':       '#b2abd2',
+    'star_8N':       '#f4a582',
 }
-STAGE_COLORS = ['#1f77b4', '#ff7f0e', '#2ca02c']
+STAGE_COLORS = ['#2166ac', '#d6604d', '#4dac26']
 
 
-def rolling_mean(data, window=50):
-    """Compute rolling mean with edge handling."""
+def rolling(data, window=100):
+    """Rolling mean with nan padding."""
     if len(data) < window:
-        window = max(1, len(data) // 3)
-    out = np.convolve(data, np.ones(window)/window, mode='valid')
-    # Pad front to match length
+        window = max(1, len(data) // 5)
+    kernel = np.ones(window) / window
+    out = np.convolve(data, kernel, mode='valid')
     pad = np.full(len(data) - len(out), np.nan)
     return np.concatenate([pad, out])
 
 
-def rolling_rate(binary_data, window=50):
-    """Rolling hit rate for binary (0/1) data."""
-    if len(binary_data) < window:
-        window = max(1, len(binary_data) // 3)
-    out = np.convolve(binary_data, np.ones(window)/window, mode='valid')
-    pad = np.full(len(binary_data) - len(out), np.nan)
-    return np.concatenate([pad, out]) * 100  # percentage
-
-
 def load_metrics(path='training_metrics.json'):
-    with open(path, 'r') as f:
+    with open(path) as f:
         return json.load(f)
 
 
-# -----------------------------------------------------------------------
-# Plot 1: Reward curve per stage
-# -----------------------------------------------------------------------
-def plot_reward_curves(fig, axes, metrics):
-    for idx, (stage, label, color) in enumerate([
-        ('stage1', 'Stage 1 (Phase 2)', STAGE_COLORS[0]),
-        ('stage2', 'Stage 2 (Phase 1)', STAGE_COLORS[1]),
-        ('stage3', 'Stage 3 (Joint)',   STAGE_COLORS[2]),
-    ]):
-        ax = axes[idx]
-        data = metrics[stage]['rewards']
-        if not data:
-            continue
-        eps = np.arange(1, len(data) + 1)
-        ax.plot(eps, data, alpha=0.15, color=color, linewidth=0.5)
-        rm = rolling_mean(data)
-        ax.plot(eps, rm, color=color, linewidth=2, label=f'Rolling avg')
-        ax.set_title(label, fontsize=10, fontweight='bold')
-        ax.set_xlabel('Episode')
-        ax.set_ylabel('Total Reward')
-        ax.legend(fontsize=8)
-        ax.grid(True, alpha=0.3)
+def plot_bound_convergence(ax, metrics):
+    """Plot 1: Bound quality across entire training (all stages)."""
+    # Collect bounds per graph across all stages with step counts
+    per_graph = defaultdict(lambda: {'eps': [], 'bounds': []})
+    
+    global_ep = 0
+    for stage_key in ['stage1', 'stage3']:
+        s = metrics.get(stage_key, {})
+        bounds = s.get('bounds', [])
+        names = s.get('graph_names', [])
+        for b, g in zip(bounds, names):
+            per_graph[g]['eps'].append(global_ep)
+            per_graph[g]['bounds'].append(b)
+            global_ep += 1
 
-
-# -----------------------------------------------------------------------
-# Plot 2: Internal sessions over training (Stages 2 & 3)
-# -----------------------------------------------------------------------
-def plot_internal_sessions(ax, metrics):
-    # Stage 2
-    s2 = metrics['stage2'].get('internals', [])
-    # Stage 3
-    s3 = metrics['stage3'].get('internals', [])
-
-    combined = s2 + s3
-    if not combined:
-        return
-
-    eps = np.arange(1, len(combined) + 1)
-    ax.scatter(eps, combined, alpha=0.1, s=5, color='#2ca02c')
-    rm = rolling_mean(combined)
-    ax.plot(eps, rm, color='#2ca02c', linewidth=2, label='Rolling avg')
-
-    # Mark stage boundary
-    if s2:
-        ax.axvline(x=len(s2), color='gray', linestyle='--', alpha=0.5,
-                    label='Stage 2→3 boundary')
-
-    ax.set_title('Internal Sessions Over Training', fontsize=10,
-                  fontweight='bold')
-    ax.set_xlabel('Episode (Stage 2 + Stage 3)')
-    ax.set_ylabel('Internal Sessions Found')
-    ax.legend(fontsize=8)
-    ax.grid(True, alpha=0.3)
-
-
-# -----------------------------------------------------------------------
-# Plot 3: Per-graph optimal rate over time (Stage 3)
-# -----------------------------------------------------------------------
-def plot_per_graph_optimal_rate(ax, metrics):
-    s3 = metrics['stage3']
-    names  = s3.get('graph_names', [])
-    hits   = s3.get('optimal_int_hit', [])
-
-    if not names or not hits:
-        return
-
-    # Group by graph, maintaining order
-    per_graph_hits = defaultdict(list)
-    for name, hit in zip(names, hits):
-        per_graph_hits[name].append(hit)
-
-    # For each graph, compute rolling rate in its own subsequence
-    for gname in sorted(per_graph_hits.keys()):
-        gdata = per_graph_hits[gname]
-        if len(gdata) < 5:
-            continue
-        window = max(10, len(gdata) // 10)
-        rate = rolling_rate(gdata, window)
-        eps = np.arange(1, len(rate) + 1)
-        color = GRAPH_COLORS.get(gname, 'gray')
-        ax.plot(eps, rate, color=color, linewidth=1.5, label=gname)
-
-    ax.set_title('Per-Graph Optimal Partition Rate (Stage 3)', fontsize=10,
-                  fontweight='bold')
-    ax.set_xlabel('Episode (per graph)')
-    ax.set_ylabel('Optimal Rate (%)')
-    ax.set_ylim(-5, 105)
-    ax.legend(fontsize=7, ncol=2)
-    ax.grid(True, alpha=0.3)
-
-
-# -----------------------------------------------------------------------
-# Plot 4: Episode length (Phase 2 steps) over training
-# -----------------------------------------------------------------------
-def plot_episode_length(ax, metrics):
-    # Stage 1 has step counts
-    s1_steps = metrics['stage1'].get('step_counts', [])
-    s3_steps = metrics['stage3'].get('step_counts', [])
-
-    combined = s1_steps + s3_steps
-    if not combined:
-        return
-
-    eps = np.arange(1, len(combined) + 1)
-    ax.scatter(eps, combined, alpha=0.1, s=5, color='#d62728')
-    rm = rolling_mean(combined)
-    ax.plot(eps, rm, color='#d62728', linewidth=2, label='Rolling avg')
-
-    if s1_steps:
-        ax.axvline(x=len(s1_steps), color='gray', linestyle='--', alpha=0.5,
-                    label='Stage 1→3 boundary')
-
-    ax.set_title('Phase 2 Episode Length', fontsize=10, fontweight='bold')
-    ax.set_xlabel('Episode (Stage 1 + Stage 3)')
-    ax.set_ylabel('Steps per Episode')
-    ax.legend(fontsize=8)
-    ax.grid(True, alpha=0.3)
-
-
-# -----------------------------------------------------------------------
-# Plot 5: Action distribution per stage
-# -----------------------------------------------------------------------
-def plot_action_distribution(ax, metrics):
-    # Count total actions across all episodes per stage
-    stage_actions = {}
-
-    for stage_key, label in [('stage1', 'Stage 1'), ('stage3', 'Stage 3')]:
-        counts = defaultdict(int)
-        for ep_counts in metrics[stage_key].get('action_counts_per_ep', []):
-            for action, count in ep_counts.items():
-                counts[action] += count
-        stage_actions[label] = dict(counts)
-
-    if not stage_actions:
-        return
-
-    # Collect all action types
-    all_actions = sorted(set(
-        a for counts in stage_actions.values() for a in counts
-    ))
-
-    short_names = {
-        "ADD_TO_ACCUMULATOR": "ADD", "APPLY_SUBMODULARITY": "SUB",
-        "APPLY_PROOF2": "P2", "STORE_AND_RESET": "STO",
-        "COMBINE_STORED": "CMB", "DECLARE_TERMINAL": "TRM"
+    # Optimal bounds for reference lines
+    opt_bounds = {
+        'paper_7N': 1.6667, 'diamond_6N': 1.75, 'butterfly_8N': 1.5,
+        'grid_9N': 2.0, 'star_8N': 2.25
     }
 
-    x = np.arange(len(stage_actions))
-    width = 0.12
-    action_colors = plt.cm.Set2(np.linspace(0, 1, len(all_actions)))
+    for gname in sorted(per_graph.keys()):
+        data = per_graph[gname]
+        eps = np.array(data['eps'])
+        bounds = np.array(data['bounds'])
+        color = GRAPH_COLORS.get(gname, 'gray')
+        
+        ax.scatter(eps, bounds, alpha=0.03, s=2, color=color)
+        
+        # Rolling mean within this graph's subsequence
+        if len(bounds) > 20:
+            window = max(20, len(bounds) // 20)
+            rm = rolling(bounds, window)
+            ax.plot(eps, rm, color=color, linewidth=2, label=gname)
 
-    for i, action in enumerate(all_actions):
-        vals = []
-        for label in stage_actions:
-            total = sum(stage_actions[label].values()) or 1
-            vals.append(100 * stage_actions[label].get(action, 0) / total)
-        short = short_names.get(action, action[:3])
-        ax.bar(x + i * width, vals, width, label=short,
-               color=action_colors[i])
+    # Draw optimal lines
+    for gname, opt in opt_bounds.items():
+        color = GRAPH_COLORS.get(gname, 'gray')
+        ax.axhline(y=opt, color=color, linestyle=':', alpha=0.4, linewidth=1)
 
-    ax.set_title('Action Distribution (%)', fontsize=10, fontweight='bold')
-    ax.set_xticks(x + width * len(all_actions) / 2)
-    ax.set_xticklabels(list(stage_actions.keys()))
-    ax.set_ylabel('Fraction (%)')
-    ax.legend(fontsize=7, ncol=3, loc='upper right')
-    ax.grid(True, alpha=0.3, axis='y')
+    ax.set_xlabel('Episode (Stage 1 + Stage 3)', fontsize=11)
+    ax.set_ylabel('Bound (lower = better)', fontsize=11)
+    ax.set_title('Bound Convergence Across Training', fontsize=13, fontweight='bold')
+    ax.legend(fontsize=8, loc='upper right', ncol=2)
+    ax.grid(True, alpha=0.2)
 
 
-# -----------------------------------------------------------------------
-# Plot 6: Per-graph bound gap boxplot (evaluation)
-# -----------------------------------------------------------------------
-def plot_eval_gap_boxplot(ax, metrics):
-    eval_data = metrics.get('eval', {})
-    names = eval_data.get('graph_names', [])
-    gaps  = eval_data.get('gaps', [])
+def plot_phase1_learning(ax, metrics):
+    """Plot 2: Per-graph optimal partition rate over Stage 2+3."""
+    per_graph = defaultdict(list)
+    
+    for stage_key in ['stage2', 'stage3']:
+        s = metrics.get(stage_key, {})
+        names = s.get('graph_names', [])
+        hits = s.get('optimal_int_found', s.get('optimal_int_hit', []))
+        for g, h in zip(names, hits):
+            per_graph[g].append(h)
+
+    for gname in sorted(per_graph.keys()):
+        data = per_graph[gname]
+        if len(data) < 10:
+            continue
+        window = max(20, len(data) // 15)
+        rate = rolling(data, window) * 100
+        eps = np.arange(len(rate))
+        color = GRAPH_COLORS.get(gname, 'gray')
+        ax.plot(eps, rate, color=color, linewidth=2, label=gname)
+
+    ax.set_xlabel('Episode (per graph, Stage 2 + Stage 3)', fontsize=11)
+    ax.set_ylabel('Optimal Partition Found (%)', fontsize=11)
+    ax.set_title('Phase 1: Partition Quality Over Training', fontsize=13, fontweight='bold')
+    ax.set_ylim(-5, 105)
+    ax.legend(fontsize=8, ncol=2)
+    ax.grid(True, alpha=0.2)
+
+
+def plot_episode_length(ax, metrics):
+    """Plot 3: Phase 2 steps per episode."""
+    all_steps = []
+    
+    for stage_key in ['stage1', 'stage3']:
+        s = metrics.get(stage_key, {})
+        all_steps.extend(s.get('step_counts', []))
+
+    if not all_steps:
+        return
+
+    eps = np.arange(len(all_steps))
+    ax.scatter(eps, all_steps, alpha=0.05, s=3, color='#555555')
+    
+    rm = rolling(all_steps, max(50, len(all_steps)//30))
+    ax.plot(eps, rm, color='#d62728', linewidth=2.5, label='Rolling avg')
+
+    # Mark stage boundary
+    s1_len = len(metrics.get('stage1', {}).get('step_counts', []))
+    if s1_len > 0 and s1_len < len(all_steps):
+        ax.axvline(x=s1_len, color='gray', linestyle='--', alpha=0.5,
+                    linewidth=1, label='Stage 1→3')
+
+    ax.set_xlabel('Episode (Stage 1 + Stage 3)', fontsize=11)
+    ax.set_ylabel('Phase 2 Steps', fontsize=11)
+    ax.set_title('Episode Length (Efficiency)', fontsize=13, fontweight='bold')
+    ax.legend(fontsize=9)
+    ax.grid(True, alpha=0.2)
+
+
+def plot_eval_gap_violin(ax, metrics):
+    """Plot 4: Per-graph bound gap distribution at evaluation."""
+    ev = metrics.get('eval', {})
+    names = ev.get('graph_names', [])
+    gaps = ev.get('gaps', [])
 
     if not names or not gaps:
         return
 
-    per_graph_gaps = defaultdict(list)
-    for name, gap in zip(names, gaps):
-        per_graph_gaps[name].append(gap)
+    per_graph = defaultdict(list)
+    for g, gap in zip(names, gaps):
+        per_graph[g].append(gap)
 
-    sorted_names = sorted(per_graph_gaps.keys())
-    box_data = [per_graph_gaps[n] for n in sorted_names]
+    sorted_names = sorted(per_graph.keys())
+    data = [per_graph[n] for n in sorted_names]
     colors = [GRAPH_COLORS.get(n, 'gray') for n in sorted_names]
 
-    bp = ax.boxplot(box_data, tick_labels=sorted_names, patch_artist=True,
-                     widths=0.5, showfliers=True,
-                     flierprops=dict(marker='.', markersize=3, alpha=0.3))
+    parts = ax.violinplot(data, positions=range(len(sorted_names)),
+                           showmeans=True, showmedians=True)
+    
+    for i, pc in enumerate(parts['bodies']):
+        pc.set_facecolor(colors[i])
+        pc.set_alpha(0.6)
+    parts['cmeans'].set_color('black')
+    parts['cmedians'].set_color('red')
 
-    for patch, color in zip(bp['boxes'], colors):
-        patch.set_facecolor(color)
-        patch.set_alpha(0.5)
-
-    ax.axhline(y=0, color='green', linestyle='--', alpha=0.5, label='Optimal')
-    ax.set_title('Bound Gap Distribution (Eval)', fontsize=10,
-                  fontweight='bold')
-    ax.set_ylabel('RL Bound − Optimal')
-    ax.tick_params(axis='x', rotation=30)
-    ax.legend(fontsize=8)
-    ax.grid(True, alpha=0.3, axis='y')
+    ax.set_xticks(range(len(sorted_names)))
+    ax.set_xticklabels(sorted_names, rotation=25, fontsize=9)
+    ax.axhline(y=0, color='green', linestyle='--', alpha=0.7, linewidth=1.5,
+                label='Optimal (gap=0)')
+    ax.set_ylabel('RL Bound − Optimal', fontsize=11)
+    ax.set_title('Evaluation: Bound Gap per Graph', fontsize=13, fontweight='bold')
+    ax.legend(fontsize=9)
+    ax.grid(True, alpha=0.2, axis='y')
 
 
-# -----------------------------------------------------------------------
-# Plot 7: Optimal hit rate bar chart (evaluation)
-# -----------------------------------------------------------------------
-def plot_eval_optimal_rate(ax, metrics):
-    eval_data = metrics.get('eval', {})
-    names      = eval_data.get('graph_names', [])
-    rl_bounds  = eval_data.get('rl_bounds', [])
-    opt_bounds = eval_data.get('opt_bounds', [])
+def plot_eval_hit_rate(ax, metrics):
+    """Plot 5: Per-graph optimal hit rate bar chart."""
+    ev = metrics.get('eval', {})
+    names = ev.get('graph_names', [])
+    rl_bounds = ev.get('rl_bounds', [])
+    opt_bounds_list = ev.get('opt_bounds', [])
 
     if not names:
         return
 
-    per_graph_hits = defaultdict(lambda: {'total': 0, 'optimal': 0})
-    for name, rl_b, opt_b in zip(names, rl_bounds, opt_bounds):
-        per_graph_hits[name]['total'] += 1
-        if abs(rl_b - opt_b) < 0.05:
-            per_graph_hits[name]['optimal'] += 1
+    stats = defaultdict(lambda: {'total': 0, 'hits': 0})
+    for g, rl, opt in zip(names, rl_bounds, opt_bounds_list):
+        stats[g]['total'] += 1
+        if abs(rl - opt) < 0.05:
+            stats[g]['hits'] += 1
 
-    sorted_names = sorted(per_graph_hits.keys())
-    rates  = [100 * per_graph_hits[n]['optimal'] / max(per_graph_hits[n]['total'], 1)
-              for n in sorted_names]
+    sorted_names = sorted(stats.keys())
+    rates = [100 * stats[n]['hits'] / max(stats[n]['total'], 1) for n in sorted_names]
     colors = [GRAPH_COLORS.get(n, 'gray') for n in sorted_names]
 
-    bars = ax.bar(sorted_names, rates, color=colors, alpha=0.7, edgecolor='black')
+    bars = ax.bar(range(len(sorted_names)), rates, color=colors, alpha=0.8,
+                   edgecolor='black', linewidth=0.8)
 
-    for bar, rate in zip(bars, rates):
-        ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1,
-                f'{rate:.1f}%', ha='center', fontsize=8, fontweight='bold')
+    for i, (bar, rate) in enumerate(zip(bars, rates)):
+        ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1.5,
+                f'{rate:.1f}%', ha='center', fontsize=10, fontweight='bold')
 
-    ax.set_title('Optimal Bound Hit Rate (Eval)', fontsize=10,
-                  fontweight='bold')
-    ax.set_ylabel('Hit Rate (%)')
-    ax.set_ylim(0, max(max(rates) * 1.2, 10) if rates else 10)
-    ax.tick_params(axis='x', rotation=30)
-    ax.grid(True, alpha=0.3, axis='y')
+    ax.set_xticks(range(len(sorted_names)))
+    ax.set_xticklabels(sorted_names, rotation=25, fontsize=9)
+    ax.set_ylabel('Optimal Bound Hit Rate (%)', fontsize=11)
+    ax.set_title('Evaluation: Optimal Rate per Graph', fontsize=13, fontweight='bold')
+    ax.set_ylim(0, min(max(rates) * 1.3, 100) if rates else 10)
+    ax.grid(True, alpha=0.2, axis='y')
 
 
-# -----------------------------------------------------------------------
-# Main
-# -----------------------------------------------------------------------
+def plot_stage_rewards(axes, metrics):
+    """Plot 6: Reward curves per stage (3 panels)."""
+    stage_info = [
+        ('stage1', 'Stage 1: Phase 2 Training', STAGE_COLORS[0]),
+        ('stage2', 'Stage 2: Phase 1 Training', STAGE_COLORS[1]),
+        ('stage3', 'Stage 3: Joint Fine-tuning', STAGE_COLORS[2]),
+    ]
+
+    for ax, (key, title, color) in zip(axes, stage_info):
+        s = metrics.get(key, {})
+        rewards = s.get('rewards', [])
+        if not rewards:
+            continue
+
+        eps = np.arange(1, len(rewards) + 1)
+        ax.plot(eps, rewards, alpha=0.08, color=color, linewidth=0.3)
+        
+        rm = rolling(rewards, max(30, len(rewards)//25))
+        ax.plot(eps, rm, color=color, linewidth=2.5)
+
+        ax.set_title(title, fontsize=11, fontweight='bold')
+        ax.set_xlabel('Episode', fontsize=10)
+        ax.set_ylabel('Reward', fontsize=10)
+        ax.grid(True, alpha=0.2)
+
+        # Add text with final avg
+        last_n = max(len(rewards)//10, 10)
+        final_avg = np.mean(rewards[-last_n:])
+        ax.text(0.98, 0.05, f'Final avg: {final_avg:.3f}',
+                transform=ax.transAxes, ha='right', fontsize=9,
+                bbox=dict(boxstyle='round,pad=0.3', facecolor='white', alpha=0.8))
+
 
 def main():
     metrics = load_metrics()
 
-    fig = plt.figure(figsize=(22, 16))
-    fig.suptitle('RL Partition Bound Training Report', fontsize=16,
-                  fontweight='bold', y=0.98)
+    # ============================================================
+    # Combined dashboard (2 rows x 3 cols)
+    # ============================================================
+    fig = plt.figure(figsize=(20, 13))
+    fig.suptitle('RL Partition Bound — Training Report',
+                  fontsize=16, fontweight='bold', y=0.98)
 
-    # Layout: 3 rows
-    # Row 1: 3 reward curves (one per stage)
-    # Row 2: internal sessions | per-graph optimal rate | episode length
-    # Row 3: action distribution | eval gap boxplot | eval optimal rate
+    # Row 1: Convergence story
+    ax1 = fig.add_subplot(2, 3, 1)
+    plot_bound_convergence(ax1, metrics)
 
-    # Row 1
-    ax1a = fig.add_subplot(3, 3, 1)
-    ax1b = fig.add_subplot(3, 3, 2)
-    ax1c = fig.add_subplot(3, 3, 3)
-    plot_reward_curves(fig, [ax1a, ax1b, ax1c], metrics)
+    ax2 = fig.add_subplot(2, 3, 2)
+    plot_phase1_learning(ax2, metrics)
 
-    # Row 2
-    ax2a = fig.add_subplot(3, 3, 4)
-    plot_internal_sessions(ax2a, metrics)
+    ax3 = fig.add_subplot(2, 3, 3)
+    plot_episode_length(ax3, metrics)
 
-    ax2b = fig.add_subplot(3, 3, 5)
-    plot_per_graph_optimal_rate(ax2b, metrics)
+    # Row 2: Evaluation + stage rewards
+    ax4 = fig.add_subplot(2, 3, 4)
+    plot_eval_gap_violin(ax4, metrics)
 
-    ax2c = fig.add_subplot(3, 3, 6)
-    plot_episode_length(ax2c, metrics)
+    ax5 = fig.add_subplot(2, 3, 5)
+    plot_eval_hit_rate(ax5, metrics)
 
-    # Row 3
-    ax3a = fig.add_subplot(3, 3, 7)
-    plot_action_distribution(ax3a, metrics)
-
-    ax3b = fig.add_subplot(3, 3, 8)
-    plot_eval_gap_boxplot(ax3b, metrics)
-
-    ax3c = fig.add_subplot(3, 3, 9)
-    plot_eval_optimal_rate(ax3c, metrics)
+    # Stage rewards as inset in position 6
+    ax6a = fig.add_subplot(2, 3, 6)
+    # Use the single panel for Stage 3 reward (most important)
+    s3 = metrics.get('stage3', {})
+    rewards = s3.get('rewards', [])
+    if rewards:
+        eps = np.arange(1, len(rewards) + 1)
+        ax6a.plot(eps, rewards, alpha=0.08, color=STAGE_COLORS[2], linewidth=0.3)
+        rm = rolling(rewards, max(30, len(rewards)//25))
+        ax6a.plot(eps, rm, color=STAGE_COLORS[2], linewidth=2.5)
+        ax6a.set_title('Stage 3: Joint Reward Curve', fontsize=11, fontweight='bold')
+        ax6a.set_xlabel('Episode', fontsize=10)
+        ax6a.set_ylabel('Reward', fontsize=10)
+        ax6a.grid(True, alpha=0.2)
+        last_n = max(len(rewards)//10, 10)
+        ax6a.text(0.98, 0.05, f'Final avg: {np.mean(rewards[-last_n:]):.3f}',
+                  transform=ax6a.transAxes, ha='right', fontsize=9,
+                  bbox=dict(boxstyle='round,pad=0.3', facecolor='white', alpha=0.8))
 
     plt.tight_layout(rect=[0, 0, 1, 0.96])
-    plt.savefig('training_plots.png', dpi=150, bbox_inches='tight',
-                facecolor='white')
+    plt.savefig('training_plots.png', dpi=150, bbox_inches='tight', facecolor='white')
     print("Saved: training_plots.png")
+    plt.close()
 
-    # Also save individual high-res plots for the review paper
-    for name, plot_func, args in [
-        ('plot_reward_curves', None, None),  # special handling
-        ('plot_internal_sessions', plot_internal_sessions, metrics),
-        ('plot_per_graph_optimal_rate', plot_per_graph_optimal_rate, metrics),
-        ('plot_episode_length', plot_episode_length, metrics),
-        ('plot_action_distribution', plot_action_distribution, metrics),
-        ('plot_eval_gap_boxplot', plot_eval_gap_boxplot, metrics),
-        ('plot_eval_optimal_rate', plot_eval_optimal_rate, metrics),
-    ]:
-        if plot_func is None:
-            # Reward curves need 3 subplots
-            fig2, axes2 = plt.subplots(1, 3, figsize=(15, 4))
-            plot_reward_curves(fig2, axes2, metrics)
-            fig2.tight_layout()
-            fig2.savefig(f'plot_reward_curves.png', dpi=150,
-                          bbox_inches='tight', facecolor='white')
-            plt.close(fig2)
-        else:
-            fig2, ax2 = plt.subplots(1, 1, figsize=(7, 5))
-            plot_func(ax2, args)
-            fig2.tight_layout()
-            fig2.savefig(f'{name}.png', dpi=150, bbox_inches='tight',
-                          facecolor='white')
-            plt.close(fig2)
+    # ============================================================
+    # Individual high-res plots for the review
+    # ============================================================
+    
+    # 1. Bound convergence
+    fig, ax = plt.subplots(figsize=(10, 6))
+    plot_bound_convergence(ax, metrics)
+    fig.tight_layout()
+    fig.savefig('plot_bound_convergence.png', dpi=200, bbox_inches='tight', facecolor='white')
+    plt.close()
+
+    # 2. Phase 1 learning
+    fig, ax = plt.subplots(figsize=(10, 6))
+    plot_phase1_learning(ax, metrics)
+    fig.tight_layout()
+    fig.savefig('plot_phase1_learning.png', dpi=200, bbox_inches='tight', facecolor='white')
+    plt.close()
+
+    # 3. Episode length
+    fig, ax = plt.subplots(figsize=(10, 6))
+    plot_episode_length(ax, metrics)
+    fig.tight_layout()
+    fig.savefig('plot_episode_length.png', dpi=200, bbox_inches='tight', facecolor='white')
+    plt.close()
+
+    # 4. Eval gap violin
+    fig, ax = plt.subplots(figsize=(9, 6))
+    plot_eval_gap_violin(ax, metrics)
+    fig.tight_layout()
+    fig.savefig('plot_eval_gap.png', dpi=200, bbox_inches='tight', facecolor='white')
+    plt.close()
+
+    # 5. Eval hit rate
+    fig, ax = plt.subplots(figsize=(9, 6))
+    plot_eval_hit_rate(ax, metrics)
+    fig.tight_layout()
+    fig.savefig('plot_eval_hitrate.png', dpi=200, bbox_inches='tight', facecolor='white')
+    plt.close()
+
+    # 6. All 3 stage rewards side by side
+    fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+    plot_stage_rewards(axes, metrics)
+    fig.suptitle('Reward Convergence Per Stage', fontsize=14, fontweight='bold')
+    fig.tight_layout(rect=[0, 0, 1, 0.93])
+    fig.savefig('plot_stage_rewards.png', dpi=200, bbox_inches='tight', facecolor='white')
+    plt.close()
 
     print("Saved individual plots: plot_*.png")
-    plt.close('all')
 
 
 if __name__ == "__main__":

@@ -178,7 +178,7 @@ def run_stage1(num_episodes=10000, graph_dataset_size=5):
         'step_counts': [], 'action_counts_per_ep': []
     }
 
-    log_interval = max(num_episodes // 15, 1)
+    log_interval = 100
     print(f"\n  {'Ep':>6} | {'Graph':<16} | {'AvgRew':>8} | {'BestBnd':>8} | Actions")
     print(f"  {'-'*75}")
 
@@ -268,7 +268,7 @@ def run_stage2(phase2_policy, num_episodes=10000, graph_dataset_size=5):
         'optimal_int_found': []
     }
 
-    log_interval = max(num_episodes // 15, 1)
+    log_interval = 100
     print(f"\n  {'Ep':>6} | {'Graph':<16} | {'AvgRew':>8} | {'BestBnd':>8} | "
           f"{'Int':>3} | P1 Actions")
     print(f"  {'-'*80}")
@@ -365,6 +365,8 @@ def run_stage3(phase1_policy, phase2_policy, num_episodes=10000,
     print("=" * 70)
 
     phase2_policy.unfreeze()
+    phase2_policy.reset_scheduler(total_episodes=num_episodes)
+    phase1_policy.reset_scheduler(total_episodes=num_episodes)
     env = PartitionBoundEnv(graph_dataset_size=graph_dataset_size, stage=3)
     rewards = []
     internals = []
@@ -376,7 +378,7 @@ def run_stage3(phase1_policy, phase2_policy, num_episodes=10000,
         'step_counts': [], 'optimal_bound_hit': [], 'optimal_int_hit': []
     }
 
-    log_interval = max(num_episodes // 15, 1)
+    log_interval = 100
     print(f"\n  {'Ep':>6} | {'Graph':<16} | {'AvgRew':>8} | {'BestBnd':>8} | "
           f"{'Int':>3} | P2 Actions")
     print(f"  {'-'*80}")
@@ -506,7 +508,7 @@ def evaluate(phase1_policy, phase2_policy, num_episodes=2000,
         'internals': [], 'opt_internals': [], 'graph_names': []
     }
 
-    log_interval = max(num_episodes // 20, 1)
+    log_interval = 100
 
     for episode in range(num_episodes):
         graph_tuple = random.choice(env.graph_dataset)
@@ -641,6 +643,82 @@ if __name__ == "__main__":
     all_metrics = {**train_metrics, 'eval': eval_metrics}
     with open('training_metrics.json', 'w') as f:
         json.dump(all_metrics, f)
+
+    runtime = time.time() - t0
     print(f"\nMetrics saved to training_metrics.json")
-    print(f"TOTAL RUNTIME: {time.time()-t0:.1f}s ({(time.time()-t0)/60:.1f} min)")
-    print(f"Run 'python plot_training.py' to generate plots.")
+    print(f"TOTAL RUNTIME: {runtime:.1f}s ({runtime/60:.1f} min)")
+
+    # Auto-generate plots
+    print("\n--- Generating plots ---")
+    try:
+        import subprocess, sys
+        # Use the same Python interpreter that's running this script
+        # so it finds numpy/matplotlib from the venv
+        subprocess.run([sys.executable, 'plot_training.py'], check=True)
+        print("Plots generated successfully.")
+    except Exception as e:
+        print(f"Plot generation failed: {e}")
+        print("Run 'python plot_training.py' manually.")
+
+    # Auto-generate graph visualization
+    try:
+        subprocess.run([sys.executable, 'visualize_graphs.py'], check=True)
+        print("Graph visualization generated.")
+    except Exception as e:
+        print(f"Graph visualization failed: {e}")
+
+    # Save training summary to a text file
+    summary_file = 'training_summary.txt'
+    with open(summary_file, 'w') as f:
+        f.write(f"Training completed at: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write(f"Runtime: {runtime:.1f}s ({runtime/60:.1f} min)\n")
+        f.write(f"Episodes: 10k/10k/10k training + 2k eval\n\n")
+        f.write("Stage 2 - Phase 1 optimal partition rates:\n")
+        from collections import Counter
+        s2 = train_metrics.get('stage2', {})
+        s2_names = s2.get('graph_names', [])
+        s2_opt = s2.get('optimal_int_found', [])
+        graph_counts = Counter(s2_names)
+        graph_hits = Counter()
+        for g, h in zip(s2_names, s2_opt):
+            if h:
+                graph_hits[g] += 1
+        for g in sorted(graph_counts.keys()):
+            rate = 100 * graph_hits[g] / max(graph_counts[g], 1)
+            f.write(f"  {g}: {rate:.1f}% ({graph_hits[g]}/{graph_counts[g]})\n")
+
+        f.write("\nEvaluation results:\n")
+        ev = eval_metrics
+        ev_names = ev.get('graph_names', [])
+        ev_rl = ev.get('rl_bounds', [])
+        ev_opt = ev.get('opt_bounds', [])
+        graph_eval = {}
+        for g, rl, opt in zip(ev_names, ev_rl, ev_opt):
+            if g not in graph_eval:
+                graph_eval[g] = {'total': 0, 'hits': 0, 'bounds': []}
+            graph_eval[g]['total'] += 1
+            graph_eval[g]['bounds'].append(rl)
+            if abs(rl - opt) < 0.05:
+                graph_eval[g]['hits'] += 1
+        for g in sorted(graph_eval.keys()):
+            s = graph_eval[g]
+            avg_b = np.mean(s['bounds'])
+            rate = 100 * s['hits'] / max(s['total'], 1)
+            f.write(f"  {g}: avg_bound={avg_b:.4f} optimal_rate={rate:.1f}%\n")
+
+    print(f"Summary saved to {summary_file}")
+
+    # Auto git push
+    print("\n--- Pushing to git ---")
+    try:
+        # Use git add --all to stage everything including new files
+        subprocess.run(['git', 'add', '--all'], check=True)
+        commit_msg = (f"Training run completed - "
+                      f"{time.strftime('%Y-%m-%d %H:%M')} - "
+                      f"runtime {runtime/60:.0f}min")
+        subprocess.run(['git', 'commit', '-m', commit_msg], check=True)
+        subprocess.run(['git', 'push'], check=True)
+        print("Git push completed successfully.")
+    except Exception as e:
+        print(f"Git push failed: {e}")
+        print("Push manually with: git add --all && git commit -m 'training results' && git push")
