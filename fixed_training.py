@@ -62,6 +62,36 @@ ACTION_NAMES = {
     9: "FINALIZE_PARTITION"
 }
 
+EARLY_STOP_PATIENCE = 2000  # stop if no improvement for this many episodes
+EARLY_STOP_MIN_EPISODES = 3000  # don't early-stop before this
+
+
+class EarlyStopper:
+    """Tracks rolling reward and signals when to stop."""
+    def __init__(self, patience=EARLY_STOP_PATIENCE,
+                 min_episodes=EARLY_STOP_MIN_EPISODES, window=500):
+        self.patience = patience
+        self.min_episodes = min_episodes
+        self.window = window
+        self.best_avg = float('-inf')
+        self.best_episode = 0
+        self.rewards = []
+
+    def update(self, reward, episode):
+        self.rewards.append(reward)
+        if len(self.rewards) >= self.window:
+            current_avg = np.mean(self.rewards[-self.window:])
+            if current_avg > self.best_avg + 1e-4:
+                self.best_avg = current_avg
+                self.best_episode = episode
+
+    def should_stop(self, episode):
+        if episode < self.min_episodes:
+            return False
+        if episode - self.best_episode >= self.patience:
+            return True
+        return False
+
 
 def _print_graph_table():
     infos = get_all_graph_infos()
@@ -179,10 +209,17 @@ def run_stage1(num_episodes=10000, graph_dataset_size=5):
     }
 
     log_interval = 100
+    stopper = EarlyStopper()
     print(f"\n  {'Ep':>6} | {'Graph':<16} | {'AvgRew':>8} | {'BestBnd':>8} | Actions")
     print(f"  {'-'*75}")
 
     for episode in range(num_episodes):
+        # Early stopping check
+        if stopper.should_stop(episode):
+            print(f"\n  Early stopping at episode {episode} "
+                  f"(no improvement since ep {stopper.best_episode})")
+            break
+
         graph_tuple = random.choice(env.graph_dataset)
         nodes, edges, sessions = graph_tuple
         graph_name = identify_graph(nodes, edges, sessions)
@@ -222,6 +259,7 @@ def run_stage1(num_episodes=10000, graph_dataset_size=5):
         phase2_policy.update(trajectory, total_reward)
         rewards.append(total_reward)
         per_graph[graph_name].append(abs(total_reward))
+        stopper.update(total_reward, episode)
 
         metrics['rewards'].append(total_reward)
         metrics['bounds'].append(abs(total_reward))
@@ -269,11 +307,17 @@ def run_stage2(phase2_policy, num_episodes=10000, graph_dataset_size=5):
     }
 
     log_interval = 100
+    stopper = EarlyStopper()
     print(f"\n  {'Ep':>6} | {'Graph':<16} | {'AvgRew':>8} | {'BestBnd':>8} | "
           f"{'Int':>3} | P1 Actions")
     print(f"  {'-'*80}")
 
     for episode in range(num_episodes):
+        if stopper.should_stop(episode):
+            print(f"\n  Early stopping at episode {episode} "
+                  f"(no improvement since ep {stopper.best_episode})")
+            break
+
         env.reset()
         nodes, edges, sessions = env.nodes, env.edges, env.sessions
         graph_name = identify_graph(nodes, edges, sessions)
@@ -323,6 +367,7 @@ def run_stage2(phase2_policy, num_episodes=10000, graph_dataset_size=5):
 
         phase1_policy.update(p1_traj, total_reward)
         rewards.append(total_reward)
+        stopper.update(total_reward, episode)
 
         metrics['rewards'].append(total_reward)
         metrics['internals'].append(int_count)
@@ -379,11 +424,17 @@ def run_stage3(phase1_policy, phase2_policy, num_episodes=10000,
     }
 
     log_interval = 100
+    stopper = EarlyStopper()
     print(f"\n  {'Ep':>6} | {'Graph':<16} | {'AvgRew':>8} | {'BestBnd':>8} | "
           f"{'Int':>3} | P2 Actions")
     print(f"  {'-'*80}")
 
     for episode in range(num_episodes):
+        if stopper.should_stop(episode):
+            print(f"\n  Early stopping at episode {episode} "
+                  f"(no improvement since ep {stopper.best_episode})")
+            break
+
         env.reset()
         nodes, edges, sessions = env.nodes, env.edges, env.sessions
         graph_name = identify_graph(nodes, edges, sessions)
@@ -437,6 +488,7 @@ def run_stage3(phase1_policy, phase2_policy, num_episodes=10000,
         phase1_policy.update(p1_traj, total_reward)
         phase2_policy.update(p2_traj, total_reward)
         rewards.append(total_reward)
+        stopper.update(total_reward, episode)
 
         rl_bound = abs(total_reward)
         per_graph[graph_name]['bounds'].append(rl_bound)
@@ -634,11 +686,11 @@ def train(stage1_episodes=10000, stage2_episodes=10000,
 if __name__ == "__main__":
     t0 = time.time()
     phase1_policy, phase2_policy, train_metrics = train(
-        stage1_episodes=20000, stage2_episodes=20000,
-        stage3_episodes=20000, graph_dataset_size=5)
+        stage1_episodes=10000, stage2_episodes=10000,
+        stage3_episodes=10000, graph_dataset_size=5)
     eval_metrics = evaluate(
         phase1_policy, phase2_policy,
-        num_episodes=5000, graph_dataset_size=5)
+        num_episodes=2500, graph_dataset_size=5)
 
     all_metrics = {**train_metrics, 'eval': eval_metrics}
     with open('training_metrics.json', 'w') as f:

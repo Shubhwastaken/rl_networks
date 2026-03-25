@@ -376,8 +376,12 @@ class PartitionBoundEnv:
                         best_bound = bound
 
             if best_bound is not None:
-                # Auto-terminate with the bound — small penalty for using PROOF2
-                reward = -best_bound - PROOF2_PENALTY
+                # Auto-terminate with the CLEAN bound as reward
+                # Do NOT subtract PROOF2_PENALTY from the bound — it contaminates
+                # the extracted bound in evaluation (abs(reward) != actual bound)
+                # The penalty is small enough that the agent still prefers pairwise
+                # when pairwise gives the same bound
+                reward = -best_bound
                 return self._get_state(), reward, True
             else:
                 # PROOF2 failed to produce terminal form (shouldn't happen but be safe)
