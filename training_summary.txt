@@ -1,17 +1,17 @@
-Training completed at: 2026-03-26 20:34:00
-Runtime: 1399.6s (23.3 min)
+Training completed at: 2026-03-27 21:18:19
+Runtime: 1610.2s (26.8 min)
 Episodes: 10k/10k/10k training + 2k eval
 
 Stage 2 - Phase 1 optimal partition rates:
-  butterfly_8N: 92.9% (951/1024)
-  diamond_6N: 95.7% (1006/1051)
-  grid_9N: 95.0% (982/1034)
-  paper_7N: 93.3% (1017/1090)
-  star_8N: 97.0% (1013/1044)
+  butterfly_8N: 95.0% (1336/1407)
+  diamond_6N: 98.0% (1402/1430)
+  grid_9N: 96.1% (1426/1484)
+  paper_7N: 93.9% (1331/1418)
+  star_8N: 97.5% (1364/1399)
 
 Evaluation results:
-  butterfly_8N: avg_bound=2.8086 optimal_rate=15.9%
-  diamond_6N: avg_bound=3.4237 optimal_rate=9.7%
-  grid_9N: avg_bound=3.7945 optimal_rate=15.0%
-  paper_7N: avg_bound=2.7638 optimal_rate=40.1%
-  star_8N: avg_bound=4.1335 optimal_rate=18.6%
+  butterfly_8N: avg_bound=2.7853 optimal_rate=14.3%
+  diamond_6N: avg_bound=3.2033 optimal_rate=17.5%
+  grid_9N: avg_bound=3.7016 optimal_rate=16.1%
+  paper_7N: avg_bound=2.8492 optimal_rate=29.8%
+  star_8N: avg_bound=4.1169 optimal_rate=17.6%
