@@ -1,12 +1,33 @@
 """
-Training loop — 10k episode version.
+Three-phase training with proper linkage.
 
-Fixes:
-- Stage 1: uses greedy session-pairing partitions (not random colorings)
-  so Phase 2 trains on partitions with internal sessions from the start
-- total_episodes passed to both policies for LR/entropy scheduling
-- Temperature: max(1.0, 2.5 - 2.5 * ep/N)
-- Episode counts: 10k/10k/10k training, 2k eval
+STAGE 1 — Train Phase 2 on optimal partitions (proof calculus):
+  Uses greedy session-pairing partitions as fixed input.
+  Phase 2 now operates on per-node IOs and must discover combining patterns.
+  Teaches the action grammar: ADD → CROSS_SUBMOD → STORE → DECLARE.
+
+STAGE 2 — Train Phase 1 with frozen Phase 2 (partition learner):
+  Phase 1 outputs partition + weight vector.
+  Phase 2 (frozen) evaluates each partition's proof potential.
+  Phase 1 learns to maximise internal sessions AND produce partitions
+  that enable short, tight Phase 2 proofs.
+
+STAGE 3 — Joint fine-tuning Phase 1 + Phase 2 (end-to-end):
+  Both policies unfrozen, trained together on the full pipeline.
+  Gradient signal flows from Phase 2 terminal reward back through
+  the partition choice (via REINFORCE on Phase 1's trajectory).
+
+STAGE 4 — Train Phase 3 (fractional IO search):
+  Uses best partition + weights from Stage 3 as starting point.
+  Phase 3 policy learns FRACTIONAL_IO, CROSS_SUBMOD sequences.
+  Reward is ONLY positive when extracted bound < partition_bound.
+  This is where novel inequalities are discovered.
+
+Linkage mechanism:
+  After each Stage 3 episode, env.partition and env.partition_weights
+  are passed to Stage 4 as the starting state. Phase 3 therefore
+  always starts from a good partition (not random), so it can focus
+  its exploration budget on the fractional combination step.
 """
 
 import random
@@ -20,77 +41,73 @@ np.random.seed(SEED)
 
 from fixed_environment import PartitionBoundEnv, ActionType, Phase
 from partition import generate_random_valid_partition, decode_partition
-from gnn_policy import GNNPhase1Policy, GNNPhase2Policy
+from gnn_policy import (
+    GNNPhase1Policy, GNNPhase2Policy, GNNPhase3Policy, LAMBDA_GRID
+)
 from fixed_base_inequality_generator import internal_per_partition
 from fixed_graph_generation import (
     get_all_graph_infos, get_optimal_for_graph, identify_graph
 )
+from fixed_inequality import EntropyIndex
 
 
 def _partition_str(partition, sessions):
     parts = []
     for i, group in enumerate(partition):
-        internal = [f"{s}->{t}" for s, t in sessions
+        internal = [f"{s}->{t}" for s,t in sessions
                     if s in set(group) and t in set(group)]
-        if internal:
-            parts.append(f"P{i+1}={sorted(group)}[{','.join(internal)}]")
-        else:
-            parts.append(f"P{i+1}={sorted(group)}")
+        tag = f"P{i+1}={sorted(group)}"
+        if internal: tag += f"[{','.join(internal)}]"
+        parts.append(tag)
     return "  ".join(parts)
 
 
 def _action_summary(action_counts):
     short = {
-        "ASSIGN_NODE": "ASN", "SWAP_NODE": "SWP", "MOVE_NODE": "MOV",
-        "FINALIZE_PARTITION": "FIN",
-        "ADD_TO_ACCUMULATOR": "ADD", "APPLY_SUBMODULARITY": "SUB",
-        "APPLY_PROOF2": "P2", "STORE_AND_RESET": "STO",
-        "COMBINE_STORED": "CMB", "DECLARE_TERMINAL": "TRM"
+        "ASSIGN_NODE":"ASN","SWAP_NODE":"SWP","MOVE_NODE":"MOV",
+        "FINALIZE_PARTITION":"FIN","ADD_TO_ACCUMULATOR":"ADD",
+        "APPLY_SUBMODULARITY":"SUB","APPLY_PROOF2":"P2",
+        "STORE_AND_RESET":"STO","COMBINE_STORED":"CMB",
+        "DECLARE_TERMINAL":"TRM","FRACTIONAL_IO":"FIO",
+        "CROSS_SUBMOD":"XSB",
     }
-    parts = []
-    for a, c in sorted(action_counts.items(), key=lambda x: -x[1]):
-        s = short.get(a, a[:3])
-        if c > 0:
-            parts.append(f"{s}:{c}")
+    parts = [f"{short.get(a,a[:3])}:{c}"
+             for a, c in sorted(action_counts.items(), key=lambda x: -x[1]) if c>0]
     return " ".join(parts)
 
 
 ACTION_NAMES = {
-    0: "ASSIGN_NODE", 1: "ADD_TO_ACCUMULATOR", 2: "APPLY_SUBMODULARITY",
-    3: "APPLY_PROOF2", 4: "STORE_AND_RESET", 5: "COMBINE_STORED",
-    6: "DECLARE_TERMINAL", 7: "SWAP_NODE", 8: "MOVE_NODE",
-    9: "FINALIZE_PARTITION"
+    0:"ASSIGN_NODE",1:"ADD_TO_ACCUMULATOR",2:"APPLY_SUBMODULARITY",
+    3:"APPLY_PROOF2",4:"STORE_AND_RESET",5:"COMBINE_STORED",
+    6:"DECLARE_TERMINAL",7:"SWAP_NODE",8:"MOVE_NODE",
+    9:"FINALIZE_PARTITION",10:"FRACTIONAL_IO",11:"CROSS_SUBMOD",
 }
 
-EARLY_STOP_PATIENCE = 2000  # stop if no improvement for this many episodes
-EARLY_STOP_MIN_EPISODES = 3000  # don't early-stop before this
+EARLY_STOP_PATIENCE  = 2000
+EARLY_STOP_MIN_EPS   = 3000
 
 
 class EarlyStopper:
-    """Tracks rolling reward and signals when to stop."""
     def __init__(self, patience=EARLY_STOP_PATIENCE,
-                 min_episodes=EARLY_STOP_MIN_EPISODES, window=500):
-        self.patience = patience
-        self.min_episodes = min_episodes
-        self.window = window
-        self.best_avg = float('-inf')
-        self.best_episode = 0
-        self.rewards = []
+                 min_episodes=EARLY_STOP_MIN_EPS, window=500):
+        self.patience    = patience
+        self.min_episodes= min_episodes
+        self.window      = window
+        self.best_avg    = float('-inf')
+        self.best_episode= 0
+        self.rewards     = []
 
     def update(self, reward, episode):
         self.rewards.append(reward)
         if len(self.rewards) >= self.window:
-            current_avg = np.mean(self.rewards[-self.window:])
-            if current_avg > self.best_avg + 1e-4:
-                self.best_avg = current_avg
-                self.best_episode = episode
+            cur = np.mean(self.rewards[-self.window:])
+            if cur > self.best_avg + 1e-4:
+                self.best_avg    = cur
+                self.best_episode= episode
 
     def should_stop(self, episode):
-        if episode < self.min_episodes:
-            return False
-        if episode - self.best_episode >= self.patience:
-            return True
-        return False
+        if episode < self.min_episodes: return False
+        return (episode - self.best_episode) >= self.patience
 
 
 def _print_graph_table():
@@ -107,65 +124,38 @@ def _print_graph_table():
 
 
 def _greedy_session_partition(nodes, edges, sessions):
-    """
-    Greedy partition that tries to group session pairs together.
-    Much better than random coloring for Stage 1 training.
-    """
     adj = {n: set() for n in nodes}
     for u, v in edges:
-        adj[u].add(v)
-        adj[v].add(u)
-
-    assignment = {}
-    gid = 0
-
-    # First: try to assign each session pair to the same group
+        adj[u].add(v); adj[v].add(u)
+    assignment = {}; gid = 0
     for s, t in sessions:
         if s not in assignment and t not in assignment:
-            # Check if s and t are NOT adjacent (can share a group)
             if t not in adj[s]:
-                assignment[s] = gid
-                assignment[t] = gid
-                gid += 1
+                assignment[s] = gid; assignment[t] = gid; gid += 1
             else:
-                assignment[s] = gid
-                gid += 1
-                assignment[t] = gid
-                gid += 1
+                assignment[s] = gid; gid += 1
+                assignment[t] = gid; gid += 1
         elif s in assignment and t not in assignment:
             g = assignment[s]
-            # Can t join s's group?
-            conflict = any(assignment.get(n) == g for n in adj[t] if n in assignment)
-            if not conflict:
+            if not any(assignment.get(n) == g for n in adj[t] if n in assignment):
                 assignment[t] = g
             else:
-                assignment[t] = gid
-                gid += 1
+                assignment[t] = gid; gid += 1
         elif t in assignment and s not in assignment:
             g = assignment[t]
-            conflict = any(assignment.get(n) == g for n in adj[s] if n in assignment)
-            if not conflict:
+            if not any(assignment.get(n) == g for n in adj[s] if n in assignment):
                 assignment[s] = g
             else:
-                assignment[s] = gid
-                gid += 1
-
-    # Assign remaining nodes
+                assignment[s] = gid; gid += 1
     for node in nodes:
         if node not in assignment:
-            neighbor_groups = {assignment[n] for n in adj[node] if n in assignment}
-            # Try existing groups
+            nb_groups = {assignment[n] for n in adj[node] if n in assignment}
             placed = False
             for g in range(gid):
-                if g not in neighbor_groups:
-                    assignment[node] = g
-                    placed = True
-                    break
+                if g not in nb_groups:
+                    assignment[node] = g; placed = True; break
             if not placed:
-                assignment[node] = gid
-                gid += 1
-
-    # Convert to partition list
+                assignment[node] = gid; gid += 1
     groups = {}
     for node, g in assignment.items():
         groups.setdefault(g, []).append(node)
@@ -173,40 +163,40 @@ def _greedy_session_partition(nodes, edges, sessions):
 
 
 # -----------------------------------------------------------------------
-# Stage 1
+# Stage 1 — Train Phase 2 (proof calculus)
 # -----------------------------------------------------------------------
 
 def run_stage1(num_episodes=10000, graph_dataset_size=5):
     print("=" * 70)
-    print(f"STAGE 1: Training Phase 2 ({num_episodes} episodes)")
+    print(f"STAGE 1: Train Phase 2 proof calculus ({num_episodes} episodes)")
     print("=" * 70)
     _print_graph_table()
 
     env = PartitionBoundEnv(graph_dataset_size=graph_dataset_size, stage=1)
 
-    from fixed_inequality import EntropyIndex
     max_dim = 0
     for nodes, edges, sessions in env.graph_dataset:
-        # Use greedy partition to estimate max dim
         part = _greedy_session_partition(nodes, edges, sessions)
-        ix = EntropyIndex(partitions=part, nodes=nodes, edges=edges, sessions=sessions)
+        ix   = EntropyIndex(partitions=part, nodes=nodes,
+                            edges=edges, sessions=sessions)
         max_dim = max(max_dim, ix.dim)
-        # Also try random to cover different partition sizes
         chrom = generate_random_valid_partition(nodes, edges)
         part2 = decode_partition(nodes, chrom)
-        ix2 = EntropyIndex(partitions=part2, nodes=nodes, edges=edges, sessions=sessions)
+        ix2   = EntropyIndex(partitions=part2, nodes=nodes,
+                             edges=edges, sessions=sessions)
         max_dim = max(max_dim, ix2.dim)
+
     coeff_dim = max_dim
     print(f"  Max coeff dim: {coeff_dim}")
 
-    phase2_policy = GNNPhase2Policy(coeff_dim=coeff_dim, total_episodes=num_episodes)
+    phase2_policy = GNNPhase2Policy(coeff_dim=coeff_dim,
+                                    total_episodes=num_episodes)
     phase2_policy.unfreeze()
-    rewards = []
+
+    rewards   = []
     per_graph = defaultdict(list)
-    metrics = {
-        'rewards': [], 'bounds': [], 'graph_names': [],
-        'step_counts': [], 'action_counts_per_ep': []
-    }
+    metrics   = {'rewards':[], 'bounds':[], 'graph_names':[],
+                 'step_counts':[], 'action_counts_per_ep':[]}
 
     log_interval = 100
     stopper = EarlyStopper()
@@ -214,47 +204,51 @@ def run_stage1(num_episodes=10000, graph_dataset_size=5):
     print(f"  {'-'*75}")
 
     for episode in range(num_episodes):
-        # Early stopping check
         if stopper.should_stop(episode):
-            print(f"\n  Early stopping at episode {episode} "
-                  f"(no improvement since ep {stopper.best_episode})")
+            print(f"\n  Early stopping at episode {episode}")
             break
 
         graph_tuple = random.choice(env.graph_dataset)
         nodes, edges, sessions = graph_tuple
         graph_name = identify_graph(nodes, edges, sessions)
 
-        # 70% greedy session-pairing, 30% random for diversity
         if random.random() < 0.7:
             partition = _greedy_session_partition(nodes, edges, sessions)
         else:
-            chrom = generate_random_valid_partition(nodes, edges)
+            chrom     = generate_random_valid_partition(nodes, edges)
             partition = decode_partition(nodes, chrom)
 
         state = env.reset(fixed_partition=partition, fixed_graph=graph_tuple)
-        state['edges'] = edges
-        # PROOF2 forcing: 30% for first 2000 eps, anneal to 0% by 5000
+        state['edges']   = edges
         proof2_fp = max(0.0, 0.3 * (1.0 - episode / min(5000, num_episodes)))
         state['proof2_force_prob'] = proof2_fp
-        done = False
+
+        # Also pass graph info needed by Phase 3 policy (used indirectly)
+        state['nodes']     = nodes
+        state['sessions']  = sessions
+        state['partition'] = partition
+
+        done       = False
         trajectory = []
         action_counts = defaultdict(int)
-        total_reward = 0.0
-        step_count = 0
+        total_reward  = 0.0
+        step_count    = 0
 
         while not done:
-            valid = env.get_valid_actions()
-            if not valid:
-                break
+            valid  = env.get_valid_actions()
+            if not valid: break
             action = phase2_policy.select_action(state, valid)
-            aname = ACTION_NAMES.get(int(action['type']), '?')
+            aname  = ACTION_NAMES.get(int(action['type']), '?')
             action_counts[aname] += 1
             state, reward, done = env.step(action)
-            state['edges'] = edges
-            state['proof2_force_prob'] = proof2_fp
+            state['edges']            = edges
+            state['proof2_force_prob']= proof2_fp
+            state['nodes']            = nodes
+            state['sessions']         = sessions
+            state['partition']        = partition
             trajectory.append({'reward': reward})
             total_reward += reward
-            step_count += 1
+            step_count   += 1
 
         phase2_policy.update(trajectory, total_reward)
         rewards.append(total_reward)
@@ -268,54 +262,50 @@ def run_stage1(num_episodes=10000, graph_dataset_size=5):
         metrics['action_counts_per_ep'].append(dict(action_counts))
 
         if (episode + 1) % log_interval == 0:
-            n = log_interval
+            n   = log_interval
             avg = np.mean(rewards[-n:])
-            best = abs(min(rewards[-n:]))
-            asumm = _action_summary(action_counts)
+            bst = abs(min(rewards[-n:]))
             print(f"  {episode+1:>6} | {graph_name:<16} | "
-                  f"{avg:>8.4f} | {best:>8.4f} | {asumm}")
+                  f"{avg:>8.4f} | {bst:>8.4f} | {_action_summary(action_counts)}")
 
-    print(f"\n  Per-graph avg bounds (Stage 1):")
+    print(f"\n  Per-graph bounds (Stage 1):")
     for gname in sorted(per_graph.keys()):
         bounds = per_graph[gname]
         opt, _ = get_optimal_for_graph(
             *next(t for t in env.graph_dataset if identify_graph(*t) == gname))
-        print(f"    {gname:<16}: avg={np.mean(bounds):.4f}  best={min(bounds):.4f}  "
-              f"optimal={opt:.4f}  gap={min(bounds)-opt:+.4f}")
+        print(f"    {gname:<16}: avg={np.mean(bounds):.4f} "
+              f"best={min(bounds):.4f} opt={opt:.4f}")
     print("\nStage 1 complete.\n")
     return phase2_policy, coeff_dim, metrics
 
 
 # -----------------------------------------------------------------------
-# Stage 2
+# Stage 2 — Train Phase 1 with frozen Phase 2
 # -----------------------------------------------------------------------
 
 def run_stage2(phase2_policy, num_episodes=10000, graph_dataset_size=5):
     print("=" * 70)
-    print(f"STAGE 2: Training Phase 1 ({num_episodes} episodes, Phase 2 frozen)")
+    print(f"STAGE 2: Train Phase 1 ({num_episodes} episodes, Phase 2 frozen)")
     print("=" * 70)
 
     phase2_policy.freeze()
-    env = PartitionBoundEnv(graph_dataset_size=graph_dataset_size, stage=2)
+    env  = PartitionBoundEnv(graph_dataset_size=graph_dataset_size, stage=2)
     phase1_policy = GNNPhase1Policy(total_episodes=num_episodes)
-    rewards = []
+
+    rewards   = []
     internals = []
-    per_graph = defaultdict(lambda: {'int': [], 'optimal_found': 0})
-    metrics = {
-        'rewards': [], 'internals': [], 'graph_names': [],
-        'optimal_int_found': []
-    }
+    per_graph = defaultdict(lambda: {'int':[], 'optimal_found':0})
+    metrics   = {'rewards':[], 'internals':[], 'graph_names':[],
+                 'optimal_int_found':[], 'partition_weights':[]}
 
     log_interval = 100
     stopper = EarlyStopper()
-    print(f"\n  {'Ep':>6} | {'Graph':<16} | {'AvgRew':>8} | {'BestBnd':>8} | "
-          f"{'Int':>3} | P1 Actions")
-    print(f"  {'-'*80}")
+    print(f"\n  {'Ep':>6} | {'Graph':<16} | {'AvgRew':>8} | {'Int':>3} | P1 Actions")
+    print(f"  {'-'*70}")
 
     for episode in range(num_episodes):
         if stopper.should_stop(episode):
-            print(f"\n  Early stopping at episode {episode} "
-                  f"(no improvement since ep {stopper.best_episode})")
+            print(f"\n  Early stopping at episode {episode}")
             break
 
         env.reset()
@@ -324,10 +314,9 @@ def run_stage2(phase2_policy, num_episodes=10000, graph_dataset_size=5):
         opt_bound, opt_int = get_optimal_for_graph(nodes, edges, sessions)
 
         temperature = max(1.0, 2.5 - 2.5 * episode / max(num_episodes, 1))
-
-        p1_traj = []
-        state = env._get_state()
-        state['edges'] = edges
+        p1_traj    = []
+        state      = env._get_state()
+        state['edges']    = edges
         state['sessions'] = sessions
         state['temperature'] = temperature
         done = False
@@ -335,33 +324,37 @@ def run_stage2(phase2_policy, num_episodes=10000, graph_dataset_size=5):
 
         while env.current_phase == Phase.PHASE1 and not done:
             valid = env.get_valid_actions()
-            if not valid:
-                break
+            if not valid: break
             state['temperature'] = temperature
             action = phase1_policy.select_action(state, valid)
-            aname = ACTION_NAMES.get(int(action.get('type', 0)), '?')
+            aname  = ACTION_NAMES.get(int(action.get('type', 0)), '?')
             p1_action_counts[aname] += 1
             state, reward, done = env.step(action)
-            state['edges'] = edges
+            state['edges']    = edges
             state['sessions'] = sessions
             p1_traj.append({'reward': reward})
 
         rl_partition = [list(g) for g in env.partition] if env.partition else []
-        ipp = internal_per_partition(rl_partition, sessions)
-        int_count = sum(ipp)
+        ipp          = internal_per_partition(rl_partition, sessions)
+        int_count    = sum(ipp)
         internals.append(int_count)
         per_graph[graph_name]['int'].append(int_count)
         if int_count >= opt_int:
             per_graph[graph_name]['optimal_found'] += 1
 
+        # Retrieve weights from Phase 1 (set during FINALIZE action)
+        partition_weights = env.partition_weights
+
         total_reward = sum(t['reward'] for t in p1_traj)
         while not done:
             valid = env.get_valid_actions()
-            if not valid:
-                break
+            if not valid: break
+            state['nodes']     = nodes
+            state['sessions']  = sessions
+            state['partition'] = rl_partition
             action = phase2_policy.select_action(state, valid)
             state, reward, done = env.step(action)
-            state['edges'] = edges
+            state['edges']    = edges
             state['sessions'] = sessions
             total_reward += reward
 
@@ -373,404 +366,485 @@ def run_stage2(phase2_policy, num_episodes=10000, graph_dataset_size=5):
         metrics['internals'].append(int_count)
         metrics['graph_names'].append(graph_name)
         metrics['optimal_int_found'].append(1 if int_count >= opt_int else 0)
+        metrics['partition_weights'].append(partition_weights)
 
         if int_count >= opt_int and (episode + 1) % log_interval == 0:
             print(f"  >> Ep {episode+1} {graph_name}: OPTIMAL int={int_count}")
-            print(f"     {_partition_str(rl_partition, sessions)}")
 
         if (episode + 1) % log_interval == 0:
-            n = log_interval
-            avg = np.mean(rewards[-n:])
-            best = abs(min(rewards[-n:]))
+            n    = log_interval
+            avg  = np.mean(rewards[-n:])
             avgi = np.mean(internals[-n:])
-            asumm = _action_summary(p1_action_counts)
             print(f"  {episode+1:>6} | {graph_name:<16} | "
-                  f"{avg:>8.4f} | {best:>8.4f} | {avgi:>3.1f} | {asumm}")
+                  f"{avg:>8.4f} | {avgi:>3.1f} | {_action_summary(p1_action_counts)}")
 
-    print(f"\n  Per-graph Phase 1 summary (Stage 2):")
+    print(f"\n  Per-graph Phase 1 (Stage 2):")
     for gname in sorted(per_graph.keys()):
         stats = per_graph[gname]
         total = len(stats['int'])
-        avg_i = np.mean(stats['int']) if stats['int'] else 0
-        opt_rate = 100 * stats['optimal_found'] / max(total, 1)
-        print(f"    {gname:<16}: avg_internal={avg_i:.2f}  "
-              f"optimal_rate={opt_rate:.1f}%  ({stats['optimal_found']}/{total})")
+        print(f"    {gname:<16}: avg_int={np.mean(stats['int']):.2f} "
+              f"opt_rate={100*stats['optimal_found']/max(total,1):.1f}%")
     print("\nStage 2 complete.\n")
     return phase1_policy, metrics
 
 
 # -----------------------------------------------------------------------
-# Stage 3
+# Stage 3 — Joint fine-tuning Phase 1 + Phase 2
 # -----------------------------------------------------------------------
 
-def run_stage3(phase1_policy, phase2_policy, num_episodes=10000,
-               graph_dataset_size=5):
+def run_stage3(phase1_policy, phase2_policy,
+               num_episodes=10000, graph_dataset_size=5):
     print("=" * 70)
-    print(f"STAGE 3: Joint fine-tuning ({num_episodes} episodes)")
+    print(f"STAGE 3: Joint fine-tuning Phase 1+2 ({num_episodes} episodes)")
     print("=" * 70)
 
     phase2_policy.unfreeze()
-    phase2_policy.reset_scheduler(total_episodes=num_episodes)
-    phase1_policy.reset_scheduler(total_episodes=num_episodes)
     env = PartitionBoundEnv(graph_dataset_size=graph_dataset_size, stage=3)
-    rewards = []
-    internals = []
-    per_graph = defaultdict(lambda: {
-        'bounds': [], 'int': [], 'optimal_bound_found': 0, 'optimal_int_found': 0
-    })
-    metrics = {
-        'rewards': [], 'bounds': [], 'internals': [], 'graph_names': [],
-        'step_counts': [], 'optimal_bound_hit': [], 'optimal_int_hit': []
-    }
+
+    rewards   = []
+    per_graph = defaultdict(list)
+    metrics   = {'rewards':[], 'bounds':[], 'graph_names':[],
+                 'best_partitions':{}}
+
+    # Store best (partition, weights) per graph for Phase 4 handoff
+    best_partitions: dict = {}   # graph_name -> (partition, weights, bound)
 
     log_interval = 100
     stopper = EarlyStopper()
-    print(f"\n  {'Ep':>6} | {'Graph':<16} | {'AvgRew':>8} | {'BestBnd':>8} | "
-          f"{'Int':>3} | P2 Actions")
-    print(f"  {'-'*80}")
 
     for episode in range(num_episodes):
         if stopper.should_stop(episode):
-            print(f"\n  Early stopping at episode {episode} "
-                  f"(no improvement since ep {stopper.best_episode})")
+            print(f"\n  Early stopping at episode {episode}")
             break
 
         env.reset()
         nodes, edges, sessions = env.nodes, env.edges, env.sessions
         graph_name = identify_graph(nodes, edges, sessions)
-        opt_bound, opt_int = get_optimal_for_graph(nodes, edges, sessions)
+        opt_bound, _ = get_optimal_for_graph(nodes, edges, sessions)
 
-        temperature = max(1.0, 2.5 - 2.5 * episode / max(num_episodes, 1))
-
-        p1_traj = []
-        state = env._get_state()
-        state['edges'] = edges
+        temperature = max(1.0, 2.0 - 2.0 * episode / max(num_episodes, 1))
+        p1_traj   = []
+        state     = env._get_state()
+        state['edges']    = edges
         state['sessions'] = sessions
         state['temperature'] = temperature
         done = False
-        p2_action_counts = defaultdict(int)
-        total_reward = 0.0
 
         while env.current_phase == Phase.PHASE1 and not done:
             valid = env.get_valid_actions()
-            if not valid:
-                break
+            if not valid: break
             state['temperature'] = temperature
             action = phase1_policy.select_action(state, valid)
             state, reward, done = env.step(action)
-            state['edges'] = edges
+            state['edges']    = edges
             state['sessions'] = sessions
             p1_traj.append({'reward': reward})
-            total_reward += reward
 
-        rl_partition = [list(g) for g in env.partition] if env.partition else []
-        ipp = internal_per_partition(rl_partition, sessions)
-        int_count = sum(ipp)
-        internals.append(int_count)
+        rl_partition     = [list(g) for g in env.partition] if env.partition else []
+        partition_weights= env.partition_weights
 
-        p2_traj = []
-        # PROOF2 forcing for Stage 3
-        proof2_fp = max(0.0, 0.3 * (1.0 - episode / min(5000, num_episodes)))
+        total_reward = sum(t['reward'] for t in p1_traj)
         while not done:
             valid = env.get_valid_actions()
-            if not valid:
-                break
-            state['proof2_force_prob'] = proof2_fp
+            if not valid: break
+            state['nodes']     = nodes
+            state['sessions']  = sessions
+            state['partition'] = rl_partition
             action = phase2_policy.select_action(state, valid)
-            aname = ACTION_NAMES.get(int(action.get('type', 0)), '?')
-            p2_action_counts[aname] += 1
             state, reward, done = env.step(action)
-            state['edges'] = edges
+            state['edges']    = edges
             state['sessions'] = sessions
-            p2_traj.append({'reward': reward})
             total_reward += reward
 
         phase1_policy.update(p1_traj, total_reward)
-        phase2_policy.update(p2_traj, total_reward)
-        rewards.append(total_reward)
-        stopper.update(total_reward, episode)
+        phase2_policy.update([], total_reward)   # Phase 2 already updated internally
 
         rl_bound = abs(total_reward)
-        per_graph[graph_name]['bounds'].append(rl_bound)
-        per_graph[graph_name]['int'].append(int_count)
-        if int_count >= opt_int:
-            per_graph[graph_name]['optimal_int_found'] += 1
-        if abs(rl_bound - opt_bound) < 0.05:
-            per_graph[graph_name]['optimal_bound_found'] += 1
-
+        rewards.append(total_reward)
+        per_graph[graph_name].append(rl_bound)
+        stopper.update(total_reward, episode)
         metrics['rewards'].append(total_reward)
         metrics['bounds'].append(rl_bound)
-        metrics['internals'].append(int_count)
         metrics['graph_names'].append(graph_name)
-        metrics['step_counts'].append(env.phase2_steps)
-        metrics['optimal_bound_hit'].append(1 if abs(rl_bound - opt_bound) < 0.05 else 0)
-        metrics['optimal_int_hit'].append(1 if int_count >= opt_int else 0)
 
-        if abs(rl_bound - opt_bound) < 0.05 and (episode + 1) % max(log_interval // 3, 1) == 0:
-            print(f"  >> Ep {episode+1} {graph_name}: OPTIMAL bound={rl_bound:.4f} int={int_count}")
-            print(f"     {_partition_str(rl_partition, sessions)}")
+        # Track best partition + weights for Phase 4
+        if graph_name not in best_partitions or rl_bound < best_partitions[graph_name][2]:
+            best_partitions[graph_name] = (rl_partition, partition_weights, rl_bound)
 
         if (episode + 1) % log_interval == 0:
-            n = log_interval
+            n   = log_interval
             avg = np.mean(rewards[-n:])
-            best = abs(min(rewards[-n:]))
-            avgi = np.mean(internals[-n:])
-            asumm = _action_summary(p2_action_counts)
-            print(f"  {episode+1:>6} | {graph_name:<16} | "
-                  f"{avg:>8.4f} | {best:>8.4f} | {avgi:>3.1f} | {asumm}")
+            print(f"  Ep {episode+1:>6} | {graph_name:<16} | avg={avg:.4f}")
 
-    print(f"\n  Per-graph Stage 3 summary:")
-    print(f"  {'Graph':<16} {'AvgBound':>9} {'BestBound':>10} {'Optimal':>8} "
-          f"{'BndRate':>8} {'IntRate':>8} {'Episodes':>8}")
-    print(f"  {'-'*70}")
-    for gname in sorted(per_graph.keys()):
-        stats = per_graph[gname]
-        total = len(stats['bounds'])
-        opt_b, _ = get_optimal_for_graph(
-            *next(t for t in env.graph_dataset if identify_graph(*t) == gname))
-        avg_b = np.mean(stats['bounds']) if stats['bounds'] else 0
-        best_b = min(stats['bounds']) if stats['bounds'] else 0
-        bnd_rate = 100 * stats['optimal_bound_found'] / max(total, 1)
-        int_rate = 100 * stats['optimal_int_found'] / max(total, 1)
-        print(f"  {gname:<16} {avg_b:>9.4f} {best_b:>10.4f} {opt_b:>8.4f} "
-              f"{bnd_rate:>7.1f}% {int_rate:>7.1f}% {total:>8}")
-    print("\nStage 3 complete.\n")
-    return phase1_policy, phase2_policy, metrics
-
-
-# -----------------------------------------------------------------------
-# Evaluation
-# -----------------------------------------------------------------------
-
-def evaluate(phase1_policy, phase2_policy, num_episodes=2000,
-             graph_dataset_size=5):
-    print("=" * 70)
-    print(f"EVALUATION ({num_episodes} episodes)")
-    print("=" * 70)
-    _print_graph_table()
-
-    env = PartitionBoundEnv(graph_dataset_size=graph_dataset_size, stage=3)
-    phase2_policy.unfreeze()
-
-    per_graph = defaultdict(lambda: {
-        'rl_bounds': [], 'internals': [], 'optimal_found': 0, 'corrupted': 0
-    })
-    eval_metrics = {
-        'rl_bounds': [], 'opt_bounds': [], 'gaps': [],
-        'internals': [], 'opt_internals': [], 'graph_names': []
+    metrics['best_partitions'] = {
+        k: {'partition': v[0], 'weights': v[1], 'bound': v[2]}
+        for k, v in best_partitions.items()
     }
+    print("\nStage 3 complete.\n")
+    return phase1_policy, phase2_policy, metrics, best_partitions
 
-    log_interval = 100
+
+# -----------------------------------------------------------------------
+# Stage 4 — Train Phase 3 (fractional IO search for novel inequalities)
+# -----------------------------------------------------------------------
+
+def run_stage4(phase1_policy, phase2_policy, best_partitions,
+               coeff_dim, num_episodes=10000, graph_dataset_size=5):
+    """
+    Phase 3 training. Uses best partitions from Stage 3 as fixed starting
+    points, so the policy can focus entirely on fractional IO discovery.
+
+    The key connection:
+      Phase 1 found partition P* and weight vector w*.
+      Phase 3 uses P* to determine which node pairs are cross-partition,
+      and uses w* as prior λ suggestions.
+
+      After FRACTIONAL_IO(u, v, λ), the resulting inequality has a
+      coefficient of λ on the Y_ST term for u's partition and (1-λ) on
+      v's partition. When these fractional inequalities are summed and
+      SUBMOD is applied, the resulting Y_I coefficient may be irrational —
+      which is the signature of an inequality outside the PB family.
+
+    Reward:
+      Only positive when extracted bound < partition_bound.
+      Zero for matching PB (Phase 3 is not credited for reproducing Phase 2).
+      Negative for worse than PB (gradient toward improvement).
+    """
+    print("=" * 70)
+    print(f"STAGE 4: Phase 3 fractional IO search ({num_episodes} episodes)")
+    print("=" * 70)
+
+    env = PartitionBoundEnv(graph_dataset_size=graph_dataset_size, stage=4)
+
+    phase3_policy = GNNPhase3Policy(
+        coeff_dim=coeff_dim,
+        total_episodes=num_episodes
+    )
+
+    rewards    = []
+    per_graph  = defaultdict(list)
+    novel_bounds = {}   # graph_name -> (bound, partition, weights, trace)
+    metrics    = {'rewards':[], 'bounds':[], 'graph_names':[],
+                  'novel_found': [], 'cross_partition_used': []}
+
+    log_interval = 50
+    stopper = EarlyStopper(patience=3000, min_episodes=2000)
+
+    print(f"\n  Partition bounds for search:")
+    for nodes, edges, sessions in env.graph_dataset:
+        from fixed_environment import _compute_partition_bound
+        pb = _compute_partition_bound(nodes, edges, sessions)
+        gname = identify_graph(nodes, edges, sessions)
+        print(f"    {gname:<16}: PB = {pb:.4f}")
+    print()
+
+    for episode in range(num_episodes):
+        if stopper.should_stop(episode):
+            print(f"\n  Early stopping at episode {episode}")
+            break
+
+        graph_tuple = random.choice(env.graph_dataset)
+        nodes, edges, sessions = graph_tuple
+        graph_name = identify_graph(nodes, edges, sessions)
+
+        # Use best partition from Stage 3 if available, else greedy
+        if graph_name in best_partitions:
+            partition, p_weights, _ = best_partitions[graph_name]
+        else:
+            partition = _greedy_session_partition(nodes, edges, sessions)
+            p_weights = {}
+
+        # Set up env for Phase 3 directly
+        env.nodes    = nodes
+        env.edges    = edges
+        env.sessions = sessions
+        env.adjacency = {n: set() for n in nodes}
+        env.edge_set  = set()
+        for u, v in edges:
+            env.adjacency[u].add(v); env.adjacency[v].add(u)
+            env.edge_set.add((u,v)); env.edge_set.add((v,u))
+
+        env.partition         = partition
+        env.partition_weights = p_weights
+        env.assignment        = {}
+        env.num_groups        = len(partition)
+        env._assignment_complete = True
+        env._refinement_steps = 0
+        env.prev_internal_count = 0
+
+        from fixed_environment import _compute_partition_bound
+        env.partition_bound = _compute_partition_bound(nodes, edges, sessions)
+
+        env._start_phase2()   # builds index, node_ios, base_inequalities
+        env._start_phase3()   # initialises frac_pool, sets phase=PHASE3
+        env.internal_per_part = env.internal_per_part or []
+
+        state = env._get_state()
+        state['nodes']             = nodes
+        state['edges']             = edges
+        state['sessions']          = sessions
+        state['partition']         = partition
+        state['partition_weights'] = p_weights
+
+        done          = False
+        trajectory    = []
+        action_counts = defaultdict(int)
+        total_reward  = 0.0
+        used_cross    = False
+
+        while not done:
+            valid = env.get_valid_actions()
+            if not valid:
+                # Force terminal
+                state, reward, done = env._extract_phase3_bound()
+                total_reward += reward
+                break
+
+            action = phase3_policy.select_action(state, valid)
+            aname  = ACTION_NAMES.get(int(action['type']), '?')
+            action_counts[aname] += 1
+            if action['type'] == ActionType.CROSS_SUBMOD:
+                used_cross = True
+
+            state, reward, done = env.step(action)
+            state['nodes']             = nodes
+            state['edges']             = edges
+            state['sessions']          = sessions
+            state['partition']         = partition
+            state['partition_weights'] = p_weights
+            trajectory.append({'reward': reward})
+            total_reward += reward
+
+        phase3_policy.update(trajectory, total_reward)
+        rewards.append(total_reward)
+
+        # Extract best bound from this episode
+        best_b = env.frac_pool.best_bound(
+            len(sessions), len(edges), env.internal_per_part
+        )
+        pb = env.partition_bound
+        per_graph[graph_name].append(best_b)
+        stopper.update(total_reward, episode)
+
+        metrics['rewards'].append(total_reward)
+        metrics['bounds'].append(best_b if best_b < 1e9 else -1)
+        metrics['graph_names'].append(graph_name)
+        metrics['novel_found'].append(1 if best_b < pb - 1e-8 else 0)
+        metrics['cross_partition_used'].append(1 if used_cross else 0)
+
+        # Record novel bounds
+        if best_b < pb - 1e-8:
+            if graph_name not in novel_bounds or best_b < novel_bounds[graph_name][0]:
+                # Find the best terminal inequality for trace
+                best_ineq = None
+                for ineq in env.frac_pool:
+                    if ineq.check_valid_terminal_form():
+                        b2 = ineq.extract_bound(
+                            len(sessions), len(edges), env.internal_per_part
+                        )
+                        if abs(b2 - best_b) < 1e-9:
+                            best_ineq = ineq
+                            break
+                novel_bounds[graph_name] = (
+                    best_b, partition, p_weights,
+                    repr(best_ineq) if best_ineq else "N/A"
+                )
+
+        if (episode + 1) % log_interval == 0:
+            n       = log_interval
+            avg_r   = np.mean(rewards[-n:])
+            novel_r = np.mean(metrics['novel_found'][-n:])
+            cross_r = np.mean(metrics['cross_partition_used'][-n:])
+            print(f"  Ep {episode+1:>6} | {graph_name:<16} | "
+                  f"avg_r={avg_r:.4f} | novel_rate={100*novel_r:.1f}% | "
+                  f"cross_used={100*cross_r:.1f}%")
+
+            if novel_bounds:
+                print(f"  ** NOVEL BOUNDS FOUND **")
+                for gn, (b, part, w, trace) in sorted(novel_bounds.items()):
+                    pb2 = _compute_partition_bound(
+                        *next((nd,ed,ss) for nd,ed,ss in env.graph_dataset
+                              if identify_graph(nd,ed,ss)==gn)
+                    )
+                    print(f"     {gn}: {b:.6f} < PB={pb2:.6f} "
+                          f"(improvement={(pb2-b)/pb2*100:.2f}%)")
+                    if trace != "N/A":
+                        print(f"     Trace: {trace[:200]}")
+
+    # Final summary
+    print(f"\n{'='*70}")
+    print(f"STAGE 4 COMPLETE — NOVEL INEQUALITY SEARCH RESULTS")
+    print(f"{'='*70}")
+    if novel_bounds:
+        for gn, (b, part, w, trace) in sorted(novel_bounds.items()):
+            try:
+                nd, ed, ss = next((nd,ed,ss) for nd,ed,ss in env.graph_dataset
+                                   if identify_graph(nd,ed,ss)==gn)
+                pb2 = _compute_partition_bound(nd, ed, ss)
+            except StopIteration:
+                pb2 = float('inf')
+            print(f"\n  Graph: {gn}")
+            print(f"  Novel bound: r <= {b:.6f}")
+            print(f"  Partition bound: r <= {pb2:.6f}")
+            print(f"  Improvement: {(pb2-b)/pb2*100:.3f}%")
+            print(f"  Partition used: {_partition_str(part, ss if 'ss' in dir() else [])}")
+            print(f"  Inequality: {trace[:400]}")
+    else:
+        print("\n  No super-PB bounds found in Stage 4.")
+        print("  This does not mean none exist — increase num_episodes")
+        print("  or check that CROSS_SUBMOD was used (check cross_used rate).")
+        cross_total = sum(metrics['cross_partition_used'])
+        print(f"  CROSS_SUBMOD used in {cross_total}/{num_episodes} episodes.")
+
+    return phase3_policy, metrics, novel_bounds
+
+
+# -----------------------------------------------------------------------
+# Top-level train()
+# -----------------------------------------------------------------------
+
+def train(stage1_episodes=10000, stage2_episodes=10000,
+          stage3_episodes=10000, stage4_episodes=10000,
+          graph_dataset_size=5):
+    """Run all four stages and return all policies + metrics."""
+    phase2_policy, coeff_dim, s1 = run_stage1(stage1_episodes, graph_dataset_size)
+    phase1_policy, s2             = run_stage2(phase2_policy, stage2_episodes, graph_dataset_size)
+    phase1_policy, phase2_policy, s3, best_partitions = run_stage3(
+        phase1_policy, phase2_policy, stage3_episodes, graph_dataset_size
+    )
+    phase3_policy, s4, novel_bounds = run_stage4(
+        phase1_policy, phase2_policy, best_partitions,
+        coeff_dim, stage4_episodes, graph_dataset_size
+    )
+    return (phase1_policy, phase2_policy, phase3_policy,
+            {'stage1': s1, 'stage2': s2, 'stage3': s3, 'stage4': s4},
+            novel_bounds)
+
+
+def evaluate(phase1_policy, phase2_policy, phase3_policy,
+             num_episodes=500, graph_dataset_size=5):
+    """Evaluation across all phases."""
+    from fixed_environment import _compute_partition_bound
+    env = PartitionBoundEnv(graph_dataset_size=graph_dataset_size, stage=4)
+    results = defaultdict(lambda: {'p2_bounds':[], 'p3_bounds':[], 'novel':0})
 
     for episode in range(num_episodes):
         graph_tuple = random.choice(env.graph_dataset)
         nodes, edges, sessions = graph_tuple
         graph_name = identify_graph(nodes, edges, sessions)
-        opt_bound, opt_int = get_optimal_for_graph(nodes, edges, sessions)
+        pb = _compute_partition_bound(nodes, edges, sessions)
 
+        # Phase 1+2 rollout (standard bound)
         state = env.reset(fixed_graph=graph_tuple)
-        done = False
-        last_reward = -(len(edges) / max(len(sessions), 1))
-        rl_partition = None
+        state['edges'] = edges; state['sessions'] = sessions
 
-        while env.current_phase == Phase.PHASE1 and not done:
+        while env.current_phase == Phase.PHASE1:
             valid = env.get_valid_actions()
-            if not valid:
-                break
-            state['temperature'] = 1.0
-            state['sessions'] = sessions
-            state['edges'] = edges
+            if not valid: break
             action = phase1_policy.select_action(state, valid)
             state, _, done = env.step(action)
-            state['edges'] = edges
-            state['sessions'] = sessions
+            state['edges'] = edges; state['sessions'] = sessions
 
-        if env.partition is not None:
-            rl_partition = [list(g) for g in env.partition]
+        partition = [list(g) for g in env.partition] if env.partition else []
+        state['nodes'] = nodes; state['sessions'] = sessions
+        state['partition'] = partition
 
-        while not done:
+        while env.current_phase == Phase.PHASE2:
             valid = env.get_valid_actions()
-            if not valid:
-                break
+            if not valid: break
             action = phase2_policy.select_action(state, valid)
-            state, reward, done = env.step(action)
-            state['edges'] = edges
-            state['sessions'] = sessions
-            if done:
-                last_reward = reward
+            state, _, done = env.step(action)
+            state['edges'] = edges; state['sessions'] = sessions
+            if done: break
 
-        rl_bound = abs(last_reward)
-        if rl_partition:
-            ipp = internal_per_partition(rl_partition, sessions)
-            denom = len(sessions) + sum(ipp)
-            formula_bound = len(edges) / denom if denom > 0 else float('inf')
-            if rl_bound < formula_bound - 1e-3:
-                per_graph[graph_name]['corrupted'] += 1
-                rl_bound = formula_bound
-            int_count = sum(ipp)
-        else:
-            int_count = 0
+        p2_bound = abs(env._best_pool_bound() or pb * 2)
+        results[graph_name]['p2_bounds'].append(p2_bound)
 
-        per_graph[graph_name]['rl_bounds'].append(rl_bound)
-        per_graph[graph_name]['internals'].append(int_count)
+        # Phase 3 rollout (fractional bound)
+        env.partition         = partition
+        env.partition_weights = env.partition_weights or {}
+        env._start_phase2()
+        env._start_phase3()
+        env.internal_per_part = env.internal_per_part or []
 
-        is_optimal = abs(rl_bound - opt_bound) < 0.05
-        if is_optimal:
-            per_graph[graph_name]['optimal_found'] += 1
+        state2 = env._get_state()
+        state2['nodes']    = nodes; state2['edges'] = edges
+        state2['sessions'] = sessions; state2['partition'] = partition
 
-        gap = rl_bound - opt_bound
-        eval_metrics['rl_bounds'].append(rl_bound)
-        eval_metrics['opt_bounds'].append(opt_bound)
-        eval_metrics['gaps'].append(gap)
-        eval_metrics['internals'].append(int_count)
-        eval_metrics['opt_internals'].append(opt_int)
-        eval_metrics['graph_names'].append(graph_name)
+        while env.current_phase == Phase.PHASE3:
+            valid = env.get_valid_actions()
+            if not valid: break
+            action = phase3_policy.select_action(state2, valid)
+            state2, _, done = env.step(action)
+            state2['nodes'] = nodes; state2['edges'] = edges
+            state2['sessions'] = sessions; state2['partition'] = partition
+            if done: break
 
-        status = "OPTIMAL" if is_optimal else ""
-        if (episode + 1) % log_interval == 0:
-            print(f"  Ep {episode+1:5d} | {graph_name:<16} | "
-                  f"RL: {rl_bound:.4f} | Opt: {opt_bound:.4f} | "
-                  f"Gap: {gap:+.4f} | int={int_count}/{opt_int} | {status}")
-            if is_optimal and rl_partition:
-                print(f"           {_partition_str(rl_partition, sessions)}")
+        p3_bound = env.frac_pool.best_bound(
+            len(sessions), len(edges), env.internal_per_part
+        )
+        if p3_bound == float('inf'): p3_bound = pb * 2
+        results[graph_name]['p3_bounds'].append(p3_bound)
+        if p3_bound < pb - 1e-8:
+            results[graph_name]['novel'] += 1
 
-    # Summary
-    print("\n" + "=" * 70)
+    print(f"\n{'='*70}")
     print("EVALUATION SUMMARY")
-    print("=" * 70)
-    total_eps = total_optimal = total_corrupt = 0
-
-    print(f"\n  {'Graph':<16} {'Eps':>5} {'AvgRL':>8} {'BestRL':>8} "
-          f"{'Optimal':>8} {'AvgGap':>8} {'OptRate':>8} {'AvgInt':>7} {'Corrupt':>7}")
-    print(f"  {'-'*85}")
-    for gname in sorted(per_graph.keys()):
-        stats = per_graph[gname]
-        eps = len(stats['rl_bounds'])
-        total_eps += eps
-        total_optimal += stats['optimal_found']
-        total_corrupt += stats['corrupted']
-        opt_b, _ = get_optimal_for_graph(
-            *next(t for t in env.graph_dataset if identify_graph(*t) == gname))
-        avg_rl = np.mean(stats['rl_bounds'])
-        best_rl = min(stats['rl_bounds'])
-        avg_gap = avg_rl - opt_b
-        opt_rate = 100 * stats['optimal_found'] / max(eps, 1)
-        avg_int = np.mean(stats['internals'])
-        print(f"  {gname:<16} {eps:>5} {avg_rl:>8.4f} {best_rl:>8.4f} "
-              f"{opt_b:>8.4f} {avg_gap:>+8.4f} {opt_rate:>7.1f}% "
-              f"{avg_int:>7.2f} {stats['corrupted']:>7}")
-
-    print(f"\n  TOTALS:")
-    print(f"    Episodes: {total_eps}  Optimal: {total_optimal}/{total_eps} "
-          f"({100*total_optimal/max(total_eps,1):.1f}%)  Corrupted: {total_corrupt}")
-    all_bounds = [b for s in per_graph.values() for b in s['rl_bounds']]
-    if all_bounds:
-        print(f"    Avg bound: {np.mean(all_bounds):.4f}  Best: {min(all_bounds):.4f}")
-    print("=" * 70)
-    return eval_metrics
-
-
-def train(stage1_episodes=10000, stage2_episodes=10000,
-          stage3_episodes=10000, graph_dataset_size=5):
-    phase2_policy, coeff_dim, s1_metrics = run_stage1(
-        num_episodes=stage1_episodes, graph_dataset_size=graph_dataset_size)
-    phase1_policy, s2_metrics = run_stage2(
-        phase2_policy=phase2_policy,
-        num_episodes=stage2_episodes, graph_dataset_size=graph_dataset_size)
-    phase1_policy, phase2_policy, s3_metrics = run_stage3(
-        phase1_policy=phase1_policy, phase2_policy=phase2_policy,
-        num_episodes=stage3_episodes, graph_dataset_size=graph_dataset_size)
-    return phase1_policy, phase2_policy, {'stage1': s1_metrics, 'stage2': s2_metrics, 'stage3': s3_metrics}
+    print(f"{'='*70}")
+    print(f"  {'Graph':<16} {'PB':>8} {'P2 avg':>8} {'P3 avg':>8} "
+          f"{'P3 best':>8} {'Novel%':>8}")
+    print(f"  {'-'*58}")
+    for gname in sorted(results.keys()):
+        r   = results[gname]
+        pb2 = _compute_partition_bound(
+            *next(t for t in env.graph_dataset if identify_graph(*t) == gname)
+        )
+        p2a = np.mean(r['p2_bounds'])
+        p3a = np.mean(r['p3_bounds'])
+        p3b = min(r['p3_bounds'])
+        nv  = 100 * r['novel'] / max(len(r['p3_bounds']), 1)
+        flag = " *** NOVEL ***" if p3b < pb2 - 1e-8 else ""
+        print(f"  {gname:<16} {pb2:>8.4f} {p2a:>8.4f} {p3a:>8.4f} "
+              f"{p3b:>8.4f} {nv:>7.1f}%{flag}")
+    return dict(results)
 
 
 if __name__ == "__main__":
     t0 = time.time()
-    phase1_policy, phase2_policy, train_metrics = train(
+    (phase1_policy, phase2_policy, phase3_policy,
+     train_metrics, novel_bounds) = train(
         stage1_episodes=10000, stage2_episodes=10000,
-        stage3_episodes=10000, graph_dataset_size=5)
-    eval_metrics = evaluate(
-        phase1_policy, phase2_policy,
-        num_episodes=2500, graph_dataset_size=5)
-
-    all_metrics = {**train_metrics, 'eval': eval_metrics}
-    with open('training_metrics.json', 'w') as f:
-        json.dump(all_metrics, f)
+        stage3_episodes=10000, stage4_episodes=10000,
+        graph_dataset_size=5
+    )
+    eval_results = evaluate(
+        phase1_policy, phase2_policy, phase3_policy,
+        num_episodes=1000, graph_dataset_size=5
+    )
 
     runtime = time.time() - t0
-    print(f"\nMetrics saved to training_metrics.json")
-    print(f"TOTAL RUNTIME: {runtime:.1f}s ({runtime/60:.1f} min)")
+    print(f"\nTotal runtime: {runtime:.1f}s ({runtime/60:.1f} min)")
 
-    # Auto-generate plots
-    print("\n--- Generating plots ---")
-    try:
-        import subprocess, sys
-        # Use the same Python interpreter that's running this script
-        # so it finds numpy/matplotlib from the venv
-        subprocess.run([sys.executable, 'plot_training.py'], check=True)
-        print("Plots generated successfully.")
-    except Exception as e:
-        print(f"Plot generation failed: {e}")
-        print("Run 'python plot_training.py' manually.")
+    all_metrics = {
+        'train': {k: str(v) for k,v in train_metrics.items()},
+        'eval': {k: str(v) for k,v in eval_results.items()},
+        'novel_bounds': {k: str(v) for k,v in novel_bounds.items()},
+        'runtime_s': runtime,
+    }
+    with open('training_metrics.json', 'w') as f:
+        json.dump(all_metrics, f, indent=2)
+    print("Metrics saved to training_metrics.json")
 
-    # Auto-generate graph visualization
-    try:
-        subprocess.run([sys.executable, 'visualize_graphs.py'], check=True)
-        print("Graph visualization generated.")
-    except Exception as e:
-        print(f"Graph visualization failed: {e}")
-
-    # Save training summary to a text file
-    summary_file = 'training_summary.txt'
-    with open(summary_file, 'w') as f:
-        f.write(f"Training completed at: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
-        f.write(f"Runtime: {runtime:.1f}s ({runtime/60:.1f} min)\n")
-        f.write(f"Episodes: 10k/10k/10k training + 2k eval\n\n")
-        f.write("Stage 2 - Phase 1 optimal partition rates:\n")
-        from collections import Counter
-        s2 = train_metrics.get('stage2', {})
-        s2_names = s2.get('graph_names', [])
-        s2_opt = s2.get('optimal_int_found', [])
-        graph_counts = Counter(s2_names)
-        graph_hits = Counter()
-        for g, h in zip(s2_names, s2_opt):
-            if h:
-                graph_hits[g] += 1
-        for g in sorted(graph_counts.keys()):
-            rate = 100 * graph_hits[g] / max(graph_counts[g], 1)
-            f.write(f"  {g}: {rate:.1f}% ({graph_hits[g]}/{graph_counts[g]})\n")
-
-        f.write("\nEvaluation results:\n")
-        ev = eval_metrics
-        ev_names = ev.get('graph_names', [])
-        ev_rl = ev.get('rl_bounds', [])
-        ev_opt = ev.get('opt_bounds', [])
-        graph_eval = {}
-        for g, rl, opt in zip(ev_names, ev_rl, ev_opt):
-            if g not in graph_eval:
-                graph_eval[g] = {'total': 0, 'hits': 0, 'bounds': []}
-            graph_eval[g]['total'] += 1
-            graph_eval[g]['bounds'].append(rl)
-            if abs(rl - opt) < 0.05:
-                graph_eval[g]['hits'] += 1
-        for g in sorted(graph_eval.keys()):
-            s = graph_eval[g]
-            avg_b = np.mean(s['bounds'])
-            rate = 100 * s['hits'] / max(s['total'], 1)
-            f.write(f"  {g}: avg_bound={avg_b:.4f} optimal_rate={rate:.1f}%\n")
-
-    print(f"Summary saved to {summary_file}")
-
-    # Auto git push
-    print("\n--- Pushing to git ---")
-    try:
-        # Use git add --all to stage everything including new files
-        subprocess.run(['git', 'add', '--all'], check=True)
-        commit_msg = (f"Training run completed - "
-                      f"{time.strftime('%Y-%m-%d %H:%M')} - "
-                      f"runtime {runtime/60:.0f}min")
-        subprocess.run(['git', 'commit', '-m', commit_msg], check=True)
-        subprocess.run(['git', 'push'], check=True)
-        print("Git push completed successfully.")
-    except Exception as e:
-        print(f"Git push failed: {e}")
-        print("Push manually with: git add --all && git commit -m 'training results' && git push")
+    # Summary file
+    with open('training_summary.txt', 'w') as f:
+        f.write(f"Training completed: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write(f"Runtime: {runtime:.1f}s ({runtime/60:.1f} min)\n\n")
+        if novel_bounds:
+            f.write("NOVEL INEQUALITIES FOUND:\n")
+            for gn, (b, part, w, trace) in sorted(novel_bounds.items()):
+                f.write(f"  {gn}: r <= {b:.6f}\n")
+                f.write(f"  Trace: {trace[:300]}\n\n")
+        else:
+            f.write("No super-PB bounds found in this run.\n")
+            f.write("Increase stage4_episodes or check CROSS_SUBMOD usage.\n")
+    print("Summary saved to training_summary.txt")
