@@ -1,17 +1,5 @@
-Training completed at: 2026-04-01 20:16:22
-Runtime: 1385.0s (23.1 min)
-Episodes: 10k/10k/10k training + 2k eval
+Training completed: 2026-04-02 19:43:11
+Runtime: 107.2s (1.8 min)
 
-Stage 2 - Phase 1 optimal partition rates:
-  butterfly_8N: 89.9% (643/715)
-  diamond_6N: 94.6% (706/746)
-  grid_9N: 94.2% (701/744)
-  paper_7N: 89.3% (635/711)
-  star_8N: 96.4% (706/732)
-
-Evaluation results:
-  butterfly_8N: avg_bound=2.7039 optimal_rate=21.8%
-  diamond_6N: avg_bound=3.2896 optimal_rate=16.5%
-  grid_9N: avg_bound=3.7449 optimal_rate=17.6%
-  paper_7N: avg_bound=2.8813 optimal_rate=31.3%
-  star_8N: avg_bound=4.3175 optimal_rate=11.0%
+No super-PB bounds found in this run.
+Increase stage4_episodes or check CROSS_SUBMOD usage.
