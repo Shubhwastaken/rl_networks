@@ -192,7 +192,10 @@ class GNNPhase1Policy:
         dist  = torch.distributions.Categorical(probs)
         gid_t = dist.sample()
 
-        self._log_probs.append(dist.log_prob(gid_t))
+        lp = dist.log_prob(gid_t)
+        self._log_probs.append(lp)
+        if not hasattr(self, '_old_log_probs'): self._old_log_probs = []
+        self._old_log_probs.append(lp.detach())
         self._rewards.append(0.0)
         self._entropies.append(dist.entropy())
         return {'type': ActionType.ASSIGN_NODE, 'group_id': gid_t.item()}
@@ -280,7 +283,23 @@ class GNNPhase1Policy:
 
         vals_t = torch.tensor(self._values[:n], dtype=torch.float32).to(DEVICE)
 
-        pg_loss  = -(lps_t * adv_t.detach()).mean()
+        # PPO clipped surrogate (epsilon=0.2)
+        # _old_log_probs stores detached log_probs from the forward pass at selection time.
+        # On first update after an episode these equal lps_t so ratio=1 (identical to PG).
+        # On subsequent epochs (if called multiple times) the clip kicks in.
+        # Use detached log probs from action-selection time for PPO ratio.
+        # Sliced to [:n] to match lps_t length exactly.
+        _olp = getattr(self, '_old_log_probs', [])
+        if _olp and len(_olp) >= n:
+            old_lps_t = torch.tensor([x.item() for x in _olp[:n]],
+                                     dtype=torch.float32).to(DEVICE)
+        else:
+            old_lps_t = lps_t.detach()
+        ratio    = torch.exp(lps_t - old_lps_t)
+        pg_loss  = -torch.min(
+            ratio * adv_t.detach(),
+            torch.clamp(ratio, 0.8, 1.2) * adv_t.detach()
+        ).mean()
         vf_loss  = F.mse_loss(vals_t, ret_t.detach())
         ent_loss = -self.entropy_coeff * ent_t.mean()
         loss     = pg_loss + 0.5 * vf_loss + ent_loss
@@ -298,6 +317,7 @@ class GNNPhase1Policy:
     def _clear(self):
         self._log_probs = []; self._values = []
         self._rewards   = []; self._entropies = []
+        self._old_log_probs = []
 
     def _build_tensors(self, state):
         assignment = state['assignment']
@@ -536,7 +556,10 @@ class GNNPhase2Policy:
                 action['idx_i'] = pairs[0][0]
                 action['idx_j'] = pairs[0][1]
 
-        self._log_probs.append(lp_type + lp_idx)
+        total_lp = lp_type + lp_idx
+        self._log_probs.append(total_lp)
+        if not hasattr(self, '_old_log_probs'): self._old_log_probs = []
+        self._old_log_probs.append(total_lp.detach())
         self._rewards.append(0.0)
         self._entropies.append(entropy)
         return action
@@ -570,7 +593,23 @@ class GNNPhase2Policy:
             self._clear(); return
 
         vals_t = torch.tensor(self._values[:n], dtype=torch.float32).to(DEVICE)
-        pg_loss  = -(lps_t * adv_t.detach()).mean()
+        # PPO clipped surrogate (epsilon=0.2)
+        # _old_log_probs stores detached log_probs from the forward pass at selection time.
+        # On first update after an episode these equal lps_t so ratio=1 (identical to PG).
+        # On subsequent epochs (if called multiple times) the clip kicks in.
+        # Use detached log probs from action-selection time for PPO ratio.
+        # Sliced to [:n] to match lps_t length exactly.
+        _olp = getattr(self, '_old_log_probs', [])
+        if _olp and len(_olp) >= n:
+            old_lps_t = torch.tensor([x.item() for x in _olp[:n]],
+                                     dtype=torch.float32).to(DEVICE)
+        else:
+            old_lps_t = lps_t.detach()
+        ratio    = torch.exp(lps_t - old_lps_t)
+        pg_loss  = -torch.min(
+            ratio * adv_t.detach(),
+            torch.clamp(ratio, 0.8, 1.2) * adv_t.detach()
+        ).mean()
         vf_loss  = F.mse_loss(vals_t, ret_t.detach())
         ent_loss = -self.entropy_coeff * ent_t.mean()
         loss     = pg_loss + 0.5 * vf_loss + ent_loss
@@ -588,6 +627,7 @@ class GNNPhase2Policy:
     def _clear(self):
         self._log_probs = []; self._values = []
         self._rewards   = []; self._entropies = []
+        self._old_log_probs = []
 
     def _encode(self, state):
         pool = state.get('pool_coeffs', None)
@@ -719,8 +759,13 @@ class Phase3Net(nn.Module):
 
     def encode_pool(self, pool_coeffs):
         """pool_coeffs: (n_ineqs, coeff_dim) tensor"""
-        x = F.relu(self.pool_norm(self.pool_proj(pool_coeffs)))  # (n, token_dim)
-        x = self.pool_transformer(x.unsqueeze(0)).squeeze(0)     # (n, token_dim)
+        # Normalize each feature across the pool to prevent NaN in Transformer
+        mu  = pool_coeffs.mean(dim=0, keepdim=True)
+        std = pool_coeffs.std(dim=0, keepdim=True).clamp(min=1e-6)
+        pc  = (pool_coeffs - mu) / std
+        pc  = torch.nan_to_num(pc, nan=0.0, posinf=1.0, neginf=-1.0)
+        x = F.relu(self.pool_norm(self.pool_proj(pc)))            # (n, token_dim)
+        x = self.pool_transformer(x.unsqueeze(0)).squeeze(0)      # (n, token_dim)
         return x
 
     def combined(self, h_graph, h_pool):
@@ -755,7 +800,7 @@ class GNNPhase3Policy:
     """
 
     def __init__(self, coeff_dim=256, graph_hidden=64, token_dim=128,
-                 lr=3e-4, entropy_coeff_start=0.20, entropy_coeff_end=0.02,
+                 lr=1e-4, entropy_coeff_start=0.15, entropy_coeff_end=0.02,
                  total_episodes=10000):
         self.net = Phase3Net(
             graph_hidden=graph_hidden, coeff_dim=coeff_dim,
@@ -811,6 +856,9 @@ class GNNPhase3Policy:
         for k, at in enumerate(PHASE3_ACTION_TYPES):
             if int(at) in valid_types:
                 type_mask[k] = 0.0
+        # Safety: if nothing mapped (shouldn't happen) allow all to prevent NaN
+        if (type_mask == float('-inf')).all():
+            type_mask = torch.zeros(6).to(DEVICE)
 
         type_probs = F.softmax(type_logits + type_mask, dim=-1)
         type_dist  = torch.distributions.Categorical(type_probs)
@@ -901,7 +949,10 @@ class GNNPhase3Policy:
                 action['idx_i'] = pairs[0][0]
                 action['idx_j'] = pairs[0][1]
 
-        self._log_probs.append(lp_type + lp_extra)
+        total_lp = lp_type + lp_extra
+        self._log_probs.append(total_lp)
+        if not hasattr(self, '_old_log_probs'): self._old_log_probs = []
+        self._old_log_probs.append(total_lp.detach())
         self._rewards.append(0.0)
         self._entropies.append(entropy)
         return action
@@ -923,6 +974,8 @@ class GNNPhase3Policy:
         if self._rewards:
             self._rewards[n-1] += final_reward
 
+        # Clip rewards to prevent gradient explosion (Phase3 rewards can reach +25/-5)
+        self._rewards = [max(-3.0, min(3.0, r)) for r in self._rewards]
         returns, advantages = compute_gae(self._rewards[:n], self._values[:n])
         ret_t = torch.tensor(returns,    dtype=torch.float32).to(DEVICE)
         adv_t = torch.tensor(advantages, dtype=torch.float32).to(DEVICE)
@@ -934,7 +987,23 @@ class GNNPhase3Policy:
             self._clear(); return
 
         vals_t = torch.tensor(self._values[:n], dtype=torch.float32).to(DEVICE)
-        pg_loss  = -(lps_t * adv_t.detach()).mean()
+        # PPO clipped surrogate (epsilon=0.2)
+        # _old_log_probs stores detached log_probs from the forward pass at selection time.
+        # On first update after an episode these equal lps_t so ratio=1 (identical to PG).
+        # On subsequent epochs (if called multiple times) the clip kicks in.
+        # Use detached log probs from action-selection time for PPO ratio.
+        # Sliced to [:n] to match lps_t length exactly.
+        _olp = getattr(self, '_old_log_probs', [])
+        if _olp and len(_olp) >= n:
+            old_lps_t = torch.tensor([x.item() for x in _olp[:n]],
+                                     dtype=torch.float32).to(DEVICE)
+        else:
+            old_lps_t = lps_t.detach()
+        ratio    = torch.exp(lps_t - old_lps_t)
+        pg_loss  = -torch.min(
+            ratio * adv_t.detach(),
+            torch.clamp(ratio, 0.8, 1.2) * adv_t.detach()
+        ).mean()
         vf_loss  = F.mse_loss(vals_t, ret_t.detach())
         ent_loss = -self.entropy_coeff * ent_t.mean()
         loss     = pg_loss + 0.5 * vf_loss + ent_loss
@@ -944,14 +1013,23 @@ class GNNPhase3Policy:
 
         self.optimizer.zero_grad()
         loss.backward()
-        nn.utils.clip_grad_norm_(self.net.parameters(), 1.0)
+        # Tighter clip for Phase 3 — reward scale is larger (5+20*improvement)
+        nn.utils.clip_grad_norm_(self.net.parameters(), 0.5)
         self.optimizer.step()
         self.scheduler.step()
+
+        # NaN recovery: if weights exploded, reset the affected layer
+        for name, param in self.net.named_parameters():
+            if torch.isnan(param).any():
+                print(f"[Phase3] NaN in {name}, resetting")
+                nn.init.xavier_uniform_(param.data) if param.dim() >= 2 else nn.init.zeros_(param.data)
+
         self._clear()
 
     def _clear(self):
         self._log_probs = []; self._values = []
         self._rewards   = []; self._entropies = []
+        self._old_log_probs = []
 
     def _pad_pool(self, x):
         d = x.shape[-1]

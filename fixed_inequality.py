@@ -294,11 +294,12 @@ class FractionalInequality(Inequality):
         return f"{tag}  {base}"
 
 
-def make_fractional(ineq: Inequality, lam: float,
-                    source_nodes: List[str],
-                    partition_ids: List[int]) -> FractionalInequality:
-    """Promote a plain Inequality to FractionalInequality in-place."""
-    fi = FractionalInequality(ineq.index, lam, source_nodes, partition_ids)
+def make_fractional(ineq: Inequality, lam: float = 1.0,
+                    source_nodes: List[str] = None,
+                    partition_ids: List[int] = None) -> FractionalInequality:
+    """Promote a plain Inequality to FractionalInequality. Args default to empty."""
+    fi = FractionalInequality(ineq.index, lam,
+                              source_nodes or [], partition_ids or [])
     fi.coeffs = ineq.coeffs.copy()
     fi.active_st_partitions = set(ineq.active_st_partitions)
     return fi

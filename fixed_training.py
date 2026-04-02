@@ -166,7 +166,7 @@ def _greedy_session_partition(nodes, edges, sessions):
 # Stage 1 — Train Phase 2 (proof calculus)
 # -----------------------------------------------------------------------
 
-def run_stage1(num_episodes=10000, graph_dataset_size=5):
+def run_stage1(num_episodes=10000, graph_dataset_size=5):  # Tier 1 only
     print("=" * 70)
     print(f"STAGE 1: Train Phase 2 proof calculus ({num_episodes} episodes)")
     print("=" * 70)
@@ -393,7 +393,7 @@ def run_stage2(phase2_policy, num_episodes=10000, graph_dataset_size=5):
 # -----------------------------------------------------------------------
 
 def run_stage3(phase1_policy, phase2_policy,
-               num_episodes=10000, graph_dataset_size=5):
+               num_episodes=10000, graph_dataset_size=10):  # Tier 1+2
     print("=" * 70)
     print(f"STAGE 3: Joint fine-tuning Phase 1+2 ({num_episodes} episodes)")
     print("=" * 70)
@@ -489,7 +489,7 @@ def run_stage3(phase1_policy, phase2_policy,
 # -----------------------------------------------------------------------
 
 def run_stage4(phase1_policy, phase2_policy, best_partitions,
-               coeff_dim, num_episodes=10000, graph_dataset_size=5):
+               coeff_dim, num_episodes=10000, graph_dataset_size=12):  # All tiers
     """
     Phase 3 training. Uses best partitions from Stage 3 as fixed starting
     points, so the policy can focus entirely on fractional IO discovery.
@@ -706,15 +706,21 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
 def train(stage1_episodes=10000, stage2_episodes=10000,
           stage3_episodes=10000, stage4_episodes=10000,
           graph_dataset_size=5):
-    """Run all four stages and return all policies + metrics."""
+    """
+    Run all four stages.
+    graph_dataset_size controls Stage 1+2 (Tier 1 only = 5).
+    Stage 3 automatically uses size=10, Stage 4 uses size=12.
+    """
     phase2_policy, coeff_dim, s1 = run_stage1(stage1_episodes, graph_dataset_size)
     phase1_policy, s2             = run_stage2(phase2_policy, stage2_episodes, graph_dataset_size)
     phase1_policy, phase2_policy, s3, best_partitions = run_stage3(
-        phase1_policy, phase2_policy, stage3_episodes, graph_dataset_size
+        phase1_policy, phase2_policy, stage3_episodes,
+        graph_dataset_size=min(10, graph_dataset_size*2)
     )
     phase3_policy, s4, novel_bounds = run_stage4(
         phase1_policy, phase2_policy, best_partitions,
-        coeff_dim, stage4_episodes, graph_dataset_size
+        coeff_dim, stage4_episodes,
+        graph_dataset_size=min(12, graph_dataset_size*3)
     )
     return (phase1_policy, phase2_policy, phase3_policy,
             {'stage1': s1, 'stage2': s2, 'stage3': s3, 'stage4': s4},
@@ -813,13 +819,15 @@ if __name__ == "__main__":
     t0 = time.time()
     (phase1_policy, phase2_policy, phase3_policy,
      train_metrics, novel_bounds) = train(
-        stage1_episodes=10000, stage2_episodes=10000,
-        stage3_episodes=10000, stage4_episodes=10000,
+        stage1_episodes=15000,   # Phase 2 proof calculus  — Tier 1 graphs (5)
+        stage2_episodes=15000,   # Phase 1 partition learn — Tier 1 graphs (5)
+        stage3_episodes=15000,   # Joint fine-tuning       — Tier 1+2 graphs (10)
+        stage4_episodes=15000,   # Phase 3 fractional IO   — All graphs (11)
         graph_dataset_size=5
     )
     eval_results = evaluate(
         phase1_policy, phase2_policy, phase3_policy,
-        num_episodes=1000, graph_dataset_size=5
+        num_episodes=500, graph_dataset_size=5
     )
 
     runtime = time.time() - t0
@@ -848,3 +856,40 @@ if __name__ == "__main__":
             f.write("No super-PB bounds found in this run.\n")
             f.write("Increase stage4_episodes or check CROSS_SUBMOD usage.\n")
     print("Summary saved to training_summary.txt")
+    # --- Auto-generate plots ---
+    print("\n--- Generating plots ---")
+    import subprocess, sys
+    try:
+        subprocess.run([sys.executable, "plot_training.py"], check=True)
+        print("Plots generated successfully.")
+    except Exception as e:
+        print(f"Plot generation failed: {e}")
+        print("Run 'python plot_training.py' manually.")
+
+    # --- Auto-generate graph visualization ---
+    try:
+        subprocess.run([sys.executable, "visualize_graphs.py"], check=True)
+        print("Graph visualization generated.")
+    except Exception as e:
+        print(f"Graph visualization failed: {e}")
+
+    # --- Auto git push ---
+    print("\n--- Pushing to git ---")
+    try:
+        subprocess.run(["git", "add", "--all"], check=True)
+        novel_tag = ""
+        if novel_bounds:
+            graphs_str = ", ".join(sorted(novel_bounds.keys()))
+            novel_tag = f" - NOVEL BOUNDS: {graphs_str}"
+        commit_msg = (
+            f"Training run completed - "
+            f"{time.strftime('%Y-%m-%d %H:%M')} - "
+            f"runtime {runtime/60:.0f}min"
+            f"{novel_tag}"
+        )
+        subprocess.run(["git", "commit", "-m", commit_msg], check=True)
+        subprocess.run(["git", "push"], check=True)
+        print("Git push completed successfully.")
+    except Exception as e:
+        print(f"Git push failed: {e}")
+        print("Push manually with: git add --all && git commit -m 'training results' && git push")
