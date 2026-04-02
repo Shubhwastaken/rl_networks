@@ -707,14 +707,10 @@ class Phase3Net(nn.Module):
             SAGELayer(dims[i], dims[i+1]) for i in range(num_sage_layers)
         ])
 
-        # Pool encoder (Transformer)
+        # Pool encoder (stable MLP — Transformer replaced due to GPU instability)
         self.pool_proj = nn.Linear(coeff_dim, token_dim)
         self.pool_norm = nn.LayerNorm(token_dim)
-        enc_layer      = nn.TransformerEncoderLayer(
-            d_model=token_dim, nhead=4, dim_feedforward=256,
-            batch_first=True, norm_first=False
-        )
-        self.pool_transformer = nn.TransformerEncoder(enc_layer, 2)
+        # pool_transformer removed — encode_pool now uses mean-pool MLP
 
         # Combined representation
         comb_dim = graph_hidden + token_dim
@@ -758,20 +754,28 @@ class Phase3Net(nn.Module):
         return h   # (n_nodes, graph_hidden)
 
     def encode_pool(self, pool_coeffs):
-        """pool_coeffs: (n_ineqs, coeff_dim) tensor"""
-        # Normalize each feature across the pool to prevent NaN in Transformer
+        """
+        Stable pool encoding: normalize → per-row MLP → mean pool.
+        Replaces Transformer which was numerically unstable on GPU with
+        small/variable batch sizes. Mean-pool MLP is simpler, faster,
+        and does not suffer from attention NaN.
+        """
+        # Clip extreme values before normalization
+        pool_coeffs = pool_coeffs.clamp(-10.0, 10.0)
         mu  = pool_coeffs.mean(dim=0, keepdim=True)
-        std = pool_coeffs.std(dim=0, keepdim=True).clamp(min=1e-6)
+        std = pool_coeffs.std(dim=0, keepdim=True).clamp(min=1e-4)
         pc  = (pool_coeffs - mu) / std
         pc  = torch.nan_to_num(pc, nan=0.0, posinf=1.0, neginf=-1.0)
-        x = F.relu(self.pool_norm(self.pool_proj(pc)))            # (n, token_dim)
-        x = self.pool_transformer(x.unsqueeze(0)).squeeze(0)      # (n, token_dim)
-        return x
+        # Per-inequality encoding
+        x = F.relu(self.pool_norm(self.pool_proj(pc)))   # (n, token_dim)
+        # Mean pool — stable regardless of sequence length
+        return x.mean(dim=0, keepdim=True).squeeze(0)    # (token_dim,)
 
     def combined(self, h_graph, h_pool):
-        g  = h_graph.mean(dim=0)   # (graph_hidden,)
-        p  = h_pool.mean(dim=0)    # (token_dim,)
-        return self.combiner(torch.cat([g, p]))   # (128,)
+        g = h_graph.mean(dim=0)                    # (graph_hidden,)
+        # h_pool is already (token_dim,) from mean-pool in encode_pool
+        p = h_pool if h_pool.dim() == 1 else h_pool.mean(dim=0)
+        return self.combiner(torch.cat([g, p]))    # (128,)
 
 
 PHASE3_ACTION_TYPES = [
@@ -800,13 +804,16 @@ class GNNPhase3Policy:
     """
 
     def __init__(self, coeff_dim=256, graph_hidden=64, token_dim=128,
-                 lr=1e-4, entropy_coeff_start=0.15, entropy_coeff_end=0.02,
+                 lr=3e-5, entropy_coeff_start=0.10, entropy_coeff_end=0.01,
                  total_episodes=10000):
         self.net = Phase3Net(
             graph_hidden=graph_hidden, coeff_dim=coeff_dim,
             token_dim=token_dim
         ).to(DEVICE)
-        self.optimizer = torch.optim.Adam(self.net.parameters(), lr=lr)
+        # AdamW with weight decay prevents weight explosion on GPU
+        self.optimizer = torch.optim.AdamW(
+            self.net.parameters(), lr=lr, weight_decay=1e-4
+        )
         self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
             self.optimizer, T_max=max(total_episodes, 1), eta_min=1e-5
         )
@@ -974,8 +981,12 @@ class GNNPhase3Policy:
         if self._rewards:
             self._rewards[n-1] += final_reward
 
-        # Clip rewards to prevent gradient explosion (Phase3 rewards can reach +25/-5)
-        self._rewards = [max(-3.0, min(3.0, r)) for r in self._rewards]
+        # Clip rewards tightly — GPU runs faster, larger gradients per step
+        # Normalise to [-1, +1] to keep loss scale stable across all graphs
+        raw = [max(-5.0, min(25.0, r)) for r in self._rewards]
+        r_min, r_max = min(raw), max(raw)
+        r_range = max(r_max - r_min, 1e-6)
+        self._rewards = [2.0 * (r - r_min) / r_range - 1.0 for r in raw]
         returns, advantages = compute_gae(self._rewards[:n], self._values[:n])
         ret_t = torch.tensor(returns,    dtype=torch.float32).to(DEVICE)
         adv_t = torch.tensor(advantages, dtype=torch.float32).to(DEVICE)
@@ -1013,15 +1024,27 @@ class GNNPhase3Policy:
 
         self.optimizer.zero_grad()
         loss.backward()
-        # Tighter clip for Phase 3 — reward scale is larger (5+20*improvement)
-        nn.utils.clip_grad_norm_(self.net.parameters(), 0.5)
+
+        # Check for NaN gradients BEFORE clipping/stepping
+        has_nan_grad = any(
+            p.grad is not None and torch.isnan(p.grad).any()
+            for p in self.net.parameters()
+        )
+        if has_nan_grad:
+            # Skip this update entirely — NaN gradient means the loss
+            # computation produced an invalid result. Clearing and moving
+            # on is safer than trying to clip NaN values.
+            self.optimizer.zero_grad()
+            self._clear()
+            return
+
+        nn.utils.clip_grad_norm_(self.net.parameters(), 0.2)
         self.optimizer.step()
         self.scheduler.step()
 
-        # NaN recovery: if weights exploded, reset the affected layer
+        # Post-step NaN check — should now be rare with the above guard
         for name, param in self.net.named_parameters():
             if torch.isnan(param).any():
-                print(f"[Phase3] NaN in {name}, resetting")
                 nn.init.xavier_uniform_(param.data) if param.dim() >= 2 else nn.init.zeros_(param.data)
 
         self._clear()
