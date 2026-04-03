@@ -175,14 +175,14 @@ def generate_node_io(
     # RHS: source entropy of this node
     fi.set_rhs(f"Y_S_{node}", 1.0)
 
-    # RHS: all incoming edge signals (u→v for each neighbour u)
-    # These appear on RHS because node v can use them as inputs.
-    # They also appear on LHS (as part of what v can observe) but that
-    # is implicit in the encoding constraint.
+    # RHS: all incident edge signals (undirected — try both directions)
     for u in nbrs:
-        edge_key = f"U_{u}_{node}"
-        if edge_key in index.var_to_idx:
-            fi.set_rhs(edge_key, 1.0)
+        key1 = f"U_{u}_{node}"
+        key2 = f"U_{node}_{u}"
+        if key1 in index.var_to_idx:
+            fi.set_rhs(key1, 1.0)
+        elif key2 in index.var_to_idx:
+            fi.set_rhs(key2, 1.0)
 
     # The outgoing signals U_{v→u} are determined by v's inputs (encoding
     # constraint) and appear on the LHS. For Phase 3 purposes we leave them

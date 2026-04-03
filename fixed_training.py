@@ -39,7 +39,7 @@ SEED = 42
 random.seed(SEED)
 np.random.seed(SEED)
 
-from fixed_environment import PartitionBoundEnv, ActionType, Phase
+from fixed_environment import PartitionBoundEnv, ActionType, Phase, _compute_partition_bound
 from partition import generate_random_valid_partition, decode_partition
 from gnn_policy import (
     GNNPhase1Policy, GNNPhase2Policy, GNNPhase3Policy, LAMBDA_GRID
@@ -346,6 +346,7 @@ def run_stage2(phase2_policy, num_episodes=10000, graph_dataset_size=5):
         partition_weights = env.partition_weights
 
         total_reward = sum(t['reward'] for t in p1_traj)
+        p2_traj = []
         while not done:
             valid = env.get_valid_actions()
             if not valid: break
@@ -356,6 +357,7 @@ def run_stage2(phase2_policy, num_episodes=10000, graph_dataset_size=5):
             state, reward, done = env.step(action)
             state['edges']    = edges
             state['sessions'] = sessions
+            p2_traj.append({'reward': reward})
             total_reward += reward
 
         phase1_policy.update(p1_traj, total_reward)
@@ -444,6 +446,7 @@ def run_stage3(phase1_policy, phase2_policy,
         partition_weights= env.partition_weights
 
         total_reward = sum(t['reward'] for t in p1_traj)
+        p2_traj = []
         while not done:
             valid = env.get_valid_actions()
             if not valid: break
@@ -454,10 +457,11 @@ def run_stage3(phase1_policy, phase2_policy,
             state, reward, done = env.step(action)
             state['edges']    = edges
             state['sessions'] = sessions
+            p2_traj.append({'reward': reward})
             total_reward += reward
 
         phase1_policy.update(p1_traj, total_reward)
-        phase2_policy.update([], total_reward)   # Phase 2 already updated internally
+        phase2_policy.update(p2_traj, total_reward)   # Pass actual trajectory
 
         rl_bound = abs(total_reward)
         rewards.append(total_reward)
@@ -532,8 +536,7 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
 
     print(f"\n  Partition bounds for search:")
     for nodes, edges, sessions in env.graph_dataset:
-        from fixed_environment import _compute_partition_bound
-        pb = _compute_partition_bound(nodes, edges, sessions)
+        pb    = _compute_partition_bound(nodes, edges, sessions)
         gname = identify_graph(nodes, edges, sessions)
         print(f"    {gname:<16}: PB = {pb:.4f}")
     print()
@@ -572,7 +575,6 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         env._refinement_steps = 0
         env.prev_internal_count = 0
 
-        from fixed_environment import _compute_partition_bound
         env.partition_bound = _compute_partition_bound(nodes, edges, sessions)
 
         env._start_phase2()   # builds index, node_ios, base_inequalities
@@ -687,7 +689,7 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
             print(f"  Novel bound: r <= {b:.6f}")
             print(f"  Partition bound: r <= {pb2:.6f}")
             print(f"  Improvement: {(pb2-b)/pb2*100:.3f}%")
-            print(f"  Partition used: {_partition_str(part, ss if 'ss' in dir() else [])}")
+            print(f"  Partition used: {_partition_str(part, ss if "ss" in locals() else [])}")
             print(f"  Inequality: {trace[:400]}")
     else:
         print("\n  No super-PB bounds found in Stage 4.")
@@ -730,7 +732,6 @@ def train(stage1_episodes=10000, stage2_episodes=10000,
 def evaluate(phase1_policy, phase2_policy, phase3_policy,
              num_episodes=500, graph_dataset_size=5):
     """Evaluation across all phases."""
-    from fixed_environment import _compute_partition_bound
     env = PartitionBoundEnv(graph_dataset_size=graph_dataset_size, stage=4)
     results = defaultdict(lambda: {'p2_bounds':[], 'p3_bounds':[], 'novel':0})
 
@@ -819,15 +820,15 @@ if __name__ == "__main__":
     t0 = time.time()
     (phase1_policy, phase2_policy, phase3_policy,
      train_metrics, novel_bounds) = train(
-        stage1_episodes=150,   # Phase 2 proof calculus  — Tier 1 graphs (5)
-        stage2_episodes=150,   # Phase 1 partition learn — Tier 1 graphs (5)
-        stage3_episodes=150,   # Joint fine-tuning       — Tier 1+2 graphs (10)
-        stage4_episodes=150,   # Phase 3 fractional IO   — All graphs (11)
+        stage1_episodes=15000,   # Phase 2 proof calculus  — Tier 1 graphs (5)
+        stage2_episodes=15000,   # Phase 1 partition learn — Tier 1 graphs (5)
+        stage3_episodes=15000,   # Joint fine-tuning       — Tier 1+2 graphs (10)
+        stage4_episodes=15000,   # Phase 3 fractional IO   — All graphs (11)
         graph_dataset_size=5
     )
     eval_results = evaluate(
         phase1_policy, phase2_policy, phase3_policy,
-        num_episodes=50, graph_dataset_size=5
+        num_episodes=500, graph_dataset_size=5
     )
 
     runtime = time.time() - t0

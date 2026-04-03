@@ -87,9 +87,14 @@ def apply_pairwise_submodularity(
 
     # --- UNION ---
 
-    # Y_ST: union of active sets
+    # Y_ST: union of active sets — preserve fractional coefficients.
+    # Use max(coeff_a, coeff_b) so fractional weights are not silently
+    # overwritten with 1.0. For integer IOs both coeffs are 1.0 so
+    # max = 1.0 and behaviour is unchanged.
     for i in (active_a | active_b):
-        union_ineq.set_lhs(f"Y_ST_P{i}", 1.0)
+        c = max(ineq_a.coeffs[index.yst_idx(i)],
+                ineq_b.coeffs[index.yst_idx(i)])
+        union_ineq.coeffs[index.yst_idx(i)] = c
 
     # Y_I(Pi,Pi): take max coefficient
     for i in range(index.n()):
@@ -159,7 +164,8 @@ def _collapse_to_yi_if_valid(
     Condition: sessions covered by active Y_ST == all sessions.
     Does NOT require all nodes to be covered -- sessions only.
 
-    Effect: n_active Y_ST terms -> (n_active - 1) * h(Y_I)
+    Effect: fractional-weighted Y_ST terms -> (sum_coeff - min_coeff) * h(Y_I)
+    Integer special case: all coeffs = 1 -> (n_active - 1) * h(Y_I)
             source terms for covered nodes zeroed out.
     """
     active = ineq.active_yst()
@@ -172,18 +178,39 @@ def _collapse_to_yi_if_valid(
     result   = ineq.copy()
     n_active = len(active)
 
+    # Collect the Y_ST coefficients for active partitions
+    yst_coeffs = [ineq.coeffs[index.yst_idx(i)] for i in active]
+    min_coeff  = min(yst_coeffs)   # smallest fractional weight
+    sum_coeff  = sum(yst_coeffs)   # total weight
+
     # Zero out all Y_ST terms
     for i in range(index.n()):
         result.coeffs[index.yst_idx(i)] = 0.0
 
-    # (n_active - 1) * h(Y_I)
-    result.coeffs[index.yi_idx()] += (n_active - 1)
+    # Correct Y_I coefficient accounting for fractional weights.
+    #
+    # Integer case (all yst_coeffs = 1.0):
+    #   sum_coeff = n_active, min_coeff = 1.0
+    #   Y_I coeff = n_active - 1  [same as before]
+    #
+    # Fractional case (yst_coeffs vary):
+    #   The weighted (n,2)-submodularity gives:
+    #   Σ c_k*h(Y_ST_Pk) >= (sum_coeff - min_coeff)*h(Y_I) + min_coeff*h(Y_I_...)
+    #   After source cancellation of min_coeff*h(Y_I):
+    #   net Y_I coeff = sum_coeff - min_coeff
+    #
+    #   This is ALWAYS <= the old (n_active - 1) when coeffs are fractional,
+    #   giving a valid but tighter (correct) bound.
+    result.coeffs[index.yi_idx()] += (sum_coeff - min_coeff)
 
-    # Cancel source terms for nodes in the active partitions
+    # Cancel source terms: scale by min_coeff (the part that cancels)
+    # For fractional weights, only min_coeff fraction of source entropy cancels
     covered_nodes = set()
     for i in active:
         covered_nodes |= set(index.partitions[i])
     for v in covered_nodes:
-        result.coeffs[index.source_idx(v)] = 0.0
+        # Scale down source cancellation proportionally
+        orig = result.coeffs[index.source_idx(v)]
+        result.coeffs[index.source_idx(v)] = orig * (1.0 - min_coeff / max(sum_coeff, 1e-9))
 
     return result

@@ -37,7 +37,10 @@ from enum import IntEnum
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {DEVICE}")
 if torch.cuda.is_available():
-    print(f"GPU: {torch.cuda.get_device_name(0)}")
+    try:
+        print(f"GPU: {torch.cuda.get_device_name(0)}")
+    except Exception:
+        pass  # GPU present but name unavailable
 
 
 class ActionType(IntEnum):
@@ -194,8 +197,6 @@ class GNNPhase1Policy:
 
         lp = dist.log_prob(gid_t)
         self._log_probs.append(lp)
-        if not hasattr(self, '_old_log_probs'): self._old_log_probs = []
-        self._old_log_probs.append(lp.detach())
         self._rewards.append(0.0)
         self._entropies.append(dist.entropy())
         return {'type': ActionType.ASSIGN_NODE, 'group_id': gid_t.item()}
@@ -289,12 +290,14 @@ class GNNPhase1Policy:
         # On subsequent epochs (if called multiple times) the clip kicks in.
         # Use detached log probs from action-selection time for PPO ratio.
         # Sliced to [:n] to match lps_t length exactly.
-        _olp = getattr(self, '_old_log_probs', [])
-        if _olp and len(_olp) >= n:
-            old_lps_t = torch.tensor([x.item() for x in _olp[:n]],
+        # Use PREVIOUS episode log_probs as frozen reference for PPO ratio.
+        # _prev_log_probs are set in _clear() at end of last episode.
+        _prev = getattr(self, '_prev_log_probs', [])
+        if _prev and len(_prev) >= n:
+            old_lps_t = torch.tensor([x.detach().item() for x in _prev[:n]],
                                      dtype=torch.float32).to(DEVICE)
         else:
-            old_lps_t = lps_t.detach()
+            old_lps_t = lps_t.detach()  # first episode: ratio=1, no clip
         ratio    = torch.exp(lps_t - old_lps_t)
         pg_loss  = -torch.min(
             ratio * adv_t.detach(),
@@ -315,9 +318,12 @@ class GNNPhase1Policy:
         self._clear()
 
     def _clear(self):
-        self._log_probs = []; self._values = []
-        self._rewards   = []; self._entropies = []
-        self._old_log_probs = []
+        # Save current log_probs as old for next episode PPO ratio
+        # (not cleared — they become the frozen reference policy)
+        self._prev_log_probs = list(self._log_probs)
+        self._log_probs  = []; self._values = []
+        self._rewards    = []; self._entropies = []
+        # _old_log_probs stays as-is — it will be updated at start of next episode
 
     def _build_tensors(self, state):
         assignment = state['assignment']
@@ -558,8 +564,6 @@ class GNNPhase2Policy:
 
         total_lp = lp_type + lp_idx
         self._log_probs.append(total_lp)
-        if not hasattr(self, '_old_log_probs'): self._old_log_probs = []
-        self._old_log_probs.append(total_lp.detach())
         self._rewards.append(0.0)
         self._entropies.append(entropy)
         return action
@@ -599,12 +603,14 @@ class GNNPhase2Policy:
         # On subsequent epochs (if called multiple times) the clip kicks in.
         # Use detached log probs from action-selection time for PPO ratio.
         # Sliced to [:n] to match lps_t length exactly.
-        _olp = getattr(self, '_old_log_probs', [])
-        if _olp and len(_olp) >= n:
-            old_lps_t = torch.tensor([x.item() for x in _olp[:n]],
+        # Use PREVIOUS episode log_probs as frozen reference for PPO ratio.
+        # _prev_log_probs are set in _clear() at end of last episode.
+        _prev = getattr(self, '_prev_log_probs', [])
+        if _prev and len(_prev) >= n:
+            old_lps_t = torch.tensor([x.detach().item() for x in _prev[:n]],
                                      dtype=torch.float32).to(DEVICE)
         else:
-            old_lps_t = lps_t.detach()
+            old_lps_t = lps_t.detach()  # first episode: ratio=1, no clip
         ratio    = torch.exp(lps_t - old_lps_t)
         pg_loss  = -torch.min(
             ratio * adv_t.detach(),
@@ -625,9 +631,12 @@ class GNNPhase2Policy:
         self._clear()
 
     def _clear(self):
-        self._log_probs = []; self._values = []
-        self._rewards   = []; self._entropies = []
-        self._old_log_probs = []
+        # Save current log_probs as old for next episode PPO ratio
+        # (not cleared — they become the frozen reference policy)
+        self._prev_log_probs = list(self._log_probs)
+        self._log_probs  = []; self._values = []
+        self._rewards    = []; self._entropies = []
+        # _old_log_probs stays as-is — it will be updated at start of next episode
 
     def _encode(self, state):
         pool = state.get('pool_coeffs', None)
@@ -755,27 +764,25 @@ class Phase3Net(nn.Module):
 
     def encode_pool(self, pool_coeffs):
         """
-        Stable pool encoding: normalize → per-row MLP → mean pool.
-        Replaces Transformer which was numerically unstable on GPU with
-        small/variable batch sizes. Mean-pool MLP is simpler, faster,
-        and does not suffer from attention NaN.
+        Stable pool encoding: normalize → per-row MLP.
+        Returns (per_row_tokens, mean_token):
+          per_row_tokens: (n_ineqs, token_dim) — used by pool pointer
+          mean_token:     (token_dim,)          — used by combined()
         """
-        # Clip extreme values before normalization
         pool_coeffs = pool_coeffs.clamp(-10.0, 10.0)
         mu  = pool_coeffs.mean(dim=0, keepdim=True)
         std = pool_coeffs.std(dim=0, keepdim=True).clamp(min=1e-4)
         pc  = (pool_coeffs - mu) / std
         pc  = torch.nan_to_num(pc, nan=0.0, posinf=1.0, neginf=-1.0)
-        # Per-inequality encoding
-        x = F.relu(self.pool_norm(self.pool_proj(pc)))   # (n, token_dim)
-        # Mean pool — stable regardless of sequence length
-        return x.mean(dim=0, keepdim=True).squeeze(0)    # (token_dim,)
+        tokens = F.relu(self.pool_norm(self.pool_proj(pc)))  # (n, token_dim)
+        mean   = tokens.mean(dim=0)                          # (token_dim,)
+        return tokens, mean
 
-    def combined(self, h_graph, h_pool):
-        g = h_graph.mean(dim=0)                    # (graph_hidden,)
-        # h_pool is already (token_dim,) from mean-pool in encode_pool
-        p = h_pool if h_pool.dim() == 1 else h_pool.mean(dim=0)
-        return self.combiner(torch.cat([g, p]))    # (128,)
+    def combined(self, h_graph, h_pool_mean):
+        """h_pool_mean: (token_dim,) mean token from encode_pool."""
+        g = h_graph.mean(dim=0)   # (graph_hidden,)
+        p = h_pool_mean if h_pool_mean.dim() == 1 else h_pool_mean.squeeze(0)
+        return self.combiner(torch.cat([g, p]))   # (128,)
 
 
 PHASE3_ACTION_TYPES = [
@@ -846,12 +853,13 @@ class GNNPhase3Policy:
 
         pool_coeffs = state.get('pool_coeffs', None)
         if pool_coeffs is not None and len(pool_coeffs) > 0:
-            pc  = self._pad_pool(torch.tensor(pool_coeffs, dtype=torch.float32).to(DEVICE))
-            h_p = self.net.encode_pool(pc)
+            pc = self._pad_pool(torch.tensor(pool_coeffs, dtype=torch.float32).to(DEVICE))
+            h_p_tokens, h_p_mean = self.net.encode_pool(pc)
         else:
-            h_p = torch.zeros(1, self.net.token_dim).to(DEVICE)
+            h_p_tokens = torch.zeros(0, self.net.token_dim).to(DEVICE)
+            h_p_mean   = torch.zeros(self.net.token_dim).to(DEVICE)
 
-        h_comb  = self.net.combined(h_g, h_p)
+        h_comb = self.net.combined(h_g, h_p_mean)
         value   = self.net.value_head(h_comb).squeeze()
         self._values.append(value.item())
 
@@ -929,13 +937,13 @@ class GNNPhase3Policy:
         elif atype == ActionType.ADD_TO_ACCUMULATOR:
             add_actions = [a for a in valid_actions
                            if int(a['type']) == ActionType.ADD_TO_ACCUMULATOR]
-            if add_actions and len(h_p) > 0:
+            if add_actions and h_p_tokens.shape[0] > 0:
                 idxs   = [a['idx_i'] for a in add_actions]
-                n_pool = len(h_p)
+                n_pool = h_p_tokens.shape[0]
                 valid_mapped = [i for i in idxs if i < n_pool]
                 if valid_mapped:
                     q      = self.net.pool_ptr_q(h_comb).unsqueeze(0)
-                    k      = self.net.pool_ptr_k(h_p)
+                    k      = self.net.pool_ptr_k(h_p_tokens)
                     scores = (q @ k.T).squeeze(0) / (self.net.token_dim ** 0.5)
                     mask   = torch.full((n_pool,), float('-inf')).to(DEVICE)
                     for i in valid_mapped: mask[i] = 0.0
@@ -958,8 +966,6 @@ class GNNPhase3Policy:
 
         total_lp = lp_type + lp_extra
         self._log_probs.append(total_lp)
-        if not hasattr(self, '_old_log_probs'): self._old_log_probs = []
-        self._old_log_probs.append(total_lp.detach())
         self._rewards.append(0.0)
         self._entropies.append(entropy)
         return action
@@ -1004,12 +1010,14 @@ class GNNPhase3Policy:
         # On subsequent epochs (if called multiple times) the clip kicks in.
         # Use detached log probs from action-selection time for PPO ratio.
         # Sliced to [:n] to match lps_t length exactly.
-        _olp = getattr(self, '_old_log_probs', [])
-        if _olp and len(_olp) >= n:
-            old_lps_t = torch.tensor([x.item() for x in _olp[:n]],
+        # Use PREVIOUS episode log_probs as frozen reference for PPO ratio.
+        # _prev_log_probs are set in _clear() at end of last episode.
+        _prev = getattr(self, '_prev_log_probs', [])
+        if _prev and len(_prev) >= n:
+            old_lps_t = torch.tensor([x.detach().item() for x in _prev[:n]],
                                      dtype=torch.float32).to(DEVICE)
         else:
-            old_lps_t = lps_t.detach()
+            old_lps_t = lps_t.detach()  # first episode: ratio=1, no clip
         ratio    = torch.exp(lps_t - old_lps_t)
         pg_loss  = -torch.min(
             ratio * adv_t.detach(),
@@ -1050,9 +1058,12 @@ class GNNPhase3Policy:
         self._clear()
 
     def _clear(self):
-        self._log_probs = []; self._values = []
-        self._rewards   = []; self._entropies = []
-        self._old_log_probs = []
+        # Save current log_probs as old for next episode PPO ratio
+        # (not cleared — they become the frozen reference policy)
+        self._prev_log_probs = list(self._log_probs)
+        self._log_probs  = []; self._values = []
+        self._rewards    = []; self._entropies = []
+        # _old_log_probs stays as-is — it will be updated at start of next episode
 
     def _pad_pool(self, x):
         d = x.shape[-1]
