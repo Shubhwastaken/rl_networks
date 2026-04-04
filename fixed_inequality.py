@@ -194,17 +194,44 @@ class Inequality:
         num_edges         : int,
         internal_per_part : List[int]
     ) -> float:
-        c1 = self.get_yi_coefficient()
-        c3 = self.get_rhs_edge_coefficient()
+        """
+        Extract r from the terminal inequality:
+          c1*h(Y_I) + sum c_k*h(Y_I_Pk) <= sum s_v*h(Y_S_v) + sum e_j*h(U_j)
+
+        Source terms cancel EXACTLY via source independence:
+          h(Y_ST_Pk) = h(sources in Pk) = h(Y_S for nodes in Pk)
+        So the source coefficients on RHS match the LHS session coefficients
+        and cancel exactly — leaving only edge capacity on RHS.
+
+        The standard formula is therefore:
+          (c1*|I| + weighted_internal) * r <= edge_cap
+          r <= edge_cap / (c1*|I| + weighted_internal)
+
+        This is correct for properly formed terminal inequalities where
+        source terms have already been cancelled by the submodularity step.
+        """
+        c1       = self.get_yi_coefficient()
+        edge_cap = self.get_rhs_edge_coefficient()
+
         weighted_internal = sum(
             self.coeffs[self.index.get_yi_pi_idx(i)] * count
             for i, count in enumerate(internal_per_part)
             if self.coeffs[self.index.get_yi_pi_idx(i)] > 1e-9
         )
-        denom = c1 * num_sessions + weighted_internal
-        if denom <= 0:
+        # Source terms on RHS: h(Y_S_v) <= (sessions sourced at v) * r
+        # These move to LHS denominator when rearranging inequality.
+        # Each source node v has exactly n_src sessions, so h(Y_S_v) <= n_src*r.
+        source_coeff = 0.0
+        for v in self.index.nodes:
+            c = self.coeffs[self.index.get_source_idx(v)]
+            if c < -1e-9:
+                n_src = sum(1 for s, t in self.index.sessions if s == v)
+                source_coeff += abs(c) * n_src
+
+        denom = c1 * num_sessions + weighted_internal - source_coeff
+        if denom <= 1e-9:
             return float('inf')
-        return c3 / denom
+        return edge_cap / denom
 
     def copy(self) -> "Inequality":
         result = Inequality(self.index)

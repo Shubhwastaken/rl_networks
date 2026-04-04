@@ -820,10 +820,10 @@ if __name__ == "__main__":
     t0 = time.time()
     (phase1_policy, phase2_policy, phase3_policy,
      train_metrics, novel_bounds) = train(
-        stage1_episodes=15000,   # Phase 2 proof calculus  — Tier 1 graphs (5)
-        stage2_episodes=15000,   # Phase 1 partition learn — Tier 1 graphs (5)
-        stage3_episodes=15000,   # Joint fine-tuning       — Tier 1+2 graphs (10)
-        stage4_episodes=15000,   # Phase 3 fractional IO   — All graphs (11)
+        stage1_episodes=150,   # Phase 2 proof calculus  — Tier 1 graphs (5)
+        stage2_episodes=150,   # Phase 1 partition learn — Tier 1 graphs (5)
+        stage3_episodes=150,   # Joint fine-tuning       — Tier 1+2 graphs (10)
+        stage4_episodes=150,   # Phase 3 fractional IO   — All graphs (11)
         graph_dataset_size=5
     )
     eval_results = evaluate(

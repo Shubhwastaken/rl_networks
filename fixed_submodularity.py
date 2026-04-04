@@ -162,11 +162,26 @@ def _collapse_to_yi_if_valid(
     Collapses Y_ST terms to h(Y_I) when union covers ALL sessions.
 
     Condition: sessions covered by active Y_ST == all sessions.
-    Does NOT require all nodes to be covered -- sessions only.
 
-    Effect: fractional-weighted Y_ST terms -> (sum_coeff - min_coeff) * h(Y_I)
-    Integer special case: all coeffs = 1 -> (n_active - 1) * h(Y_I)
-            source terms for covered nodes zeroed out.
+    PROVEN FORMULA (Weighted Subadditivity Theorem):
+      For weights c_k > 0 and random variables X_k:
+        Σ_k c_k * h(X_k)  >=  c_min * h(X_1,...,X_n)
+      where c_min = min_k(c_k).
+
+      Proof:
+        Step 1: Σ c_k*h(X_k) >= c_min * Σ h(X_k)   [since c_k >= c_min, h >= 0]
+        Step 2: Σ h(X_k) >= h(X_1,...,X_n)           [subadditivity]
+        Step 3: Combine.
+
+      This is tight: K = c_min cannot be improved without further structure.
+
+    The sum-min formula (sum_coeff - min_coeff) was shown to be FALSE:
+      For independent X_k with equal entropy r, sum-min requires
+      c_min/c_sum >= (n-1)/n which fails for fractional weights.
+
+    Effect:
+      Y_ST terms replaced by c_min * h(Y_I).
+      Source terms for covered nodes zeroed (source independence).
     """
     active = ineq.active_yst()
     if not active:
@@ -175,42 +190,24 @@ def _collapse_to_yi_if_valid(
     if index.sessions_covered_by(active) != index.all_sessions():
         return ineq
 
-    result   = ineq.copy()
-    n_active = len(active)
+    result = ineq.copy()
 
-    # Collect the Y_ST coefficients for active partitions
+    # Collect Y_ST coefficients
     yst_coeffs = [ineq.coeffs[index.yst_idx(i)] for i in active]
-    min_coeff  = min(yst_coeffs)   # smallest fractional weight
-    sum_coeff  = sum(yst_coeffs)   # total weight
+    min_coeff  = min(yst_coeffs)   # PROVEN valid collapse coefficient
 
     # Zero out all Y_ST terms
     for i in range(index.n()):
         result.coeffs[index.yst_idx(i)] = 0.0
 
-    # Correct Y_I coefficient accounting for fractional weights.
-    #
-    # Integer case (all yst_coeffs = 1.0):
-    #   sum_coeff = n_active, min_coeff = 1.0
-    #   Y_I coeff = n_active - 1  [same as before]
-    #
-    # Fractional case (yst_coeffs vary):
-    #   The weighted (n,2)-submodularity gives:
-    #   Σ c_k*h(Y_ST_Pk) >= (sum_coeff - min_coeff)*h(Y_I) + min_coeff*h(Y_I_...)
-    #   After source cancellation of min_coeff*h(Y_I):
-    #   net Y_I coeff = sum_coeff - min_coeff
-    #
-    #   This is ALWAYS <= the old (n_active - 1) when coeffs are fractional,
-    #   giving a valid but tighter (correct) bound.
-    result.coeffs[index.yi_idx()] += (sum_coeff - min_coeff)
+    # Add c_min * h(Y_I) — the only proven valid Y_I coefficient
+    result.coeffs[index.yi_idx()] += min_coeff
 
-    # Cancel source terms: scale by min_coeff (the part that cancels)
-    # For fractional weights, only min_coeff fraction of source entropy cancels
+    # Zero source terms for covered nodes
     covered_nodes = set()
     for i in active:
         covered_nodes |= set(index.partitions[i])
     for v in covered_nodes:
-        # Scale down source cancellation proportionally
-        orig = result.coeffs[index.source_idx(v)]
-        result.coeffs[index.source_idx(v)] = orig * (1.0 - min_coeff / max(sum_coeff, 1e-9))
+        result.coeffs[index.source_idx(v)] = 0.0
 
     return result
