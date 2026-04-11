@@ -80,18 +80,33 @@ def rolling(data, window=100):
 
 def load_metrics(path='training_metrics.json'):
     with open(path) as f:
-        raw = json.load(f)
-    # training_metrics.json stores values as str(dict) — parse them back
-    result = {}
-    for k, v in raw.items():
-        if isinstance(v, str):
-            try:
-                import ast
-                result[k] = ast.literal_eval(v)
-            except Exception:
-                result[k] = v
-        else:
-            result[k] = v
+        result = json.load(f)
+    # Backward compat: old format nested stages under 'train' as str(dict).
+    # New format stores stage1-stage4 as proper JSON dicts at top level.
+    if 'train' in result and isinstance(result['train'], dict):
+        import ast
+        for sk, sv in result['train'].items():
+            if sk not in result:
+                if isinstance(sv, str):
+                    try:
+                        result[sk] = ast.literal_eval(sv)
+                    except Exception:
+                        result[sk] = sv
+                else:
+                    result[sk] = sv
+    # Also parse any top-level string values (old eval/novel_bounds format)
+    if isinstance(result.get('eval'), str):
+        import ast
+        try:
+            result['eval'] = ast.literal_eval(result['eval'])
+        except Exception:
+            pass
+    if isinstance(result.get('novel_bounds'), str):
+        import ast
+        try:
+            result['novel_bounds'] = ast.literal_eval(result['novel_bounds'])
+        except Exception:
+            pass
     return result
 
 

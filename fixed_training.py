@@ -853,10 +853,36 @@ if __name__ == "__main__":
     runtime = time.time() - t0
     print(f"\nTotal runtime: {runtime:.1f}s ({runtime/60:.1f} min)")
 
+    def _jsonable(obj):
+        """Recursively make an object JSON-serializable."""
+        if isinstance(obj, dict):
+            return {str(k): _jsonable(v) for k, v in obj.items()}
+        if isinstance(obj, (list, tuple)):
+            return [_jsonable(x) for x in obj]
+        if isinstance(obj, float):
+            if obj != obj:        # NaN
+                return None
+            if obj == float('inf') or obj == float('-inf'):
+                return None
+            return obj
+        if isinstance(obj, (int, bool)):
+            return obj
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            v = float(obj)
+            return None if (v != v or v == float('inf') or v == float('-inf')) else v
+        if isinstance(obj, np.ndarray):
+            return _jsonable(obj.tolist())
+        return str(obj)
+
     all_metrics = {
-        'train': {k: str(v) for k,v in train_metrics.items()},
-        'eval': {k: str(v) for k,v in eval_results.items()},
-        'novel_bounds': {k: str(v) for k,v in novel_bounds.items()},
+        'stage1': _jsonable(train_metrics.get('stage1', {})),
+        'stage2': _jsonable(train_metrics.get('stage2', {})),
+        'stage3': _jsonable(train_metrics.get('stage3', {})),
+        'stage4': _jsonable(train_metrics.get('stage4', {})),
+        'eval': _jsonable(eval_results),
+        'novel_bounds': _jsonable(novel_bounds),
         'runtime_s': runtime,
     }
     with open('training_metrics.json', 'w') as f:
