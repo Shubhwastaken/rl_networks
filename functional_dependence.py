@@ -96,7 +96,7 @@ substitution strictly tightened the bound.
 """
 
 from typing import List, Tuple, Set, Optional, Dict, FrozenSet
-from fixed_inequality import Inequality, EntropyIndex
+from fixed_inequality import Inequality, FractionalInequality, EntropyIndex
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -164,278 +164,110 @@ def _edges_into_sink(
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Crypto Inequality Application
+# Base Inequality Generators for Functional Dependence
 # ─────────────────────────────────────────────────────────────────────────────
 
-def apply_crypto_inequality(
-    ineq: Inequality,
+def generate_crypto_inequality(
     V_prime: Set[str],
     nodes: List[str],
     edges: List[Tuple[str, str]],
     sessions: List[Tuple[str, str]],
-    index: EntropyIndex,
-    tol: float = 1e-9
-) -> Tuple[Inequality, float]:
-    """
-    Apply the crypto inequality for cut {V', V'^c}.
-
-    The crypto inequality (eq. 32) states:
-        h(Y_{sep}, U_{cut}) ≤ h(U_{cut})
-
-    Which means h(Y_{sep}) ≤ h(U_{cut}).
-
-    In terms of bounding: if U_{cut} edges are already on the RHS of our
-    accumulated inequality (each with negative coefficient, meaning they
-    upper-bound the LHS), we can add h(Yᵢ) to the LHS for each session i
-    separated by the cut, because h(Yᵢ) ≤ h(U_{cut}) ≤ Σ_{e∈cut} h(U_e).
-
-    Concretely: add +1 to the Y_I coefficient (these sessions contribute to
-    the denominator in r ≤ |E| / (|I| + internal) form).
-
-    Returns (modified_ineq, num_sessions_added) where num_sessions_added > 0
-    means a strict tightening is possible.
-
-    Mathematical validity:
-      The starting inequality has form:
-        LHS_terms ≤ Σ_e c_e * h(U_e)   (after IO + submod)
-      The crypto inequality says h(Y_{sep_i}) ≤ Σ_{e ∈ cut} h(U_e).
-      Adding to LHS: (LHS_terms + Σᵢ h(Y_{sep_i})) ≤ Σ_e c_e * h(U_e)
-        provided Σ_{e ∈ cut} h(U_e) ≤ Σ_e (c_e contribution from cut)
-        which holds because cut ⊆ RHS and each h(U_e) ≤ 1 (unit capacity).
-    """
-    # 1. Find cut edges
-    cut_edges = _directed_cut_edges(V_prime, nodes, edges)
-    if not cut_edges:
-        return ineq.copy(), 0.0
-
-    # 2. Check that all cut edges appear on RHS with negative coefficient
-    for e in cut_edges:
-        key = f"U_{e[0]}_{e[1]}"
-        if key not in index.var_to_idx:
-            # Try reverse
-            key = f"U_{e[1]}_{e[0]}"
-        if key not in index.var_to_idx:
-            return ineq.copy(), 0.0
-        c = ineq.coeffs[index.var_to_idx[key]]
-        if c >= -tol:  # not on RHS (RHS has negative coefficients)
-            return ineq.copy(), 0.0
-
-    # 3. Find sessions separated by this cut
-    separated = _sessions_separated_by_cut(V_prime, nodes, edges, sessions)
-    if not separated:
-        return ineq.copy(), 0.0
-
-    # 4. Each separated session adds h(Yᵢ) to LHS.
-    #    In terminal form: h(Y_I) coeff increases by len(separated)/len(sessions)
-    #    (since h(Y_I) = Σ h(Yᵢ) and each session has equal weight r).
-    #    We add fractional contribution to Y_I.
-    result = ineq.copy()
-    n_sessions = len(sessions)
-
-    # Add to Y_I: each session_i adds r to LHS, equivalent to +1/n to Y_I coeff
-    # since h(Y_I) = n*r in terminal form.
-    # More precisely: we add h(Y_{sep}) ≤ h(U_{cut}) to the LHS.
-    # In normalized form (all sessions equal), this becomes:
-    #   (|I| + |sep|) * r ≤ |E| → r ≤ |E| / (|I| + |sep|)
-    # So we increase the Y_I coefficient by len(separated) / n_sessions.
-    extra_yi = len(separated) / n_sessions
-    result.coeffs[index.yi_idx()] += extra_yi
-
-    # Reduce RHS edge capacity by the crypto inequality "cost".
-    # The crypto inequality borrows h(U_{cut}) from the RHS, so
-    # we subtract (len(separated) / |cut|) from each cut edge coefficient.
-    # This keeps the inequality valid: we added len(separated)*r to LHS
-    # and subtracted an equivalent amount from RHS.
-    extra_per_edge = len(separated) / max(len(cut_edges), 1)
-    for e in cut_edges:
-        key = f"U_{e[0]}_{e[1]}"
-        if key not in index.var_to_idx:
-            key = f"U_{e[1]}_{e[0]}"
-        if key in index.var_to_idx:
-            # Reduce the negative RHS coefficient (make it less negative)
-            # This represents "spending" some edge capacity on the crypto term
-            result.coeffs[index.var_to_idx[key]] += extra_per_edge  # less negative
-
-    return result, float(len(separated))
-
-
-def apply_crypto_inequality_direct(
-    ineq: Inequality,
-    V_prime: Set[str],
-    nodes: List[str],
-    edges: List[Tuple[str, str]],
-    sessions: List[Tuple[str, str]],
-    index: EntropyIndex,
-    tol: float = 1e-9
-) -> Tuple[Inequality, bool]:
-    """
-    Direct crypto inequality application — Hu's network style (Section VI).
-
-    This is the version from the paper's Proposition 8 proof:
-      Given inequality of the form:
-        h(Y_I) + h(U_{Pi↔Pj}) + ... ≤ RHS
-      The crypto inequality says:
-        h(Y_{sep_i} | U_{Pi↔Pj}) = 0
-        → h(Y_{sep_i}, U_{Pi↔Pj}) = h(U_{Pi↔Pj})
-        → h(U_{Pi↔Pj}) ≥ h(Y_{sep_i})
-
-    This replaces h(U_{Pi↔Pj}) in the RHS sum:
-        Σ h(U_{Pi↔Pj}) ≥ h(Y_3) + h(Y_3, U_{P1↔P23}) + h(Y_3, U_{P2↔P3})
-        [via submodularity, eq. 91 in paper]
-
-    Net effect: adds +1 to Y_I coefficient (tighter denominator).
-
-    Returns (new_ineq, was_applied).
-    The 'was_applied' flag is True if the crypto term could be added.
+    index: EntropyIndex
+) -> FractionalInequality:
+    r"""
+    Crypto Inequality: h(Y_sep) - \sum_{e \in cut} h(U_e) <= 0.
+    In terms of the terminal rate r, h(Y_sep) = |sep| * r.
+    Since h(Y_I) = |I| * r, h(Y_sep) = (|sep|/|I|) * h(Y_I).
+    Therefore, the base inequality is:
+        (|sep| / |I|) * h(Y_I) <= \sum_{e \in cut} h(U_e)
+        
+    Returning this as a FractionalInequality allows it to be safely 
+    added to the accumulator without mathematically invalid substitutions.
     """
     cut_edges = _directed_cut_edges(V_prime, nodes, edges)
-    if not cut_edges:
-        return ineq.copy(), False
-
-    # Check cut edges are all on RHS
-    cut_rhs_total = 0.0
-    for e in cut_edges:
-        key = f"U_{e[0]}_{e[1]}"
-        if key not in index.var_to_idx:
-            key = f"U_{e[1]}_{e[0]}"
-        if key not in index.var_to_idx:
-            return ineq.copy(), False
-        c = ineq.coeffs[index.var_to_idx[key]]
-        if c >= -tol:
-            return ineq.copy(), False
-        cut_rhs_total += abs(c)
-
     separated = _sessions_separated_by_cut(V_prime, nodes, edges, sessions)
-    if not separated:
-        return ineq.copy(), False
-
-    # The paper's technique: for each separated session i, crypto inequality gives
-    #   h(Y_i | U_cut) = 0  →  h(Y_i) can be added to LHS
-    # This is valid as long as h(U_cut) ≥ h(Y_i), which follows from the
-    # functional dependence constraint at t(i).
-    # In the terminal inequality, Y_I represents h(Y_I) = |I|*r.
-    # Adding h(Y_i) = r for each separated session adds n_sep * r to LHS.
-    # Since Y_I coeff c1 satisfies c1 * h(Y_I) = c1 * |I| * r,
-    # adding n_sep * r is equivalent to adding n_sep / |I| to c1.
-    result = ineq.copy()
-    n_sep = len(separated)
+    
+    fi = FractionalInequality(index, lam=1.0)
+    
+    if not separated or not cut_edges:
+        return fi
+        
     n_sessions = len(sessions)
+    fi.set_lhs("Y_I", len(separated) / float(n_sessions))
+    
+    for e in cut_edges:
+        key1 = f"U_{e[0]}_{e[1]}"
+        key2 = f"U_{e[1]}_{e[0]}"
+        if key1 in index.var_to_idx:
+            fi.set_rhs(key1, 1.0)
+        elif key2 in index.var_to_idx:
+            fi.set_rhs(key2, 1.0)
+            
+    return fi
 
-    result.coeffs[index.yi_idx()] += n_sep / n_sessions
-    return result, True
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Decoding Functional Dependence
-# ─────────────────────────────────────────────────────────────────────────────
-
-def apply_decode_substitution(
-    ineq: Inequality,
+def generate_decode_inequality(
     session_idx: int,
     sessions: List[Tuple[str, str]],
     edges: List[Tuple[str, str]],
-    index: EntropyIndex,
-    tol: float = 1e-9
-) -> Tuple[Inequality, bool]:
+    index: EntropyIndex
+) -> FractionalInequality:
+    r"""
+    Decode Inequality: h(Y_i) - \sum_{e \text{ into } t(i)} h(U_e) <= 0.
+    Since h(Y_i) = r = h(Y_I) / |I|:
+        (1/|I|) * h(Y_I) <= \sum_{e \text{ into } t(i)} h(U_e)
     """
-    Decoding functional dependence: h(Yᵢ | {U_e : e incident to t(i)}) = 0
-
-    This means h(Yᵢ) ≤ Σ_{e incident to t(i)} h(U_e).
-
-    Application: if all edges incident to t(session_idx) are on the RHS of
-    `ineq` with negative coefficients, we can add h(Yᵢ) = r to the LHS,
-    tightening the bound.
-
-    The precise rule:
-      If Σ_{e ∈ in(t(i))} h(U_e) ≥ h(Yᵢ) = r, and these edges are on RHS:
-        LHS + r ≤ Σ_{e ∈ in(t(i))} h(U_e) + rest_of_RHS  (still valid)
-      Equivalent: add +1/|I| to Y_I coefficient (for symmetric rate).
-
-    Returns (new_ineq, was_applied).
-    """
-    _, t = sessions[session_idx]
-    incident = _incoming_edges(t, edges)
+    incident = _edges_into_sink(session_idx, sessions, edges)
+    fi = FractionalInequality(index, lam=1.0)
+    
     if not incident:
-        return ineq.copy(), False
-
-    # Check all incident edges are on RHS
-    rhs_capacity = 0.0
-    for e in incident:
-        key = f"U_{e[0]}_{e[1]}"
-        if key not in index.var_to_idx:
-            key = f"U_{e[1]}_{e[0]}"
-        if key not in index.var_to_idx:
-            return ineq.copy(), False
-        c = ineq.coeffs[index.var_to_idx[key]]
-        if c >= -tol:
-            return ineq.copy(), False
-        rhs_capacity += abs(c)
-
-    # The decode constraint gives h(Yᵢ) ≤ h(edges into t(i)).
-    # We add +1 to Y_I (representing one extra r on the LHS) and
-    # do NOT reduce RHS — h(Yᵢ) ≤ capacity ≤ rhs_capacity which is
-    # already accounted for by the edge bounds.
+        return fi
+        
     n_sessions = len(sessions)
-    result = ineq.copy()
-    result.coeffs[index.yi_idx()] += 1.0 / n_sessions   # add r/|I| = h(Yi)/|I|
+    fi.set_lhs("Y_I", 1.0 / float(n_sessions))
+    
+    for e in incident:
+        key1 = f"U_{e[0]}_{e[1]}"
+        key2 = f"U_{e[1]}_{e[0]}"
+        if key1 in index.var_to_idx:
+            fi.set_rhs(key1, 1.0)
+        elif key2 in index.var_to_idx:
+            fi.set_rhs(key2, 1.0)
+            
+    return fi
 
-    return result, True
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Encoding Functional Dependence
-# ─────────────────────────────────────────────────────────────────────────────
-
-def apply_encode_substitution(
-    ineq: Inequality,
+def generate_encode_inequality(
     edge: Tuple[str, str],
-    partition: List[List[str]],
-    nodes: List[str],
     edges: List[Tuple[str, str]],
-    sessions: List[Tuple[str, str]],
-    index: EntropyIndex,
-    adjacency: Dict[str, List[str]],
-    tol: float = 1e-9
-) -> Tuple[Inequality, bool]:
-    """
-    Encoding functional dependence: h(U_e) ≤ h(Y_{S(tail(e))}) + Σ h(U_{e'→tail(e)})
-
-    Application: if h(U_e) appears on the LHS of `ineq` (positive coefficient),
-    replace it by the encoding upper bound, potentially introducing source and
-    incoming-edge terms that cancel with other parts of the inequality.
-
-    This is useful when combining two IOs that share an internal edge: the
-    internal edge appears on the LHS of one IO and the encoding constraint
-    says it's bounded by source + incoming edges at its tail.
-
-    Returns (new_ineq, was_applied).
+    index: EntropyIndex
+) -> FractionalInequality:
+    r"""
+    Encode Inequality: h(U_e) - h(Y_{S(u)}) - \sum_{e' \text{ into } u} h(U_{e'}) <= 0.
+    Allows proper substitution-via-addition.
     """
     u, v = edge
-    key = f"U_{u}_{v}"
-    if key not in index.var_to_idx:
-        return ineq.copy(), False
-
-    c = ineq.coeffs[index.var_to_idx[key]]
-    if c <= tol:  # edge not on LHS
-        return ineq.copy(), False
-
-    # Encoding bound: h(U_{u→v}) ≤ h(Y_{S(u)}) + Σ h(U_{e'}) for e' into u
-    result = ineq.copy()
-    result.coeffs[index.var_to_idx[key]] = 0.0  # remove from LHS
-
-    # Add source term for u
-    src_key = f"Y_S_{u}"
-    if src_key in index.var_to_idx:
-        result.coeffs[index.var_to_idx[src_key]] += c  # add to LHS
-
-    # Add incoming edge terms for u
-    for (a, b) in edges:
-        if b == u:  # edge into u
-            e_key = f"U_{a}_{b}"
-            if e_key in index.var_to_idx:
-                result.coeffs[index.var_to_idx[e_key]] += c
-
-    return result, True
+    fi = FractionalInequality(index, lam=1.0)
+    
+    key_e1 = f"U_{u}_{v}"
+    key_e2 = f"U_{v}_{u}"
+    edge_key = key_e1 if key_e1 in index.var_to_idx else (key_e2 if key_e2 in index.var_to_idx else None)
+    
+    if edge_key is None:
+        return fi
+        
+    fi.set_lhs(edge_key, 1.0)
+    fi.set_rhs(f"Y_S_{u}", 1.0)
+    
+    incoming = _incoming_edges(u, edges)
+    for e_in in incoming:
+        k1 = f"U_{e_in[0]}_{e_in[1]}"
+        k2 = f"U_{e_in[1]}_{e_in[0]}"
+        k_in = k1 if k1 in index.var_to_idx else (k2 if k2 in index.var_to_idx else None)
+        if k_in is not None and k_in != edge_key:
+            fi.set_rhs(k_in, 1.0)
+            
+    return fi
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -451,7 +283,7 @@ def enumerate_crypto_cuts(
     Enumerate all non-trivial cuts that separate at least one session.
     Returns list of (V_prime_frozenset, separated_session_indices).
 
-    For efficiency, limits to cuts of size ≤ |nodes|//2 (larger cuts are
+    For efficiency, limits to cuts of size <= |nodes|//2 (larger cuts are
     complements of smaller ones and give the same constraint).
     """
     n = len(nodes)

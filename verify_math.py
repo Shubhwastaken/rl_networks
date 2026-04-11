@@ -22,6 +22,11 @@ from fixed_submodularity import (
     apply_pairwise_submodularity,
     apply_n2_submodularity_all_at_once
 )
+from functional_dependence import (
+    generate_crypto_inequality,
+    generate_decode_inequality,
+    generate_encode_inequality
+)
 
 
 def sep():
@@ -214,6 +219,57 @@ def run_verification():
     print(f"Dimension check: dim={index.dim}  expected={expected_dim}")
     assert index.dim == expected_dim, f"FAIL: expected {expected_dim}, got {index.dim}"
     print("  PASS\n")
+
+    # --- verify functional dependence inequalities ---
+    sep()
+    print("Functional Dependence: Crypto Inequality on cut V'={A}")
+    # V'={A}, separates session 0 (A->B), cut edges {A->B, A->C}
+    crypto = generate_crypto_inequality(
+        frozenset(["A"]), nodes, edges, sessions, index
+    )
+    print(f"  Crypto : {crypto}")
+    yi_crypto = crypto.yi_coeff()
+    u_ab_crypto = crypto.coeffs[index.edge_idx(("A", "B"))]
+    u_ac_crypto = crypto.coeffs[index.edge_idx(("A", "C"))]
+    print(f"  Y_I coeff : {yi_crypto:.4f}  (expected 0.5000)")
+    print(f"  U_A_B coeff : {u_ab_crypto:.4f}  (expected -1.0000)")
+    print(f"  U_A_C coeff : {u_ac_crypto:.4f}  (expected -1.0000)")
+    assert abs(yi_crypto - 0.5) < 1e-6
+    assert abs(u_ab_crypto - (-1.0)) < 1e-6
+    assert abs(u_ac_crypto - (-1.0)) < 1e-6
+    print("  Crypto PASS\n")
+
+    sep()
+    print("Functional Dependence: Decode Inequality on session 0 (A->B)")
+    # sink is B, incident edges: A-B, B-C
+    decode = generate_decode_inequality(0, sessions, edges, index)
+    print(f"  Decode : {decode}")
+    yi_dec = decode.yi_coeff()
+    u_ab_dec = decode.coeffs[index.edge_idx(("A", "B"))]
+    u_bc_dec = decode.coeffs[index.edge_idx(("B", "C"))]
+    print(f"  Y_I coeff : {yi_dec:.4f}  (expected 0.5000)")
+    print(f"  U_A_B coeff : {u_ab_dec:.4f}  (expected -1.0000)")
+    print(f"  U_B_C coeff : {u_bc_dec:.4f}  (expected -1.0000)")
+    assert abs(yi_dec - 0.5) < 1e-6
+    assert abs(u_ab_dec - (-1.0)) < 1e-6
+    assert abs(u_bc_dec - (-1.0)) < 1e-6
+    print("  Decode PASS\n")
+
+    sep()
+    print("Functional Dependence: Encode Inequality on edge B->C")
+    # node u=B. source=Y_S_B. incoming to B: A->B.
+    encode = generate_encode_inequality(("B", "C"), edges, index)
+    print(f"  Encode : {encode}")
+    u_bc_enc = encode.coeffs[index.edge_idx(("B", "C"))]
+    ysb_enc = encode.coeffs[index.source_idx("B")]
+    u_ab_enc = encode.coeffs[index.edge_idx(("A", "B"))]
+    print(f"  U_B_C coeff : {u_bc_enc:.4f}  (expected 1.0000)")
+    print(f"  Y_S_B coeff : {ysb_enc:.4f}  (expected -1.0000)")
+    print(f"  U_A_B coeff : {u_ab_enc:.4f}  (expected -1.0000)")
+    assert abs(u_bc_enc - 1.0) < 1e-6
+    assert abs(ysb_enc - (-1.0)) < 1e-6
+    assert abs(u_ab_enc - (-1.0)) < 1e-6
+    print("  Encode PASS\n")
 
     sep()
     print("ALL VERIFICATION TESTS PASSED")

@@ -708,7 +708,7 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
             print(f"  Novel bound: r <= {b:.6f}")
             print(f"  Partition bound: r <= {pb2:.6f}")
             print(f"  Improvement: {(pb2-b)/pb2*100:.3f}%")
-            print(f"  Partition used: {_partition_str(part, ss if "ss" in locals() else [])}")
+            print(f"  Partition used: {_partition_str(part, ss if 'ss' in locals() else [])}")
             print(f"  Inequality: {trace[:400]}")
     else:
         print("\n  No super-PB bounds found in Stage 4.")
@@ -897,19 +897,26 @@ if __name__ == "__main__":
     print("\n--- Pushing to git ---")
     try:
         subprocess.run(["git", "add", "--all"], check=True)
-        novel_tag = ""
-        if novel_bounds:
-            graphs_str = ", ".join(sorted(novel_bounds.keys()))
-            novel_tag = f" - NOVEL BOUNDS: {graphs_str}"
-        commit_msg = (
-            f"Training run completed - "
-            f"{time.strftime('%Y-%m-%d %H:%M')} - "
-            f"runtime {runtime/60:.0f}min"
-            f"{novel_tag}"
-        )
-        subprocess.run(["git", "commit", "-m", commit_msg], check=True)
-        subprocess.run(["git", "push"], check=True)
-        print("Git push completed successfully.")
+        status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
+        if status.stdout.strip() != "":
+            novel_tag = ""
+            if novel_bounds:
+                graphs_str = ", ".join(sorted(novel_bounds.keys()))
+                novel_tag = f" - NOVEL BOUNDS: {graphs_str}"
+            commit_msg = (
+                f"Training run completed - "
+                f"{time.strftime('%Y-%m-%d %H:%M')} - "
+                f"runtime {runtime/60:.0f}min"
+                f"{novel_tag}"
+            )
+            subprocess.run(["git", "commit", "-m", commit_msg], check=True)
+            subprocess.run(["git", "push"], check=True)
+            print("Git push completed successfully.")
+        else:
+            print("No changes to commit. Auto git push skipped.")
+    except subprocess.CalledProcessError as e:
+        print(f"Git push failed with error code: {e.returncode}")
+        print("Run 'git status' and commit manually if needed.")
     except Exception as e:
         print(f"Git push failed: {e}")
         print("Push manually with: git add --all && git commit -m 'training results' && git push")

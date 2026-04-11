@@ -60,14 +60,8 @@ from fixed_submodularity import (
 )
 from rl_functional_dep_integration import (
     FuncDepActions,
-    is_crypto_valid,
-    is_decode_valid,
     ACTION_CRYPTO,
     ACTION_DECODE,
-)
-from functional_dependence import (
-    apply_crypto_inequality_direct,
-    apply_decode_substitution,
 )
 
 
@@ -532,68 +526,41 @@ class PartitionBoundEnv:
             return self._get_state(), STEP_COST, False
 
         elif action_type == ActionType.APPLY_CRYPTO:
-            # Apply crypto inequality: h(Y_sep | U_cut) = 0
-            # tightens the bound when cut edges are already on RHS
+            # Generate crypto base inequality and add to pool
             cut_idx = action.get('cut_idx', 0)
             reward  = -0.1
             if (self.func_dep_actions is not None
                     and cut_idx < self.func_dep_actions.num_crypto_cuts()):
                 vp, sep_list = self.func_dep_actions.crypto_cut(cut_idx)
-                # Apply to the most recently derived terminal-form inequality,
-                # or the last pool item if nothing is in terminal form yet
-                target = None
-                for ineq in reversed(self.pool):
-                    if ineq.check_valid_terminal_form():
-                        target = ineq
-                        break
-                if target is None and self.pool:
-                    target = self.pool[-1]
-                if target is not None:
-                    new_ineq, applied = apply_crypto_inequality_direct(
-                        target, set(vp),
-                        list(self.nodes), list(self.edges),
-                        list(self.sessions), self.index
-                    )
-                    if applied:
-                        self.pool.append(new_ineq)
-                        self.combination_log.append({
-                            'step': self.phase2_steps, 'action': 'CRYPTO',
-                            'cut_idx': cut_idx, 'sep_count': len(sep_list)
-                        })
-                        # Stronger bonus if the new inequality is already terminal
-                        reward = 0.4 if new_ineq.check_valid_terminal_form() else 0.1
-                    else:
-                        reward = -0.05
+                from functional_dependence import generate_crypto_inequality
+                new_ineq = generate_crypto_inequality(
+                    set(vp), list(self.nodes), list(self.edges),
+                    list(self.sessions), self.index
+                )
+                self.pool.append(new_ineq)
+                self.combination_log.append({
+                    'step': self.phase2_steps, 'action': 'CRYPTO',
+                    'cut_idx': cut_idx, 'sep_count': len(sep_list)
+                })
+                reward = 0.1
             return self._get_state(), reward, False
 
         elif action_type == ActionType.APPLY_DECODE:
-            # Apply decoding substitution: h(Y_i | edges into t(i)) = 0
-            # tightens the bound when sink's incident edges are on RHS
+            # Generate decoding base inequality and add to pool
             si     = action.get('session_idx', 0)
             reward = -0.1
             if (self.func_dep_actions is not None
                     and si < len(self.sessions)):
-                target = None
-                for ineq in reversed(self.pool):
-                    if ineq.check_valid_terminal_form():
-                        target = ineq
-                        break
-                if target is None and self.pool:
-                    target = self.pool[-1]
-                if target is not None:
-                    new_ineq, applied = apply_decode_substitution(
-                        target, si,
-                        list(self.sessions), list(self.edges), self.index
-                    )
-                    if applied:
-                        self.pool.append(new_ineq)
-                        self.combination_log.append({
-                            'step': self.phase2_steps, 'action': 'DECODE',
-                            'session_idx': si
-                        })
-                        reward = 0.3 if new_ineq.check_valid_terminal_form() else 0.08
-                    else:
-                        reward = -0.05
+                from functional_dependence import generate_decode_inequality
+                new_ineq = generate_decode_inequality(
+                    si, list(self.sessions), list(self.edges), self.index
+                )
+                self.pool.append(new_ineq)
+                self.combination_log.append({
+                    'step': self.phase2_steps, 'action': 'DECODE',
+                    'session_idx': si
+                })
+                reward = 0.08
             return self._get_state(), reward, False
 
         elif action_type == ActionType.DECLARE_TERMINAL:
@@ -701,68 +668,33 @@ class PartitionBoundEnv:
             return self._get_state(), 0.0, False
 
         elif action_type == ActionType.APPLY_CRYPTO:
-            # Apply crypto inequality to every terminal-form inequality in frac_pool
+            # Add crypto inequality to frac_pool
             cut_idx = action.get('cut_idx', 0)
             reward  = -0.1
             if (self.func_dep_actions is not None
                     and cut_idx < self.func_dep_actions.num_crypto_cuts()):
                 vp, sep_list = self.func_dep_actions.crypto_cut(cut_idx)
-                applied_any = False
-                for ineq in list(self.frac_pool):
-                    if not ineq.check_valid_terminal_form():
-                        continue
-                    new_ineq, applied = apply_crypto_inequality_direct(
-                        ineq, set(vp),
-                        list(self.nodes), list(self.edges),
-                        list(self.sessions), self.index
-                    )
-                    if applied:
-                        self.frac_pool.add(make_fractional(new_ineq))
-                        applied_any = True
-                # Reward based on whether applying crypto improved best bound
-                if applied_any:
-                    pb        = self.partition_bound
-                    new_best  = self.frac_pool.best_bound(
-                        len(self.sessions), len(self.edges), self.internal_per_part
-                    )
-                    if new_best < pb - 1e-8:
-                        improvement = (pb - new_best) / pb
-                        reward = 2.0 + 10.0 * improvement
-                    else:
-                        reward = 0.2
-                else:
-                    reward = -0.05
+                from functional_dependence import generate_crypto_inequality
+                new_ineq = generate_crypto_inequality(
+                    set(vp), list(self.nodes), list(self.edges),
+                    list(self.sessions), self.index
+                )
+                self.frac_pool.add(new_ineq)
+                reward = 0.1
             return self._get_state(), reward, False
 
         elif action_type == ActionType.APPLY_DECODE:
-            # Apply decoding substitution to terminal-form inequalities in frac_pool
+            # Add decoding substitution inequality to frac_pool
             si     = action.get('session_idx', 0)
             reward = -0.1
             if (self.func_dep_actions is not None
                     and si < len(self.sessions)):
-                applied_any = False
-                for ineq in list(self.frac_pool):
-                    if not ineq.check_valid_terminal_form():
-                        continue
-                    new_ineq, applied = apply_decode_substitution(
-                        ineq, si,
-                        list(self.sessions), list(self.edges), self.index
-                    )
-                    if applied:
-                        self.frac_pool.add(make_fractional(new_ineq))
-                        applied_any = True
-                if applied_any:
-                    pb       = self.partition_bound
-                    new_best = self.frac_pool.best_bound(
-                        len(self.sessions), len(self.edges), self.internal_per_part
-                    )
-                    if new_best < pb - 1e-8:
-                        improvement = (pb - new_best) / pb
-                        reward = 2.0 + 10.0 * improvement
-                    else:
-                        reward = 0.15
-                else:
-                    reward = -0.05
+                from functional_dependence import generate_decode_inequality
+                new_ineq = generate_decode_inequality(
+                    si, list(self.sessions), list(self.edges), self.index
+                )
+                self.frac_pool.add(new_ineq)
+                reward = 0.08
             return self._get_state(), reward, False
 
         elif action_type == ActionType.DECLARE_TERMINAL:
