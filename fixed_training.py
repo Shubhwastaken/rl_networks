@@ -34,6 +34,7 @@ import random
 import numpy as np
 from collections import defaultdict
 from rl_functional_dep_integration import apply_all_improving_func_dep
+from lp_lower_bound import compute_lp_lower_bound, validate_bound_against_lp
 import json, time
 
 SEED = 42
@@ -412,6 +413,15 @@ def run_stage3(phase1_policy, phase2_policy,
     # Store best (partition, weights) per graph for Phase 4 handoff
     best_partitions: dict = {}   # graph_name -> (partition, weights, bound)
 
+    # Pre-compute LP lower bounds for validation
+    lp_bounds = {}
+    lp_violations = []
+    for nodes_g, edges_g, sessions_g in env.graph_dataset:
+        gn = identify_graph(nodes_g, edges_g, sessions_g)
+        if gn not in lp_bounds:
+            lp_bounds[gn] = compute_lp_lower_bound(nodes_g, edges_g, sessions_g)
+    print(f"  LP lower bounds: {lp_bounds}")
+
     log_interval = 100
     stopper = EarlyStopper()
 
@@ -472,6 +482,17 @@ def run_stage3(phase1_policy, phase2_policy,
         metrics['bounds'].append(rl_bound)
         metrics['graph_names'].append(graph_name)
 
+        # Validate against LP lower bound
+        if graph_name in lp_bounds and rl_bound < 1e9:
+            lp_lb = lp_bounds[graph_name]
+            is_valid, msg = validate_bound_against_lp(
+                rl_bound, lp_lb, graph_name
+            )
+            if not is_valid:
+                lp_violations.append((episode, graph_name, rl_bound, lp_lb))
+                if len(lp_violations) <= 5:  # limit spam
+                    print(f"  !! LP VIOLATION: {msg}")
+
         # Track best partition + weights for Phase 4
         if graph_name not in best_partitions or rl_bound < best_partitions[graph_name][2]:
             best_partitions[graph_name] = (rl_partition, partition_weights, rl_bound)
@@ -485,6 +506,18 @@ def run_stage3(phase1_policy, phase2_policy,
         k: {'partition': v[0], 'weights': v[1], 'bound': v[2]}
         for k, v in best_partitions.items()
     }
+
+    # LP validation summary for Stage 3
+    if lp_violations:
+        print(f"\n  !! STAGE 3 LP VIOLATIONS: {len(lp_violations)} episodes")
+        for ep, gn, ub, lb in lp_violations[:10]:
+            print(f"     Ep {ep}: {gn} bound={ub:.6f} < LP_LB={lb:.6f}")
+        print(f"  >> These bounds are INVALID — approach needs review.")
+    else:
+        print(f"\n  LP validation: ALL Stage 3 bounds valid (>= LP lower bound)")
+    metrics['lp_bounds'] = lp_bounds
+    metrics['lp_violations'] = len(lp_violations)
+
     print("\nStage 3 complete.\n")
     return phase1_policy, phase2_policy, metrics, best_partitions
 
@@ -535,11 +568,17 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
     log_interval = 50
     stopper = EarlyStopper(patience=3000, min_episodes=2000)
 
-    print(f"\n  Partition bounds for search:")
+    # Pre-compute LP lower bounds for all graphs in this stage
+    lp_bounds = {}
+    lp_violations = []
+    print(f"\n  {'Graph':<16} {'PB (UB)':>8} {'LP LB':>8} {'Gap':>8}")
+    print(f"  {'-'*44}")
     for nodes, edges, sessions in env.graph_dataset:
-        pb    = _compute_partition_bound(nodes, edges, sessions)
         gname = identify_graph(nodes, edges, sessions)
-        print(f"    {gname:<16}: PB = {pb:.4f}")
+        pb    = _compute_partition_bound(nodes, edges, sessions)
+        lb    = compute_lp_lower_bound(nodes, edges, sessions)
+        lp_bounds[gname] = lb
+        print(f"    {gname:<16}: PB={pb:.4f}  LP_LB={lb:.4f}  gap={pb-lb:.4f}")
     print()
 
     for episode in range(num_episodes):
@@ -653,6 +692,17 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         metrics['novel_found'].append(1 if best_b < pb - 1e-8 else 0)
         metrics['cross_partition_used'].append(1 if used_cross else 0)
 
+        # Validate against LP lower bound
+        if graph_name in lp_bounds and best_b < 1e9:
+            lp_lb = lp_bounds[graph_name]
+            is_valid, msg = validate_bound_against_lp(
+                best_b, lp_lb, graph_name
+            )
+            if not is_valid:
+                lp_violations.append((episode, graph_name, best_b, lp_lb))
+                if len(lp_violations) <= 10:
+                    print(f"  !! LP VIOLATION: {msg}")
+
         # Record novel bounds
         if best_b < pb - 1e-8:
             if graph_name not in novel_bounds or best_b < novel_bounds[graph_name][0]:
@@ -717,6 +767,26 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         cross_total = sum(metrics['cross_partition_used'])
         print(f"  CROSS_SUBMOD used in {cross_total}/{num_episodes} episodes.")
 
+    # LP validation summary for Stage 4
+    print(f"\n{'='*70}")
+    print("LP LOWER BOUND VALIDATION — STAGE 4")
+    print(f"{'='*70}")
+    if lp_violations:
+        print(f"  !! {len(lp_violations)} LP VIOLATIONS detected!")
+        for ep, gn, ub, lb in lp_violations[:20]:
+            print(f"     Ep {ep}: {gn} bound={ub:.6f} < LP_LB={lb:.6f}")
+        print(f"  >> These 'novel' bounds are INVALID and must be discarded.")
+        # Filter out invalid novel bounds
+        invalid_graphs = {gn for _, gn, ub, lb in lp_violations if ub < lb - 1e-6}
+        for gn in invalid_graphs:
+            if gn in novel_bounds:
+                print(f"  >> Removing invalid novel bound for {gn}")
+                del novel_bounds[gn]
+    else:
+        print(f"  All Stage 4 bounds are valid (>= LP lower bound). Approach is sound.")
+    metrics['lp_bounds'] = lp_bounds
+    metrics['lp_violations'] = len(lp_violations)
+
     return phase3_policy, metrics, novel_bounds
 
 
@@ -753,6 +823,13 @@ def evaluate(phase1_policy, phase2_policy, phase3_policy,
     """Evaluation across all phases."""
     env = PartitionBoundEnv(graph_dataset_size=graph_dataset_size, stage=4)
     results = defaultdict(lambda: {'p2_bounds':[], 'p3_bounds':[], 'novel':0})
+
+    # Pre-compute LP lower bounds for evaluation
+    lp_bounds = {}
+    for nodes_g, edges_g, sessions_g in env.graph_dataset:
+        gn = identify_graph(nodes_g, edges_g, sessions_g)
+        if gn not in lp_bounds:
+            lp_bounds[gn] = compute_lp_lower_bound(nodes_g, edges_g, sessions_g)
 
     for episode in range(num_episodes):
         graph_tuple = random.choice(env.graph_dataset)
@@ -817,21 +894,31 @@ def evaluate(phase1_policy, phase2_policy, phase3_policy,
     print(f"\n{'='*70}")
     print("EVALUATION SUMMARY")
     print(f"{'='*70}")
-    print(f"  {'Graph':<16} {'PB':>8} {'P2 avg':>8} {'P3 avg':>8} "
-          f"{'P3 best':>8} {'Novel%':>8}")
-    print(f"  {'-'*58}")
+    print(f"  {'Graph':<16} {'PB':>8} {'LP LB':>8} {'P2 avg':>8} {'P3 avg':>8} "
+          f"{'P3 best':>8} {'Novel%':>8} {'LP OK':>6}")
+    print(f"  {'-'*78}")
+    eval_violations = 0
     for gname in sorted(results.keys()):
         r   = results[gname]
         pb2 = _compute_partition_bound(
             *next(t for t in env.graph_dataset if identify_graph(*t) == gname)
         )
+        lp_lb = lp_bounds.get(gname, 0.0)
         p2a = np.mean(r['p2_bounds'])
         p3a = np.mean(r['p3_bounds'])
         p3b = min(r['p3_bounds'])
         nv  = 100 * r['novel'] / max(len(r['p3_bounds']), 1)
         flag = " *** NOVEL ***" if p3b < pb2 - 1e-8 else ""
-        print(f"  {gname:<16} {pb2:>8.4f} {p2a:>8.4f} {p3a:>8.4f} "
-              f"{p3b:>8.4f} {nv:>7.1f}%{flag}")
+        lp_ok = p3b >= lp_lb - 1e-6
+        if not lp_ok:
+            eval_violations += 1
+            flag += " !! INVALID"
+        print(f"  {gname:<16} {pb2:>8.4f} {lp_lb:>8.4f} {p2a:>8.4f} {p3a:>8.4f} "
+              f"{p3b:>8.4f} {nv:>7.1f}% {'  OK' if lp_ok else 'FAIL':>6}{flag}")
+    if eval_violations:
+        print(f"\n  !! {eval_violations} graphs have bounds below LP lower bound — INVALID")
+    else:
+        print(f"\n  LP validation: ALL evaluation bounds are valid. Approach is sound.")
     return dict(results)
 
 
