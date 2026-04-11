@@ -17,11 +17,15 @@ PHASE 2 (purpose changed):
   NEW ACTION: CROSS_SUBMOD — apply submodularity to two accumulator
   items that come from different partition sets. This is the action
   Phase 2 must learn to use; Phase 3 exploits it with fractional λ.
+  NEW ACTIONS: APPLY_CRYPTO, APPLY_DECODE — functional dependence
+  constraints that can tighten the bound beyond the partition bound.
 
 PHASE 3 (new — the actual novel-inequality search):
   Starts from Phase 1's partition + weight hints and Phase 2's learned
   proof calculus. Action space adds:
     FRACTIONAL_IO(u, v, λ): form λ·IO(u) + (1-λ)·IO(v) atomically
+    APPLY_CRYPTO(cut_idx):  crypto inequality for a precomputed cut
+    APPLY_DECODE(session_idx): decoding functional dependence
   Reward is ONLY positive when the extracted bound beats the partition
   bound for this graph. The partition bound is computed once at reset
   and stored as self.partition_bound.
@@ -54,6 +58,17 @@ from fixed_submodularity import (
     apply_pairwise_submodularity,
     apply_n2_submodularity_all_at_once
 )
+from rl_functional_dep_integration import (
+    FuncDepActions,
+    is_crypto_valid,
+    is_decode_valid,
+    ACTION_CRYPTO,
+    ACTION_DECODE,
+)
+from functional_dependence import (
+    apply_crypto_inequality_direct,
+    apply_decode_substitution,
+)
 
 
 class Phase(IntEnum):
@@ -78,6 +93,9 @@ class ActionType(IntEnum):
     # Phase 3 only
     FRACTIONAL_IO        = 10   # λ·IO(u) + (1-λ)·IO(v)
     CROSS_SUBMOD         = 11   # submod across partition boundary
+    # Functional dependence (Phase 2 & 3)
+    APPLY_CRYPTO         = 20   # crypto inequality for a precomputed cut
+    APPLY_DECODE         = 21   # decoding functional dependence for a session
 
 
 MAX_PHASE2_STEPS     = 30
@@ -96,58 +114,15 @@ LAMBDA_GRID = [0.25, 0.33, 0.40, 0.50, 0.60, 0.67, 0.75]
 # ---------------------------------------------------------------------------
 
 def _compute_partition_bound(nodes, edges, sessions) -> float:
-    """Returns the tightest partition bound for this graph."""
-    from itertools import combinations as _comb
-    adj = {n: set() for n in nodes}
-    for u, v in edges:
-        adj[u].add(v); adj[v].add(u)
+    """Returns the tightest partition bound for this graph.
 
-    def _sessions_within(S):
-        Ss = set(S)
-        return sum(1 for s, t in sessions if s in Ss and t in Ss)
-
-    def _cut_edges(partition):
-        part_of = {}
-        for k, Pk in enumerate(partition):
-            for nd in Pk: part_of[nd] = k
-        return sum(1 for u, v in edges if part_of[u] != part_of[v])
-
-    def _eval(partition):
-        for Pk in partition:
-            if any(adj[u] & (set(Pk) - {u}) for u in Pk):
-                return float('inf')
-        intra = sum(_sessions_within(Pk) for Pk in partition)
-        cut   = _cut_edges(partition)
-        denom = len(sessions) + intra
-        return cut / denom if denom > 0 else float('inf')
-
-    best = len(edges) / max(len(sessions), 1)
-
-    # Greedy colorings
-    import networkx as nx
-    G = nx.Graph(); G.add_nodes_from(nodes); G.add_edges_from(edges)
-    from collections import defaultdict
-    for strat in ['largest_first', 'smallest_last', 'DSATUR']:
-        try:
-            col = nx.coloring.greedy_color(G, strategy=strat)
-            groups = defaultdict(list)
-            for nd, c in col.items(): groups[c].append(nd)
-            best = min(best, _eval(list(groups.values())))
-        except Exception:
-            pass
-
-    # Exhaustive 2-partitions for small graphs
-    if len(nodes) <= 14:
-        V = list(nodes); n = len(V)
-        for mask in range(1, 1 << (n-1)):
-            S = [V[i] for i in range(n) if mask & (1 << i)]
-            T = [V[i] for i in range(n) if not (mask & (1 << i))]
-            if S and T:
-                best = min(best, _eval([S, T]))
-
-    # Singleton partition (always valid)
-    best = min(best, _eval([[v] for v in nodes]))
-    return best
+    Delegates to compute_optimal_bound() which does a full brute-force
+    enumeration over all k-colorings for small graphs (≤10 nodes)
+    and greedy + 2-partition search for larger ones.
+    """
+    from fixed_graph_generation import compute_optimal_bound
+    best_bound, _, _ = compute_optimal_bound(nodes, edges, sessions)
+    return best_bound
 
 
 # ---------------------------------------------------------------------------
@@ -197,6 +172,9 @@ class PartitionBoundEnv:
         self._found_yi_collapse   = False
         self._proof2_used         = False
 
+        # Functional dependence action catalogue (built in _start_phase2)
+        self.func_dep_actions: Optional[FuncDepActions] = None
+
     # -----------------------------------------------------------------------
     # Reset
     # -----------------------------------------------------------------------
@@ -232,6 +210,7 @@ class PartitionBoundEnv:
         self.internal_per_part = None
         self.num_base          = 0
         self.node_ios          = {}
+        self.func_dep_actions  = None
 
         self._assignment_complete = False
         self._refinement_steps    = 0
@@ -293,6 +272,12 @@ class PartitionBoundEnv:
         self.current_phase = Phase.PHASE2
         self.phase2_steps  = 0
         self.combination_log = []
+
+        # Build functional dependence action catalogue for this graph
+        self.func_dep_actions = FuncDepActions(
+            list(self.nodes), list(self.edges), list(self.sessions),
+            max_crypto_cuts=20
+        )
 
     def _start_phase3(self):
         """Set up Phase 3: fractional IO search starting from Phase 1/2 knowledge."""
@@ -416,7 +401,7 @@ class PartitionBoundEnv:
         return self._get_state(), 0.0, False
 
     # -----------------------------------------------------------------------
-    # Phase 2 step (operates on per-node IOs; adds CROSS_SUBMOD)
+    # Phase 2 step (operates on per-node IOs; adds CROSS_SUBMOD + CRYPTO/DECODE)
     # -----------------------------------------------------------------------
 
     def _step_phase2(self, action):
@@ -546,6 +531,71 @@ class PartitionBoundEnv:
                 self.pool.append(combined)
             return self._get_state(), STEP_COST, False
 
+        elif action_type == ActionType.APPLY_CRYPTO:
+            # Apply crypto inequality: h(Y_sep | U_cut) = 0
+            # tightens the bound when cut edges are already on RHS
+            cut_idx = action.get('cut_idx', 0)
+            reward  = -0.1
+            if (self.func_dep_actions is not None
+                    and cut_idx < self.func_dep_actions.num_crypto_cuts()):
+                vp, sep_list = self.func_dep_actions.crypto_cut(cut_idx)
+                # Apply to the most recently derived terminal-form inequality,
+                # or the last pool item if nothing is in terminal form yet
+                target = None
+                for ineq in reversed(self.pool):
+                    if ineq.check_valid_terminal_form():
+                        target = ineq
+                        break
+                if target is None and self.pool:
+                    target = self.pool[-1]
+                if target is not None:
+                    new_ineq, applied = apply_crypto_inequality_direct(
+                        target, set(vp),
+                        list(self.nodes), list(self.edges),
+                        list(self.sessions), self.index
+                    )
+                    if applied:
+                        self.pool.append(new_ineq)
+                        self.combination_log.append({
+                            'step': self.phase2_steps, 'action': 'CRYPTO',
+                            'cut_idx': cut_idx, 'sep_count': len(sep_list)
+                        })
+                        # Stronger bonus if the new inequality is already terminal
+                        reward = 0.4 if new_ineq.check_valid_terminal_form() else 0.1
+                    else:
+                        reward = -0.05
+            return self._get_state(), reward, False
+
+        elif action_type == ActionType.APPLY_DECODE:
+            # Apply decoding substitution: h(Y_i | edges into t(i)) = 0
+            # tightens the bound when sink's incident edges are on RHS
+            si     = action.get('session_idx', 0)
+            reward = -0.1
+            if (self.func_dep_actions is not None
+                    and si < len(self.sessions)):
+                target = None
+                for ineq in reversed(self.pool):
+                    if ineq.check_valid_terminal_form():
+                        target = ineq
+                        break
+                if target is None and self.pool:
+                    target = self.pool[-1]
+                if target is not None:
+                    new_ineq, applied = apply_decode_substitution(
+                        target, si,
+                        list(self.sessions), list(self.edges), self.index
+                    )
+                    if applied:
+                        self.pool.append(new_ineq)
+                        self.combination_log.append({
+                            'step': self.phase2_steps, 'action': 'DECODE',
+                            'session_idx': si
+                        })
+                        reward = 0.3 if new_ineq.check_valid_terminal_form() else 0.08
+                    else:
+                        reward = -0.05
+            return self._get_state(), reward, False
+
         elif action_type == ActionType.DECLARE_TERMINAL:
             if self.phase2_steps < self.min_phase2_steps:
                 return self._get_state(), -worst_case, True
@@ -556,7 +606,7 @@ class PartitionBoundEnv:
         return self._get_state(), STEP_COST, False
 
     # -----------------------------------------------------------------------
-    # Phase 3 step (fractional IO + joint search)
+    # Phase 3 step (fractional IO + joint search + crypto/decode)
     # -----------------------------------------------------------------------
 
     def _step_phase3(self, action):
@@ -649,6 +699,71 @@ class PartitionBoundEnv:
                 self.frac_pool.add(combined_fi)
                 self.accumulator = []
             return self._get_state(), 0.0, False
+
+        elif action_type == ActionType.APPLY_CRYPTO:
+            # Apply crypto inequality to every terminal-form inequality in frac_pool
+            cut_idx = action.get('cut_idx', 0)
+            reward  = -0.1
+            if (self.func_dep_actions is not None
+                    and cut_idx < self.func_dep_actions.num_crypto_cuts()):
+                vp, sep_list = self.func_dep_actions.crypto_cut(cut_idx)
+                applied_any = False
+                for ineq in list(self.frac_pool):
+                    if not ineq.check_valid_terminal_form():
+                        continue
+                    new_ineq, applied = apply_crypto_inequality_direct(
+                        ineq, set(vp),
+                        list(self.nodes), list(self.edges),
+                        list(self.sessions), self.index
+                    )
+                    if applied:
+                        self.frac_pool.add(make_fractional(new_ineq))
+                        applied_any = True
+                # Reward based on whether applying crypto improved best bound
+                if applied_any:
+                    pb        = self.partition_bound
+                    new_best  = self.frac_pool.best_bound(
+                        len(self.sessions), len(self.edges), self.internal_per_part
+                    )
+                    if new_best < pb - 1e-8:
+                        improvement = (pb - new_best) / pb
+                        reward = 2.0 + 10.0 * improvement
+                    else:
+                        reward = 0.2
+                else:
+                    reward = -0.05
+            return self._get_state(), reward, False
+
+        elif action_type == ActionType.APPLY_DECODE:
+            # Apply decoding substitution to terminal-form inequalities in frac_pool
+            si     = action.get('session_idx', 0)
+            reward = -0.1
+            if (self.func_dep_actions is not None
+                    and si < len(self.sessions)):
+                applied_any = False
+                for ineq in list(self.frac_pool):
+                    if not ineq.check_valid_terminal_form():
+                        continue
+                    new_ineq, applied = apply_decode_substitution(
+                        ineq, si,
+                        list(self.sessions), list(self.edges), self.index
+                    )
+                    if applied:
+                        self.frac_pool.add(make_fractional(new_ineq))
+                        applied_any = True
+                if applied_any:
+                    pb       = self.partition_bound
+                    new_best = self.frac_pool.best_bound(
+                        len(self.sessions), len(self.edges), self.internal_per_part
+                    )
+                    if new_best < pb - 1e-8:
+                        improvement = (pb - new_best) / pb
+                        reward = 2.0 + 10.0 * improvement
+                    else:
+                        reward = 0.15
+                else:
+                    reward = -0.05
+            return self._get_state(), reward, False
 
         elif action_type == ActionType.DECLARE_TERMINAL:
             return self._extract_phase3_bound()
@@ -845,6 +960,37 @@ class PartitionBoundEnv:
                 for j in range(i+1, k_stored):
                     valid.append({'type': ActionType.COMBINE_STORED, 'idx_i': i, 'idx_j': j})
 
+        # Crypto and decode: offer when we have at least one pool inequality
+        # and the functional dependence catalogue is ready
+        if self.func_dep_actions is not None and self.pool:
+            # Find the best terminal-form inequality to check validity against
+            target = None
+            for ineq in reversed(self.pool):
+                if ineq.check_valid_terminal_form():
+                    target = ineq
+                    break
+            if target is None:
+                target = self.pool[-1]
+
+            for ci in range(self.func_dep_actions.num_crypto_cuts()):
+                vp, sep_list = self.func_dep_actions.crypto_cut(ci)
+                if is_crypto_valid(target, vp,
+                                   list(self.nodes), list(self.edges),
+                                   list(self.sessions), self.index):
+                    valid.append({
+                        'type': ActionType.APPLY_CRYPTO,
+                        'cut_idx': ci,
+                        'sep_count': len(sep_list)
+                    })
+
+            for si in range(len(self.sessions)):
+                incoming = self.func_dep_actions.sink_incoming[si]
+                if is_decode_valid(target, si, incoming, self.index):
+                    valid.append({
+                        'type': ActionType.APPLY_DECODE,
+                        'session_idx': si
+                    })
+
         if self.phase2_steps >= self.min_phase2_steps:
             valid.append({'type': ActionType.DECLARE_TERMINAL})
         return valid
@@ -856,6 +1002,8 @@ class PartitionBoundEnv:
           ADD_TO_ACCUMULATOR(idx): from the fractional pool
           APPLY_SUBMODULARITY / CROSS_SUBMOD: on accumulator pairs
           STORE_AND_RESET: commit accumulator to pool
+          APPLY_CRYPTO(cut_idx): crypto inequality for a precomputed cut
+          APPLY_DECODE(session_idx): decode functional dependence
           DECLARE_TERMINAL: extract bound and end episode
         """
         valid = []
@@ -902,6 +1050,37 @@ class PartitionBoundEnv:
         if self.accumulator:
             valid.append({'type': ActionType.STORE_AND_RESET})
 
+        # Crypto and decode: offer once per cut/session if any pool item is valid
+        if self.func_dep_actions is not None:
+            seen_crypto = set()
+            seen_decode = set()
+            for ineq in self.frac_pool:
+                if not ineq.check_valid_terminal_form():
+                    continue
+                for ci in range(self.func_dep_actions.num_crypto_cuts()):
+                    if ci in seen_crypto:
+                        continue
+                    vp, sep_list = self.func_dep_actions.crypto_cut(ci)
+                    if is_crypto_valid(ineq, vp,
+                                       list(self.nodes), list(self.edges),
+                                       list(self.sessions), self.index):
+                        valid.append({
+                            'type': ActionType.APPLY_CRYPTO,
+                            'cut_idx': ci,
+                            'sep_count': len(sep_list)
+                        })
+                        seen_crypto.add(ci)
+                for si in range(len(self.sessions)):
+                    if si in seen_decode:
+                        continue
+                    incoming = self.func_dep_actions.sink_incoming[si]
+                    if is_decode_valid(ineq, si, incoming, self.index):
+                        valid.append({
+                            'type': ActionType.APPLY_DECODE,
+                            'session_idx': si
+                        })
+                        seen_decode.add(si)
+
         # Always allow terminal (Phase 3 has no step gate)
         valid.append({'type': ActionType.DECLARE_TERMINAL})
         return valid
@@ -935,6 +1114,9 @@ class PartitionBoundEnv:
             state['phase2_steps']       = self.phase2_steps
             state['internal_sessions']  = self.internal_session_count
             state['combination_log']    = list(self.combination_log)
+            state['num_crypto_cuts']    = (self.func_dep_actions.num_crypto_cuts()
+                                           if self.func_dep_actions else 0)
+            state['num_decode_actions'] = len(self.sessions)
             if self.pool:
                 base_part    = self.pool[:self.num_base]
                 derived_part = self.pool[self.num_base:][-MAX_DERIVED:]
@@ -952,6 +1134,9 @@ class PartitionBoundEnv:
             state['has_cross_partition']= int(self.frac_pool.has_cross_partition())
             state['has_fractional_lam'] = int(self.frac_pool.has_fractional_lambda())
             state['partition_weights']  = dict(self.partition_weights)
+            state['num_crypto_cuts']    = (self.func_dep_actions.num_crypto_cuts()
+                                           if self.func_dep_actions else 0)
+            state['num_decode_actions'] = len(self.sessions)
             if len(self.frac_pool) > 0:
                 state['pool_coeffs'] = self.frac_pool.coeff_matrix()
             if self.accumulator:

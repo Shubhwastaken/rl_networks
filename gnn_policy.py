@@ -8,17 +8,20 @@ PHASE 1 (GNNPhase1Policy) — unchanged architecture, NEW output:
   suggested λ distribution over partition sets.
 
 PHASE 2 (GNNPhase2Policy) — unchanged architecture.
-  Now sees CROSS_SUBMOD as a valid action type (type=11).
-  The action_type_head logit dimension is extended to 12.
+  Now sees CROSS_SUBMOD (type=11), APPLY_CRYPTO (type=20),
+  APPLY_DECODE (type=21) as valid action types.
+  The action_type_head logit dimension is extended to 14.
 
 PHASE 3 (GNNPhase3Policy) — new.
   Input: graph features (from Phase1GNN) + pool embedding (Transformer).
   Action heads:
     (a) action_type: {FRACTIONAL_IO, ADD_TO_ACC, SUBMOD, CROSS_SUBMOD,
-                      STORE, DECLARE_TERMINAL}
+                      STORE, DECLARE_TERMINAL, APPLY_CRYPTO, APPLY_DECODE}
     (b) node_u pointer, node_v pointer (for FRACTIONAL_IO)
     (c) lambda selector (discrete over LAMBDA_GRID)
     (d) pool index pointer (for ADD_TO_ACC / SUBMOD)
+    (e) cut index selector (for APPLY_CRYPTO)
+    (f) session index selector (for APPLY_DECODE)
   Value head: scalar baseline.
 
 All policies use GAE + vanilla PG (policy gradient) with cosine LR
@@ -56,9 +59,15 @@ class ActionType(IntEnum):
     FINALIZE_PARTITION   = 9
     FRACTIONAL_IO        = 10
     CROSS_SUBMOD         = 11
+    APPLY_CRYPTO         = 20
+    APPLY_DECODE         = 21
 
 
 LAMBDA_GRID = [0.25, 0.33, 0.40, 0.50, 0.60, 0.67, 0.75]
+
+# Maximum number of crypto cuts and sessions we size heads for
+MAX_CRYPTO_CUTS = 20
+MAX_SESSIONS    = 16
 
 
 def compute_gae(rewards, values, gamma=0.99, lam=0.95):
@@ -284,20 +293,12 @@ class GNNPhase1Policy:
 
         vals_t = torch.tensor(self._values[:n], dtype=torch.float32).to(DEVICE)
 
-        # PPO clipped surrogate (epsilon=0.2)
-        # _old_log_probs stores detached log_probs from the forward pass at selection time.
-        # On first update after an episode these equal lps_t so ratio=1 (identical to PG).
-        # On subsequent epochs (if called multiple times) the clip kicks in.
-        # Use detached log probs from action-selection time for PPO ratio.
-        # Sliced to [:n] to match lps_t length exactly.
-        # Use PREVIOUS episode log_probs as frozen reference for PPO ratio.
-        # _prev_log_probs are set in _clear() at end of last episode.
         _prev = getattr(self, '_prev_log_probs', [])
         if _prev and len(_prev) >= n:
             old_lps_t = torch.tensor([x.detach().item() for x in _prev[:n]],
                                      dtype=torch.float32).to(DEVICE)
         else:
-            old_lps_t = lps_t.detach()  # first episode: ratio=1, no clip
+            old_lps_t = lps_t.detach()
         ratio    = torch.exp(lps_t - old_lps_t)
         pg_loss  = -torch.min(
             ratio * adv_t.detach(),
@@ -318,12 +319,9 @@ class GNNPhase1Policy:
         self._clear()
 
     def _clear(self):
-        # Save current log_probs as old for next episode PPO ratio
-        # (not cleared — they become the frozen reference policy)
         self._prev_log_probs = list(self._log_probs)
         self._log_probs  = []; self._values = []
         self._rewards    = []; self._entropies = []
-        # _old_log_probs stays as-is — it will be updated at start of next episode
 
     def _build_tensors(self, state):
         assignment = state['assignment']
@@ -381,7 +379,7 @@ class GNNPhase1Policy:
 
 
 # ═══════════════════════════════════════════════════════════════════
-# Phase 2 — Transformer on inequality pool (extended for CROSS_SUBMOD)
+# Phase 2 — Transformer on inequality pool (extended for CRYPTO/DECODE)
 # ═══════════════════════════════════════════════════════════════════
 
 class InequalityEncoder(nn.Module):
@@ -404,10 +402,11 @@ class Phase2Net(nn.Module):
         )
         self.transformer    = nn.TransformerEncoder(enc_layer, num_layers)
         self.token_dim      = token_dim
-        # Extended to 12 action types (includes FRACTIONAL_IO=10, CROSS_SUBMOD=11)
+        # Extended to 14 action types: 0-11 original + 20 (CRYPTO) + 21 (DECODE)
+        # We map them to contiguous indices 0-13 in the head (see PHASE2_ACTION_MAP)
         self.action_type_head = nn.Sequential(
             nn.Linear(token_dim, token_dim), nn.ReLU(),
-            nn.Linear(token_dim, 12)
+            nn.Linear(token_dim, 14)
         )
         self.ptr_query_1    = nn.Linear(token_dim, token_dim)
         self.ptr_key_1      = nn.Linear(token_dim, token_dim)
@@ -416,6 +415,16 @@ class Phase2Net(nn.Module):
         self.value_head     = nn.Sequential(
             nn.Linear(token_dim, token_dim), nn.ReLU(),
             nn.Linear(token_dim, 1)
+        )
+        # Cut selector for APPLY_CRYPTO (scores each cut index)
+        self.cut_scorer = nn.Sequential(
+            nn.Linear(token_dim, 64), nn.ReLU(),
+            nn.Linear(64, MAX_CRYPTO_CUTS)
+        )
+        # Session selector for APPLY_DECODE
+        self.session_scorer = nn.Sequential(
+            nn.Linear(token_dim, 64), nn.ReLU(),
+            nn.Linear(64, MAX_SESSIONS)
         )
 
     def encode(self, coeffs):
@@ -433,6 +442,27 @@ class Phase2Net(nn.Module):
         q       = self.ptr_query_2(context.unsqueeze(0))
         k       = self.ptr_key_2(tokens)
         return (q @ k.T).squeeze(0) / (self.token_dim ** 0.5)
+
+
+# Mapping from ActionType enum value to contiguous head index (0-13)
+# Original 0-11 map directly; CRYPTO=20→12, DECODE=21→13
+PHASE2_ACTION_HEAD_IDX = {
+    ActionType.ASSIGN_NODE:         0,
+    ActionType.ADD_TO_ACCUMULATOR:  1,
+    ActionType.APPLY_SUBMODULARITY: 2,
+    ActionType.APPLY_PROOF2:        3,
+    ActionType.STORE_AND_RESET:     4,
+    ActionType.COMBINE_STORED:      5,
+    ActionType.DECLARE_TERMINAL:    6,
+    ActionType.SWAP_NODE:           7,
+    ActionType.MOVE_NODE:           8,
+    ActionType.FINALIZE_PARTITION:  9,
+    ActionType.FRACTIONAL_IO:       10,
+    ActionType.CROSS_SUBMOD:        11,
+    ActionType.APPLY_CRYPTO:        12,
+    ActionType.APPLY_DECODE:        13,
+}
+PHASE2_HEAD_IDX_TO_ACTION = {v: k for k, v in PHASE2_ACTION_HEAD_IDX.items()}
 
 
 class GNNPhase2Policy:
@@ -479,28 +509,30 @@ class GNNPhase2Policy:
 
         tokens, global_tok = self._encode(state)
 
-        # Action type selection (12 types now)
+        # Action type selection (14 slots, masked)
         type_logits = self.net.action_type_head(global_tok)
         valid_types = {int(a['type']) for a in valid_actions}
-        type_mask   = torch.full((12,), float('-inf')).to(DEVICE)
+        type_mask   = torch.full((14,), float('-inf')).to(DEVICE)
         for t in valid_types:
-            if t < 12:
-                type_mask[t] = 0.0
+            head_idx = PHASE2_ACTION_HEAD_IDX.get(t)
+            if head_idx is not None:
+                type_mask[head_idx] = 0.0
 
         type_probs = F.softmax(type_logits + type_mask, dim=-1)
         type_dist  = torch.distributions.Categorical(type_probs)
-        atype_t    = type_dist.sample()
-        atype      = ActionType(atype_t.item())
-        lp_type    = type_dist.log_prob(atype_t)
+        head_idx_t = type_dist.sample()
+        atype      = PHASE2_HEAD_IDX_TO_ACTION.get(head_idx_t.item(),
+                                                    ActionType.DECLARE_TERMINAL)
+        lp_type    = type_dist.log_prob(head_idx_t)
         entropy    = type_dist.entropy()
 
         # PROOF2 forcing (annealed)
         proof2_fp = state.get('proof2_force_prob', 0.0)
         if (proof2_fp > 0 and ActionType.APPLY_PROOF2 in valid_types
                 and _random.random() < proof2_fp):
-            atype   = ActionType.APPLY_PROOF2
-            atype_t = torch.tensor(int(atype)).to(DEVICE)
-            lp_type = type_dist.log_prob(atype_t)
+            atype      = ActionType.APPLY_PROOF2
+            head_idx_t = torch.tensor(PHASE2_ACTION_HEAD_IDX[atype]).to(DEVICE)
+            lp_type    = type_dist.log_prob(head_idx_t)
 
         value = self.net.value_head(global_tok).squeeze()
         self._values.append(value.item())
@@ -508,7 +540,6 @@ class GNNPhase2Policy:
         lp_idx = torch.tensor(0.0).to(DEVICE)
         action = {'type': atype}
 
-        # Index selection (pointer network) for actions that need one
         if atype in (ActionType.ADD_TO_ACCUMULATOR,):
             idxs = [a['idx_i'] for a in valid_actions if int(a['type']) == int(atype)]
             if idxs and len(tokens) > 0:
@@ -562,6 +593,50 @@ class GNNPhase2Policy:
                 action['idx_i'] = pairs[0][0]
                 action['idx_j'] = pairs[0][1]
 
+        elif atype == ActionType.APPLY_CRYPTO:
+            # Select cut index: prefer cut with most separated sessions
+            crypto_acts = [a for a in valid_actions
+                           if int(a['type']) == ActionType.APPLY_CRYPTO]
+            if crypto_acts:
+                # Score each valid cut using the cut_scorer head
+                cut_logits = self.net.cut_scorer(global_tok)
+                cut_mask   = torch.full((MAX_CRYPTO_CUTS,), float('-inf')).to(DEVICE)
+                for a in crypto_acts:
+                    ci = a.get('cut_idx', 0)
+                    if ci < MAX_CRYPTO_CUTS:
+                        cut_mask[ci] = 0.0
+                cut_probs = F.softmax(cut_logits + cut_mask, dim=-1)
+                cut_dist  = torch.distributions.Categorical(cut_probs)
+                cut_idx_t = cut_dist.sample()
+                action['cut_idx']   = cut_idx_t.item()
+                action['sep_count'] = next(
+                    (a.get('sep_count', 0) for a in crypto_acts
+                     if a.get('cut_idx') == cut_idx_t.item()),
+                    0
+                )
+                lp_idx = cut_dist.log_prob(cut_idx_t)
+            else:
+                action = {'type': ActionType.DECLARE_TERMINAL}
+
+        elif atype == ActionType.APPLY_DECODE:
+            # Select session index using session_scorer head
+            decode_acts = [a for a in valid_actions
+                           if int(a['type']) == ActionType.APPLY_DECODE]
+            if decode_acts:
+                sess_logits = self.net.session_scorer(global_tok)
+                sess_mask   = torch.full((MAX_SESSIONS,), float('-inf')).to(DEVICE)
+                for a in decode_acts:
+                    si = a.get('session_idx', 0)
+                    if si < MAX_SESSIONS:
+                        sess_mask[si] = 0.0
+                sess_probs = F.softmax(sess_logits + sess_mask, dim=-1)
+                sess_dist  = torch.distributions.Categorical(sess_probs)
+                sess_idx_t = sess_dist.sample()
+                action['session_idx'] = sess_idx_t.item()
+                lp_idx = sess_dist.log_prob(sess_idx_t)
+            else:
+                action = {'type': ActionType.DECLARE_TERMINAL}
+
         total_lp = lp_type + lp_idx
         self._log_probs.append(total_lp)
         self._rewards.append(0.0)
@@ -597,20 +672,12 @@ class GNNPhase2Policy:
             self._clear(); return
 
         vals_t = torch.tensor(self._values[:n], dtype=torch.float32).to(DEVICE)
-        # PPO clipped surrogate (epsilon=0.2)
-        # _old_log_probs stores detached log_probs from the forward pass at selection time.
-        # On first update after an episode these equal lps_t so ratio=1 (identical to PG).
-        # On subsequent epochs (if called multiple times) the clip kicks in.
-        # Use detached log probs from action-selection time for PPO ratio.
-        # Sliced to [:n] to match lps_t length exactly.
-        # Use PREVIOUS episode log_probs as frozen reference for PPO ratio.
-        # _prev_log_probs are set in _clear() at end of last episode.
         _prev = getattr(self, '_prev_log_probs', [])
         if _prev and len(_prev) >= n:
             old_lps_t = torch.tensor([x.detach().item() for x in _prev[:n]],
                                      dtype=torch.float32).to(DEVICE)
         else:
-            old_lps_t = lps_t.detach()  # first episode: ratio=1, no clip
+            old_lps_t = lps_t.detach()
         ratio    = torch.exp(lps_t - old_lps_t)
         pg_loss  = -torch.min(
             ratio * adv_t.detach(),
@@ -631,12 +698,9 @@ class GNNPhase2Policy:
         self._clear()
 
     def _clear(self):
-        # Save current log_probs as old for next episode PPO ratio
-        # (not cleared — they become the frozen reference policy)
         self._prev_log_probs = list(self._log_probs)
         self._log_probs  = []; self._values = []
         self._rewards    = []; self._entropies = []
-        # _old_log_probs stays as-is — it will be updated at start of next episode
 
     def _encode(self, state):
         pool = state.get('pool_coeffs', None)
@@ -699,10 +763,12 @@ class Phase3Net(nn.Module):
     pool (via Transformer) then combines them for action selection.
 
     Action heads:
-      action_type_head : 6 logits (subset of ActionType for Phase 3)
+      action_type_head : 8 logits (PHASE3_ACTION_TYPES)
       node_scorer      : scores each node for FRACTIONAL_IO u/v selection
       lambda_head      : 7 logits over LAMBDA_GRID
       pool_ptr         : pointer over pool for ADD_TO_ACCUMULATOR
+      cut_scorer       : MAX_CRYPTO_CUTS logits for APPLY_CRYPTO
+      session_scorer   : MAX_SESSIONS logits for APPLY_DECODE
       value_head       : scalar baseline
     """
     def __init__(self, graph_hidden=64, coeff_dim=256, token_dim=128,
@@ -716,10 +782,9 @@ class Phase3Net(nn.Module):
             SAGELayer(dims[i], dims[i+1]) for i in range(num_sage_layers)
         ])
 
-        # Pool encoder (stable MLP — Transformer replaced due to GPU instability)
+        # Pool encoder (stable MLP)
         self.pool_proj = nn.Linear(coeff_dim, token_dim)
         self.pool_norm = nn.LayerNorm(token_dim)
-        # pool_transformer removed — encode_pool now uses mean-pool MLP
 
         # Combined representation
         comb_dim = graph_hidden + token_dim
@@ -728,10 +793,10 @@ class Phase3Net(nn.Module):
             nn.Linear(256, 128)
         )
 
-        # Action type: FRACTIONAL_IO, ADD, SUBMOD, CROSS_SUBMOD, STORE, DECLARE
+        # Action type: 8 types (6 original + CRYPTO + DECODE)
         self.action_type_head = nn.Sequential(
             nn.Linear(128, 64), nn.ReLU(),
-            nn.Linear(64, 6)
+            nn.Linear(64, 8)
         )
         # Node scorer (for u and v selection in FRACTIONAL_IO)
         self.node_scorer = nn.Linear(graph_hidden, 1)
@@ -745,6 +810,18 @@ class Phase3Net(nn.Module):
         # Pool pointer
         self.pool_ptr_q = nn.Linear(128, token_dim)
         self.pool_ptr_k = nn.Linear(token_dim, token_dim)
+
+        # Cut scorer for APPLY_CRYPTO
+        self.cut_scorer = nn.Sequential(
+            nn.Linear(128, 64), nn.ReLU(),
+            nn.Linear(64, MAX_CRYPTO_CUTS)
+        )
+
+        # Session scorer for APPLY_DECODE
+        self.session_scorer = nn.Sequential(
+            nn.Linear(128, 64), nn.ReLU(),
+            nn.Linear(64, MAX_SESSIONS)
+        )
 
         # Value
         self.value_head = nn.Sequential(
@@ -763,35 +840,31 @@ class Phase3Net(nn.Module):
         return h   # (n_nodes, graph_hidden)
 
     def encode_pool(self, pool_coeffs):
-        """
-        Stable pool encoding: normalize → per-row MLP.
-        Returns (per_row_tokens, mean_token):
-          per_row_tokens: (n_ineqs, token_dim) — used by pool pointer
-          mean_token:     (token_dim,)          — used by combined()
-        """
         pool_coeffs = pool_coeffs.clamp(-10.0, 10.0)
         mu  = pool_coeffs.mean(dim=0, keepdim=True)
         std = pool_coeffs.std(dim=0, keepdim=True).clamp(min=1e-4)
         pc  = (pool_coeffs - mu) / std
         pc  = torch.nan_to_num(pc, nan=0.0, posinf=1.0, neginf=-1.0)
-        tokens = F.relu(self.pool_norm(self.pool_proj(pc)))  # (n, token_dim)
-        mean   = tokens.mean(dim=0)                          # (token_dim,)
+        tokens = F.relu(self.pool_norm(self.pool_proj(pc)))
+        mean   = tokens.mean(dim=0)
         return tokens, mean
 
     def combined(self, h_graph, h_pool_mean):
-        """h_pool_mean: (token_dim,) mean token from encode_pool."""
-        g = h_graph.mean(dim=0)   # (graph_hidden,)
+        g = h_graph.mean(dim=0)
         p = h_pool_mean if h_pool_mean.dim() == 1 else h_pool_mean.squeeze(0)
-        return self.combiner(torch.cat([g, p]))   # (128,)
+        return self.combiner(torch.cat([g, p]))
 
 
+# Ordered list of Phase 3 action types — index in this list = head logit index
 PHASE3_ACTION_TYPES = [
-    ActionType.FRACTIONAL_IO,
-    ActionType.ADD_TO_ACCUMULATOR,
-    ActionType.APPLY_SUBMODULARITY,
-    ActionType.CROSS_SUBMOD,
-    ActionType.STORE_AND_RESET,
-    ActionType.DECLARE_TERMINAL,
+    ActionType.FRACTIONAL_IO,       # 0
+    ActionType.ADD_TO_ACCUMULATOR,  # 1
+    ActionType.APPLY_SUBMODULARITY, # 2
+    ActionType.CROSS_SUBMOD,        # 3
+    ActionType.STORE_AND_RESET,     # 4
+    ActionType.DECLARE_TERMINAL,    # 5
+    ActionType.APPLY_CRYPTO,        # 6  ← new
+    ActionType.APPLY_DECODE,        # 7  ← new
 ]
 
 
@@ -806,7 +879,10 @@ class GNNPhase3Policy:
        (all lambdas equally likely) and sharpens over training.
     3. Pool pointer for ADD_TO_ACCUMULATOR learns which inequality to
        select from the fractional pool.
-    4. High entropy coefficient (0.2 → 0.02) — Phase 3 needs more
+    4. Cut scorer for APPLY_CRYPTO selects which precomputed cut to use.
+    5. Session scorer for APPLY_DECODE selects which session's decode
+       constraint to apply.
+    6. High entropy coefficient (0.2 → 0.02) — Phase 3 needs more
        exploration than Phases 1/2 because the search space is larger.
     """
 
@@ -817,7 +893,6 @@ class GNNPhase3Policy:
             graph_hidden=graph_hidden, coeff_dim=coeff_dim,
             token_dim=token_dim
         ).to(DEVICE)
-        # AdamW with weight decay prevents weight explosion on GPU
         self.optimizer = torch.optim.AdamW(
             self.net.parameters(), lr=lr, weight_decay=1e-4
         )
@@ -863,17 +938,15 @@ class GNNPhase3Policy:
         value   = self.net.value_head(h_comb).squeeze()
         self._values.append(value.item())
 
-        # Action type selection
+        # Action type selection (8 slots)
         valid_types = {int(a['type']) for a in valid_actions}
         type_logits = self.net.action_type_head(h_comb)
-        # Map PHASE3_ACTION_TYPES index → logit
-        type_mask = torch.full((6,), float('-inf')).to(DEVICE)
+        type_mask = torch.full((len(PHASE3_ACTION_TYPES),), float('-inf')).to(DEVICE)
         for k, at in enumerate(PHASE3_ACTION_TYPES):
             if int(at) in valid_types:
                 type_mask[k] = 0.0
-        # Safety: if nothing mapped (shouldn't happen) allow all to prevent NaN
         if (type_mask == float('-inf')).all():
-            type_mask = torch.zeros(6).to(DEVICE)
+            type_mask = torch.zeros(len(PHASE3_ACTION_TYPES)).to(DEVICE)
 
         type_probs = F.softmax(type_logits + type_mask, dim=-1)
         type_dist  = torch.distributions.Categorical(type_probs)
@@ -886,15 +959,12 @@ class GNNPhase3Policy:
         action   = {'type': atype}
 
         if atype == ActionType.FRACTIONAL_IO:
-            # Select node_u, node_v (from different partitions), and λ
             fio_actions = [a for a in valid_actions
                            if int(a['type']) == ActionType.FRACTIONAL_IO]
             if fio_actions:
-                # Score nodes using graph embedding
-                node_scores = self.net.node_scorer(h_g).squeeze(-1)  # (n_nodes,)
+                node_scores = self.net.node_scorer(h_g).squeeze(-1)
                 nodes_list  = list(node_map.keys())
 
-                # Select u
                 u_mask = torch.full((len(nodes_list),), float('-inf')).to(DEVICE)
                 u_nodes = list({a['node_u'] for a in fio_actions if a['node_u'] in node_map})
                 for nd in u_nodes:
@@ -905,7 +975,6 @@ class GNNPhase3Policy:
                 u_node  = nodes_list[u_idx_t.item()]
                 lp_u    = u_dist.log_prob(u_idx_t)
 
-                # Select v (different partition from u)
                 v_mask  = torch.full((len(nodes_list),), float('-inf')).to(DEVICE)
                 v_nodes = list({a['node_v'] for a in fio_actions
                                 if a['node_u'] == u_node and a['node_v'] in node_map})
@@ -919,7 +988,6 @@ class GNNPhase3Policy:
                 v_node  = nodes_list[v_idx_t.item()]
                 lp_v    = v_dist.log_prob(v_idx_t)
 
-                # Select λ
                 lam_logits = self.net.lambda_head(h_comb)
                 lam_probs  = F.softmax(lam_logits, dim=-1)
                 lam_dist   = torch.distributions.Categorical(lam_probs)
@@ -964,6 +1032,47 @@ class GNNPhase3Policy:
                 action['idx_i'] = pairs[0][0]
                 action['idx_j'] = pairs[0][1]
 
+        elif atype == ActionType.APPLY_CRYPTO:
+            crypto_acts = [a for a in valid_actions
+                           if int(a['type']) == ActionType.APPLY_CRYPTO]
+            if crypto_acts:
+                cut_logits = self.net.cut_scorer(h_comb)
+                cut_mask   = torch.full((MAX_CRYPTO_CUTS,), float('-inf')).to(DEVICE)
+                for a in crypto_acts:
+                    ci = a.get('cut_idx', 0)
+                    if ci < MAX_CRYPTO_CUTS:
+                        cut_mask[ci] = 0.0
+                cut_probs = F.softmax(cut_logits + cut_mask, dim=-1)
+                cut_dist  = torch.distributions.Categorical(cut_probs)
+                cut_idx_t = cut_dist.sample()
+                action['cut_idx']   = cut_idx_t.item()
+                action['sep_count'] = next(
+                    (a.get('sep_count', 0) for a in crypto_acts
+                     if a.get('cut_idx') == cut_idx_t.item()),
+                    0
+                )
+                lp_extra = cut_dist.log_prob(cut_idx_t)
+            else:
+                action = {'type': ActionType.DECLARE_TERMINAL}
+
+        elif atype == ActionType.APPLY_DECODE:
+            decode_acts = [a for a in valid_actions
+                           if int(a['type']) == ActionType.APPLY_DECODE]
+            if decode_acts:
+                sess_logits = self.net.session_scorer(h_comb)
+                sess_mask   = torch.full((MAX_SESSIONS,), float('-inf')).to(DEVICE)
+                for a in decode_acts:
+                    si = a.get('session_idx', 0)
+                    if si < MAX_SESSIONS:
+                        sess_mask[si] = 0.0
+                sess_probs = F.softmax(sess_logits + sess_mask, dim=-1)
+                sess_dist  = torch.distributions.Categorical(sess_probs)
+                sess_idx_t = sess_dist.sample()
+                action['session_idx'] = sess_idx_t.item()
+                lp_extra = sess_dist.log_prob(sess_idx_t)
+            else:
+                action = {'type': ActionType.DECLARE_TERMINAL}
+
         total_lp = lp_type + lp_extra
         self._log_probs.append(total_lp)
         self._rewards.append(0.0)
@@ -987,8 +1096,6 @@ class GNNPhase3Policy:
         if self._rewards:
             self._rewards[n-1] += final_reward
 
-        # Clip rewards tightly — GPU runs faster, larger gradients per step
-        # Normalise to [-1, +1] to keep loss scale stable across all graphs
         raw = [max(-5.0, min(25.0, r)) for r in self._rewards]
         r_min, r_max = min(raw), max(raw)
         r_range = max(r_max - r_min, 1e-6)
@@ -1004,20 +1111,12 @@ class GNNPhase3Policy:
             self._clear(); return
 
         vals_t = torch.tensor(self._values[:n], dtype=torch.float32).to(DEVICE)
-        # PPO clipped surrogate (epsilon=0.2)
-        # _old_log_probs stores detached log_probs from the forward pass at selection time.
-        # On first update after an episode these equal lps_t so ratio=1 (identical to PG).
-        # On subsequent epochs (if called multiple times) the clip kicks in.
-        # Use detached log probs from action-selection time for PPO ratio.
-        # Sliced to [:n] to match lps_t length exactly.
-        # Use PREVIOUS episode log_probs as frozen reference for PPO ratio.
-        # _prev_log_probs are set in _clear() at end of last episode.
         _prev = getattr(self, '_prev_log_probs', [])
         if _prev and len(_prev) >= n:
             old_lps_t = torch.tensor([x.detach().item() for x in _prev[:n]],
                                      dtype=torch.float32).to(DEVICE)
         else:
-            old_lps_t = lps_t.detach()  # first episode: ratio=1, no clip
+            old_lps_t = lps_t.detach()
         ratio    = torch.exp(lps_t - old_lps_t)
         pg_loss  = -torch.min(
             ratio * adv_t.detach(),
@@ -1033,15 +1132,11 @@ class GNNPhase3Policy:
         self.optimizer.zero_grad()
         loss.backward()
 
-        # Check for NaN gradients BEFORE clipping/stepping
         has_nan_grad = any(
             p.grad is not None and torch.isnan(p.grad).any()
             for p in self.net.parameters()
         )
         if has_nan_grad:
-            # Skip this update entirely — NaN gradient means the loss
-            # computation produced an invalid result. Clearing and moving
-            # on is safer than trying to clip NaN values.
             self.optimizer.zero_grad()
             self._clear()
             return
@@ -1050,7 +1145,6 @@ class GNNPhase3Policy:
         self.optimizer.step()
         self.scheduler.step()
 
-        # Post-step NaN check — should now be rare with the above guard
         for name, param in self.net.named_parameters():
             if torch.isnan(param).any():
                 nn.init.xavier_uniform_(param.data) if param.dim() >= 2 else nn.init.zeros_(param.data)
@@ -1058,12 +1152,9 @@ class GNNPhase3Policy:
         self._clear()
 
     def _clear(self):
-        # Save current log_probs as old for next episode PPO ratio
-        # (not cleared — they become the frozen reference policy)
         self._prev_log_probs = list(self._log_probs)
         self._log_probs  = []; self._values = []
         self._rewards    = []; self._entropies = []
-        # _old_log_probs stays as-is — it will be updated at start of next episode
 
     def _pad_pool(self, x):
         d = x.shape[-1]
