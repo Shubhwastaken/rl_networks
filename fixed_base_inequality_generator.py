@@ -174,12 +174,16 @@ def generate_node_io(
     # sessions touching the partition, not just sessions touching this node.
     # When combining node IOs with fractional weights, using Y_ST leads to
     # the LHS claiming more sessions than the RHS edges can support.
+    #
+    # We also do NOT set Y_I_Pi here. Internal session counting is a
+    # partition-level concept: Y_I_Pi is bounded by the entire partition's
+    # edge capacity, not just one node's edges. Setting Y_I_Pi in a
+    # per-node IO double-counts the session (once in Y_I via n_touching,
+    # once in Y_I_Pi), producing provably invalid bounds.
+    # Y_I_Pi is correctly set only in partition-level IOs
+    # (generate_base_inequalities).
     if n_touching > 0 and pid >= 0:
         fi.coeffs[index.yi_idx()] = n_touching / n_sessions
-
-    # Internal sessions: Y_I_Pi contribution
-    if n_internal > 0 and pid >= 0:
-        fi.coeffs[index.yi_pi_idx(pid)] = 1.0
 
     # RHS: source entropy of this node
     fi.set_rhs(f"Y_S_{node}", 1.0)

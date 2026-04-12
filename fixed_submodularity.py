@@ -103,6 +103,15 @@ def apply_pairwise_submodularity(
         if c > 1e-9:
             union_ineq.coeffs[index.yi_pi_idx(i)] = c
 
+    # Y_I: take max coefficient (LHS term, same logic as Y_ST/Y_I_Pi).
+    # Node IOs set Y_I directly (not via Y_ST), so submodularity must
+    # carry Y_I through. Without this, the union loses Y_I entirely.
+    c_yi_a = ineq_a.coeffs[index.yi_idx()]
+    c_yi_b = ineq_b.coeffs[index.yi_idx()]
+    c_yi_union = max(c_yi_a, c_yi_b)
+    if c_yi_union > 1e-9:
+        union_ineq.coeffs[index.yi_idx()] = c_yi_union
+
     # RHS sources: union = more negative (min)
     for v in index.nodes:
         c = min(ineq_a.coeffs[index.source_idx(v)],
@@ -133,8 +142,11 @@ def apply_pairwise_submodularity(
         if c > 1e-9:
             intersection_ineq.coeffs[index.yi_pi_idx(i)] = c
 
-    # FIX: Removed cross-partition group variable handling.
-    # Those variables no longer exist in the index.
+    # Y_I: take min coefficient for intersection
+    c_yi_inter = min(ineq_a.coeffs[index.yi_idx()],
+                     ineq_b.coeffs[index.yi_idx()])
+    if c_yi_inter > 1e-9:
+        intersection_ineq.coeffs[index.yi_idx()] = c_yi_inter
 
     # RHS sources: intersection = less negative (max)
     for v in index.nodes:

@@ -241,8 +241,8 @@ def plot_eval_gap_violin(ax, metrics):
                                    'okamura_4N','grid_3x4_12N',
                                    'petersen_10N','two_k4_10N','grid_4x4_16N']:
                     pass   # would look up PB but skip for brevity
-                p2 = [float(b) for b in stats.get('p2_bounds', [])]
-                p3 = [float(b) for b in stats.get('p3_bounds', [])]
+                p2 = [float(b) for b in stats.get('p2_bounds', []) if b is not None]
+                p3 = [float(b) for b in stats.get('p3_bounds', []) if b is not None]
                 per_graph[gname] = p3 if p3 else p2
 
     if not per_graph:

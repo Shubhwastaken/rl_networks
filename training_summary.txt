@@ -1,5 +1,7 @@
-Training completed: 2026-04-12 23:06:37
-Runtime: 176.9s (2.9 min)
+Training completed: 2026-04-12 23:26:33
+Runtime: 221.5s (3.7 min)
 
-No super-PB bounds found in this run.
-Increase stage4_episodes or check CROSS_SUBMOD usage.
+NOVEL INEQUALITIES FOUND:
+  two_k4_10N: r <= 0.666667
+  Trace: N/A
+
