@@ -241,20 +241,11 @@ def apply_crypto_inequality(
     extra_yi = len(separated) / n_sessions
     result.coeffs[index.yi_idx()] += extra_yi
 
-    # Reduce RHS edge capacity by the crypto inequality "cost".
-    # The crypto inequality borrows h(U_{cut}) from the RHS, so
-    # we subtract (len(separated) / |cut|) from each cut edge coefficient.
-    # This keeps the inequality valid: we added len(separated)*r to LHS
-    # and subtracted an equivalent amount from RHS.
-    extra_per_edge = len(separated) / max(len(cut_edges), 1)
-    for e in cut_edges:
-        key = f"U_{e[0]}_{e[1]}"
-        if key not in index.var_to_idx:
-            key = f"U_{e[1]}_{e[0]}"
-        if key in index.var_to_idx:
-            # Reduce the negative RHS coefficient (make it less negative)
-            # This represents "spending" some edge capacity on the crypto term
-            result.coeffs[index.var_to_idx[key]] += extra_per_edge  # less negative
+    # NOTE: We do NOT reduce RHS edge coefficients. The crypto inequality
+    # says h(Y_sep) ≤ h(U_cut) ≤ Σ h(U_e). Adding h(Y_sep) to the LHS
+    # is valid precisely because the full edge capacity remains on the RHS.
+    # The previous code subtracted from RHS too, which double-counted and
+    # produced provably invalid bounds.
 
     return result, float(len(separated))
 

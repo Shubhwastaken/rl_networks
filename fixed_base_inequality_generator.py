@@ -133,20 +133,22 @@ def generate_node_io(
     partition set. By keeping them, Phase 3 can apply fractional weights
     before combining, potentially escaping the partition-bound family.
 
+    CRITICAL FIX: The LHS now sets Y_I directly based on the number of
+    sessions this specific node participates in, rather than using the
+    partition-level Y_ST_P{pid} variable. The old code used Y_ST_P{pid}
+    which represents ALL sessions touching the partition — but the RHS
+    only has edges incident to this one node. When fractional combinations
+    were formed, the submodularity max() over Y_ST conflated the whole
+    partition's sessions with one node's edge capacity, producing
+    provably invalid (too-tight) bounds.
+
     Returns a FractionalInequality with lam=1, source_nodes=[node],
     partition_ids=[partition_id_of_node].
     """
     pid  = _node_partition_id(node, partition)
     nbrs = adjacency.get(node, [])
-
-    # Identify sessions that touch this node
-    touching = []
-    for si, (s, t) in enumerate(sessions):
-        if s == node or t == node:
-            touching.append(si)
-
-    # Which sessions have this node as source
-    is_source_of = [si for si, (s, t) in enumerate(sessions) if s == node]
+    pi_set = set(partition[pid]) if pid >= 0 else set()
+    n_sessions = len(sessions)
 
     fi = FractionalInequality(
         index,
@@ -155,22 +157,29 @@ def generate_node_io(
         partition_ids = [pid]
     )
 
-    # LHS: all sessions touching v contribute Y_ST for their partition
-    # Use partition membership to place in the right Y_ST slot
-    pi_set = set(partition[pid]) if pid >= 0 else set()
+    # Count sessions touching this specific node
+    n_touching = 0
+    n_internal = 0
     for si, (s, t) in enumerate(sessions):
         if s == node or t == node:
-            # Which partition does this session's Y_ST variable belong to?
-            # It belongs to whichever partition set contains this node.
-            if pid >= 0:
-                fi.coeffs[index.yst_idx(pid)] = max(
-                    fi.coeffs[index.yst_idx(pid)], 1.0
-                )
-                # Internal session: also add Y_I_Pi
-                if s in pi_set and t in pi_set:
-                    fi.coeffs[index.yi_pi_idx(pid)] = max(
-                        fi.coeffs[index.yi_pi_idx(pid)], 1.0
-                    )
+            n_touching += 1
+            if s in pi_set and t in pi_set:
+                n_internal += 1
+
+    # LHS: Set Y_I directly based on this node's session participation.
+    # Since h(Y_I) = |I| * r and this node touches n_touching sessions,
+    # the per-node IO contributes n_touching / |I| to the Y_I coefficient.
+    #
+    # We do NOT use Y_ST_P{pid} because that variable represents ALL
+    # sessions touching the partition, not just sessions touching this node.
+    # When combining node IOs with fractional weights, using Y_ST leads to
+    # the LHS claiming more sessions than the RHS edges can support.
+    if n_touching > 0 and pid >= 0:
+        fi.coeffs[index.yi_idx()] = n_touching / n_sessions
+
+    # Internal sessions: Y_I_Pi contribution
+    if n_internal > 0 and pid >= 0:
+        fi.coeffs[index.yi_pi_idx(pid)] = 1.0
 
     # RHS: source entropy of this node
     fi.set_rhs(f"Y_S_{node}", 1.0)
@@ -183,11 +192,6 @@ def generate_node_io(
             fi.set_rhs(key1, 1.0)
         elif key2 in index.var_to_idx:
             fi.set_rhs(key2, 1.0)
-
-    # The outgoing signals U_{v→u} are determined by v's inputs (encoding
-    # constraint) and appear on the LHS. For Phase 3 purposes we leave them
-    # implicit: when two node IOs are combined and SUBMOD is applied, those
-    # terms will appear as h(U_v→u) coefficients that ECAP then bounds.
 
     return fi
 

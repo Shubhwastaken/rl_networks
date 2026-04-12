@@ -23,9 +23,9 @@ from fixed_submodularity import (
     apply_n2_submodularity_all_at_once
 )
 from functional_dependence import (
-    generate_crypto_inequality,
-    generate_decode_inequality,
-    generate_encode_inequality
+    apply_crypto_inequality_direct,
+    apply_decode_substitution,
+    apply_encode_substitution
 )
 
 
@@ -224,51 +224,72 @@ def run_verification():
     sep()
     print("Functional Dependence: Crypto Inequality on cut V'={A}")
     # V'={A}, separates session 0 (A->B), cut edges {A->B, A->C}
-    crypto = generate_crypto_inequality(
-        frozenset(["A"]), nodes, edges, sessions, index
+    # Start from the proof2 terminal inequality and apply crypto
+    crypto_base = final.copy()
+    yi_before = crypto_base.yi_coeff()
+    crypto_result, was_applied = apply_crypto_inequality_direct(
+        crypto_base, frozenset(["A"]), nodes, edges, sessions, index
     )
-    print(f"  Crypto : {crypto}")
-    yi_crypto = crypto.yi_coeff()
-    u_ab_crypto = crypto.coeffs[index.edge_idx(("A", "B"))]
-    u_ac_crypto = crypto.coeffs[index.edge_idx(("A", "C"))]
-    print(f"  Y_I coeff : {yi_crypto:.4f}  (expected 0.5000)")
-    print(f"  U_A_B coeff : {u_ab_crypto:.4f}  (expected -1.0000)")
-    print(f"  U_A_C coeff : {u_ac_crypto:.4f}  (expected -1.0000)")
-    assert abs(yi_crypto - 0.5) < 1e-6
-    assert abs(u_ab_crypto - (-1.0)) < 1e-6
-    assert abs(u_ac_crypto - (-1.0)) < 1e-6
+    print(f"  Applied: {was_applied}")
+    assert was_applied, "Crypto inequality should apply for cut V'={{A}}"
+    yi_after = crypto_result.yi_coeff()
+    yi_gain = yi_after - yi_before
+    print(f"  Y_I before: {yi_before:.4f}  after: {yi_after:.4f}  gain: {yi_gain:.4f}")
+    # Cut {A} separates session 0 (A->B). 1 session separated out of 2.
+    # So Y_I should increase by 1/2 = 0.5.
+    expected_gain = 1.0 / len(sessions)  # 1 separated session / 2 total
+    print(f"  Expected gain: {expected_gain:.4f}")
+    assert abs(yi_gain - expected_gain) < 1e-6, f"Expected {expected_gain}, got {yi_gain}"
+    # RHS edges should be UNCHANGED (the fixed crypto inequality doesn't touch RHS)
+    rhs_before = final.rhs_edge_sum()
+    rhs_after = crypto_result.rhs_edge_sum()
+    print(f"  RHS edges before: {rhs_before:.4f}  after: {rhs_after:.4f}")
+    assert abs(rhs_before - rhs_after) < 1e-6, "RHS should not change"
     print("  Crypto PASS\n")
 
     sep()
-    print("Functional Dependence: Decode Inequality on session 0 (A->B)")
+    print("Functional Dependence: Decode Substitution on session 0 (A->B)")
     # sink is B, incident edges: A-B, B-C
-    decode = generate_decode_inequality(0, sessions, edges, index)
-    print(f"  Decode : {decode}")
-    yi_dec = decode.yi_coeff()
-    u_ab_dec = decode.coeffs[index.edge_idx(("A", "B"))]
-    u_bc_dec = decode.coeffs[index.edge_idx(("B", "C"))]
-    print(f"  Y_I coeff : {yi_dec:.4f}  (expected 0.5000)")
-    print(f"  U_A_B coeff : {u_ab_dec:.4f}  (expected -1.0000)")
-    print(f"  U_B_C coeff : {u_bc_dec:.4f}  (expected -1.0000)")
-    assert abs(yi_dec - 0.5) < 1e-6
-    assert abs(u_ab_dec - (-1.0)) < 1e-6
-    assert abs(u_bc_dec - (-1.0)) < 1e-6
+    decode_base = final.copy()
+    yi_before_dec = decode_base.yi_coeff()
+    decode_result, dec_applied = apply_decode_substitution(
+        decode_base, 0, sessions, edges, index
+    )
+    print(f"  Applied: {dec_applied}")
+    assert dec_applied, "Decode should apply for session 0"
+    yi_after_dec = decode_result.yi_coeff()
+    dec_gain = yi_after_dec - yi_before_dec
+    print(f"  Y_I before: {yi_before_dec:.4f}  after: {yi_after_dec:.4f}  gain: {dec_gain:.4f}")
+    # Decode adds 1/|I| = 0.5 to Y_I
+    expected_dec_gain = 1.0 / len(sessions)
+    print(f"  Expected gain: {expected_dec_gain:.4f}")
+    assert abs(dec_gain - expected_dec_gain) < 1e-6
     print("  Decode PASS\n")
 
     sep()
-    print("Functional Dependence: Encode Inequality on edge B->C")
-    # node u=B. source=Y_S_B. incoming to B: A->B.
-    encode = generate_encode_inequality(("B", "C"), edges, index)
-    print(f"  Encode : {encode}")
-    u_bc_enc = encode.coeffs[index.edge_idx(("B", "C"))]
-    ysb_enc = encode.coeffs[index.source_idx("B")]
-    u_ab_enc = encode.coeffs[index.edge_idx(("A", "B"))]
-    print(f"  U_B_C coeff : {u_bc_enc:.4f}  (expected 1.0000)")
-    print(f"  Y_S_B coeff : {ysb_enc:.4f}  (expected -1.0000)")
-    print(f"  U_A_B coeff : {u_ab_enc:.4f}  (expected -1.0000)")
-    assert abs(u_bc_enc - 1.0) < 1e-6
-    assert abs(ysb_enc - (-1.0)) < 1e-6
-    assert abs(u_ab_enc - (-1.0)) < 1e-6
+    print("Functional Dependence: Encode Substitution on edge (B,C)")
+    # Encode: h(U_{B->C}) <= h(Y_S_B) + h(U_{A->B})
+    # This replaces a positive U_B_C coefficient on LHS with source+incoming
+    # For this to apply, U_B_C must have a positive coefficient.
+    # Create a test inequality with U_B_C on LHS
+    encode_test = Inequality(index)
+    encode_test.coeffs[index.edge_idx(("B","C"))] = 1.0  # put on LHS
+    adjacency_test = {"A": ["B", "C"], "B": ["A", "C"], "C": ["A", "B"]}
+    encode_result, enc_applied = apply_encode_substitution(
+        encode_test, ("B", "C"), partition, nodes, edges, sessions, index,
+        adjacency_test
+    )
+    print(f"  Applied: {enc_applied}")
+    assert enc_applied, "Encode should apply for edge (B,C)"
+    u_bc_enc = encode_result.coeffs[index.edge_idx(("B","C"))]
+    ysb_enc = encode_result.coeffs[index.source_idx("B")]
+    u_ab_enc = encode_result.coeffs[index.edge_idx(("A","B"))]
+    print(f"  U_B_C coeff : {u_bc_enc:.4f}  (expected 0.0000 — removed from LHS)")
+    print(f"  Y_S_B coeff : {ysb_enc:.4f}  (expected +1.0000 — added to LHS)")
+    print(f"  U_A_B coeff : {u_ab_enc:.4f}  (expected +1.0000 — incoming edge)")
+    assert abs(u_bc_enc) < 1e-6, "U_B_C should be zeroed after encode sub"
+    assert abs(ysb_enc - 1.0) < 1e-6, "Y_S_B should be +1.0"
+    assert abs(u_ab_enc - 1.0) < 1e-6, "U_A_B should be +1.0"
     print("  Encode PASS\n")
 
     sep()
