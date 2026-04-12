@@ -1,13 +1,5 @@
-Training completed: 2026-04-12 02:27:04
-Runtime: 273.1s (4.6 min)
+Training completed: 2026-04-12 23:06:37
+Runtime: 176.9s (2.9 min)
 
-NOVEL INEQUALITIES FOUND:
-  diamond_6N: r <= 0.243590
-  Trace: N/A
-
-  grid_3x4_12N: r <= 0.500000
-  Trace: N/A
-
-  star_8N: r <= 0.333333
-  Trace: N/A
-
+No super-PB bounds found in this run.
+Increase stage4_episodes or check CROSS_SUBMOD usage.
