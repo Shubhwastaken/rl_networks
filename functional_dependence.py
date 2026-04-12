@@ -229,15 +229,16 @@ def apply_crypto_inequality(
     #    In terminal form: h(Y_I) coeff increases by len(separated)/len(sessions)
     #    (since h(Y_I) = Σ h(Yᵢ) and each session has equal weight r).
     #    We add fractional contribution to Y_I.
+    # GUARD: Refuse to apply to per-node IOs with uncancelled source terms.
+    # See apply_crypto_inequality_direct for detailed rationale.
+    tol = 1e-9
+    for v in index.nodes:
+        if ineq.coeffs[index.source_idx(v)] < -tol:
+            return ineq.copy(), 0.0
+
     result = ineq.copy()
     n_sessions = len(sessions)
 
-    # Add to Y_I: each session_i adds r to LHS, equivalent to +1/n to Y_I coeff
-    # since h(Y_I) = n*r in terminal form.
-    # More precisely: we add h(Y_{sep}) ≤ h(U_{cut}) to the LHS.
-    # In normalized form (all sessions equal), this becomes:
-    #   (|I| + |sep|) * r ≤ |E| → r ≤ |E| / (|I| + |sep|)
-    # So we increase the Y_I coefficient by len(separated) / n_sessions.
     extra_yi = len(separated) / n_sessions
     result.coeffs[index.yi_idx()] += extra_yi
 
@@ -308,6 +309,17 @@ def apply_crypto_inequality_direct(
     # Adding h(Y_i) = r for each separated session adds n_sep * r to LHS.
     # Since Y_I coeff c1 satisfies c1 * h(Y_I) = c1 * |I| * r,
     # adding n_sep * r is equivalent to adding n_sep / |I| to c1.
+    # GUARD: Do NOT apply functional dependence to per-node IOs.
+    # Per-node IOs have Y_S_v = -1.0 on the RHS (source terms uncancelled).
+    # The crypto inequality "borrows" edge capacity that's already serving
+    # as the RHS for the per-node IO — applying both double-counts the
+    # edges and produces provably invalid bounds below LP lower bound.
+    # Only apply to properly collapsed partition-level terminal forms
+    # where source terms have been zeroed by the Y_ST→Y_I collapse.
+    for v in index.nodes:
+        if ineq.coeffs[index.source_idx(v)] < -tol:
+            return ineq.copy(), False
+
     result = ineq.copy()
     n_sep = len(separated)
     n_sessions = len(sessions)
@@ -362,10 +374,17 @@ def apply_decode_substitution(
             return ineq.copy(), False
         rhs_capacity += abs(c)
 
-    # The decode constraint gives h(Yᵢ) ≤ h(edges into t(i)).
-    # We add +1 to Y_I (representing one extra r on the LHS) and
-    # do NOT reduce RHS — h(Yᵢ) ≤ capacity ≤ rhs_capacity which is
-    # already accounted for by the edge bounds.
+    # GUARD: Do NOT apply decode to per-node IOs.
+    # Per-node IOs have Y_S_v on the RHS (source terms uncancelled).
+    # The decode constraint h(Y_i) ≤ h(edges into t(i)) relies on the
+    # SAME edges that are already on the RHS of the per-node IO.
+    # Adding h(Y_i) to the LHS without adding new edge capacity to the
+    # RHS double-counts the edges, producing bounds below LP lower bound.
+    # Only apply to collapsed partition-level terminal forms.
+    for v in index.nodes:
+        if ineq.coeffs[index.source_idx(v)] < -tol:
+            return ineq.copy(), False
+
     n_sessions = len(sessions)
     result = ineq.copy()
     result.coeffs[index.yi_idx()] += 1.0 / n_sessions   # add r/|I| = h(Yi)/|I|

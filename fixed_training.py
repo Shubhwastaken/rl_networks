@@ -474,7 +474,10 @@ def run_stage3(phase1_policy, phase2_policy,
         phase1_policy.update(p1_traj, total_reward)
         phase2_policy.update(p2_traj, total_reward)   # Pass actual trajectory
 
-        rl_bound = abs(total_reward)
+        # Use actual extracted mathematical bound for validation,
+        # not abs(total_reward) which includes per-step reward noise.
+        actual_bound = env._best_pool_bound()
+        rl_bound = actual_bound if actual_bound is not None else abs(total_reward)
         rewards.append(total_reward)
         per_graph[graph_name].append(rl_bound)
         stopper.update(total_reward, episode)
@@ -740,7 +743,7 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
                     print(f"     {gn}: {b:.6f} < PB={pb2:.6f} "
                           f"(improvement={(pb2-b)/pb2*100:.2f}%)")
                     if trace != "N/A":
-                        print(f"     Trace: {trace[:200]}")
+                        print(f"     Trace: {trace[:200].encode('ascii', 'replace').decode()}")
 
     # Final summary
     print(f"\n{'='*70}")
@@ -759,7 +762,7 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
             print(f"  Partition bound: r <= {pb2:.6f}")
             print(f"  Improvement: {(pb2-b)/pb2*100:.3f}%")
             print(f"  Partition used: {_partition_str(part, ss if 'ss' in locals() else [])}")
-            print(f"  Inequality: {trace[:400]}")
+            print(f"  Inequality: {trace[:400].encode('ascii', 'replace').decode()}")
     else:
         print("\n  No super-PB bounds found in Stage 4.")
         print("  This does not mean none exist — increase num_episodes")
@@ -984,7 +987,7 @@ if __name__ == "__main__":
             f.write("NOVEL INEQUALITIES FOUND:\n")
             for gn, (b, part, w, trace) in sorted(novel_bounds.items()):
                 f.write(f"  {gn}: r <= {b:.6f}\n")
-                f.write(f"  Trace: {trace[:300]}\n\n")
+                f.write(f"  Trace: {trace[:300].encode('ascii', 'replace').decode()}\n\n")
         else:
             f.write("No super-PB bounds found in this run.\n")
             f.write("Increase stage4_episodes or check CROSS_SUBMOD usage.\n")

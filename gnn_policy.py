@@ -46,6 +46,17 @@ if torch.cuda.is_available():
         pass  # GPU present but name unavailable
 
 
+def safe_categorical(probs):
+    """Create Categorical distribution with NaN/zero fallback.
+    
+    When gradient explosion causes NaN in softmax outputs, this falls
+    back to a uniform distribution to prevent training crashes. The
+    gradient update will detect the NaN and skip the episode.
+    """
+    if torch.isnan(probs).any() or probs.sum() < 1e-8:
+        probs = torch.ones_like(probs) / probs.shape[0]
+    return torch.distributions.Categorical(probs)
+
 class ActionType(IntEnum):
     ASSIGN_NODE          = 0
     ADD_TO_ACCUMULATOR   = 1
@@ -201,7 +212,14 @@ class GNNPhase1Policy:
 
         temperature = state.get('temperature', 1.0)
         probs = F.softmax((logits + mask) / temperature, dim=-1)
-        dist  = torch.distributions.Categorical(probs)
+        if torch.isnan(probs).any() or probs.sum() < 1e-8:
+            # Fallback: uniform over valid groups
+            probs = torch.zeros_like(probs)
+            for gid in valid_gids:
+                if gid < self.max_groups:
+                    probs[gid] = 1.0
+            probs = probs / probs.sum().clamp(min=1e-8)
+        dist  = safe_categorical(probs)
         gid_t = dist.sample()
 
         lp = dist.log_prob(gid_t)
@@ -244,7 +262,7 @@ class GNNPhase1Policy:
 
         scores = torch.stack(action_scores)
         probs  = F.softmax(scores / temperature, dim=-1)
-        dist   = torch.distributions.Categorical(probs)
+        dist   = safe_categorical(probs)
         idx    = dist.sample()
 
         self._log_probs.append(dist.log_prob(idx))
@@ -519,7 +537,7 @@ class GNNPhase2Policy:
                 type_mask[head_idx] = 0.0
 
         type_probs = F.softmax(type_logits + type_mask, dim=-1)
-        type_dist  = torch.distributions.Categorical(type_probs)
+        type_dist  = safe_categorical(type_probs)
         head_idx_t = type_dist.sample()
         atype      = PHASE2_HEAD_IDX_TO_ACTION.get(head_idx_t.item(),
                                                     ActionType.DECLARE_TERMINAL)
@@ -606,7 +624,7 @@ class GNNPhase2Policy:
                     if ci < MAX_CRYPTO_CUTS:
                         cut_mask[ci] = 0.0
                 cut_probs = F.softmax(cut_logits + cut_mask, dim=-1)
-                cut_dist  = torch.distributions.Categorical(cut_probs)
+                cut_dist  = safe_categorical(cut_probs)
                 cut_idx_t = cut_dist.sample()
                 action['cut_idx']   = cut_idx_t.item()
                 action['sep_count'] = next(
@@ -630,7 +648,7 @@ class GNNPhase2Policy:
                     if si < MAX_SESSIONS:
                         sess_mask[si] = 0.0
                 sess_probs = F.softmax(sess_logits + sess_mask, dim=-1)
-                sess_dist  = torch.distributions.Categorical(sess_probs)
+                sess_dist  = safe_categorical(sess_probs)
                 sess_idx_t = sess_dist.sample()
                 action['session_idx'] = sess_idx_t.item()
                 lp_idx = sess_dist.log_prob(sess_idx_t)
@@ -732,7 +750,7 @@ class GNNPhase2Policy:
         probs = F.softmax(scores + mask, dim=-1)
         if torch.isnan(probs).any():
             probs = torch.ones_like(probs) / len(probs)
-        dist  = torch.distributions.Categorical(probs)
+        dist  = safe_categorical(probs)
         idx_t = dist.sample()
         return idx_t.item(), dist.log_prob(idx_t)
 
@@ -748,7 +766,7 @@ class GNNPhase2Policy:
         probs = F.softmax(scores + mask, dim=-1)
         if torch.isnan(probs).any():
             probs = torch.ones_like(probs) / len(probs)
-        dist  = torch.distributions.Categorical(probs)
+        dist  = safe_categorical(probs)
         idx_t = dist.sample()
         return idx_t.item(), dist.log_prob(idx_t)
 
@@ -949,7 +967,7 @@ class GNNPhase3Policy:
             type_mask = torch.zeros(len(PHASE3_ACTION_TYPES)).to(DEVICE)
 
         type_probs = F.softmax(type_logits + type_mask, dim=-1)
-        type_dist  = torch.distributions.Categorical(type_probs)
+        type_dist  = safe_categorical(type_probs)
         k_t        = type_dist.sample()
         atype      = PHASE3_ACTION_TYPES[k_t.item()]
         lp_type    = type_dist.log_prob(k_t)
@@ -970,7 +988,7 @@ class GNNPhase3Policy:
                 for nd in u_nodes:
                     if nd in node_map: u_mask[node_map[nd]] = 0.0
                 u_probs = F.softmax(node_scores + u_mask, dim=-1)
-                u_dist  = torch.distributions.Categorical(u_probs)
+                u_dist  = safe_categorical(u_probs)
                 u_idx_t = u_dist.sample()
                 u_node  = nodes_list[u_idx_t.item()]
                 lp_u    = u_dist.log_prob(u_idx_t)
@@ -983,14 +1001,14 @@ class GNNPhase3Policy:
                 for nd in v_nodes:
                     if nd in node_map: v_mask[node_map[nd]] = 0.0
                 v_probs = F.softmax(node_scores + v_mask, dim=-1)
-                v_dist  = torch.distributions.Categorical(v_probs)
+                v_dist  = safe_categorical(v_probs)
                 v_idx_t = v_dist.sample()
                 v_node  = nodes_list[v_idx_t.item()]
                 lp_v    = v_dist.log_prob(v_idx_t)
 
                 lam_logits = self.net.lambda_head(h_comb)
                 lam_probs  = F.softmax(lam_logits, dim=-1)
-                lam_dist   = torch.distributions.Categorical(lam_probs)
+                lam_dist   = safe_categorical(lam_probs)
                 lam_idx_t  = lam_dist.sample()
                 lam        = LAMBDA_GRID[lam_idx_t.item()]
                 lp_lam     = lam_dist.log_prob(lam_idx_t)
@@ -1016,7 +1034,7 @@ class GNNPhase3Policy:
                     mask   = torch.full((n_pool,), float('-inf')).to(DEVICE)
                     for i in valid_mapped: mask[i] = 0.0
                     probs  = F.softmax(scores + mask, dim=-1)
-                    dist   = torch.distributions.Categorical(probs)
+                    dist   = safe_categorical(probs)
                     idx_t  = dist.sample()
                     action['idx_i'] = idx_t.item()
                     lp_extra = dist.log_prob(idx_t)
@@ -1043,7 +1061,7 @@ class GNNPhase3Policy:
                     if ci < MAX_CRYPTO_CUTS:
                         cut_mask[ci] = 0.0
                 cut_probs = F.softmax(cut_logits + cut_mask, dim=-1)
-                cut_dist  = torch.distributions.Categorical(cut_probs)
+                cut_dist  = safe_categorical(cut_probs)
                 cut_idx_t = cut_dist.sample()
                 action['cut_idx']   = cut_idx_t.item()
                 action['sep_count'] = next(
@@ -1066,7 +1084,7 @@ class GNNPhase3Policy:
                     if si < MAX_SESSIONS:
                         sess_mask[si] = 0.0
                 sess_probs = F.softmax(sess_logits + sess_mask, dim=-1)
-                sess_dist  = torch.distributions.Categorical(sess_probs)
+                sess_dist  = safe_categorical(sess_probs)
                 sess_idx_t = sess_dist.sample()
                 action['session_idx'] = sess_idx_t.item()
                 lp_extra = sess_dist.log_prob(sess_idx_t)
