@@ -254,11 +254,15 @@ def run_stage1(num_episodes=10000, graph_dataset_size=5):  # Tier 1 only
 
         phase2_policy.update(trajectory, total_reward)
         rewards.append(total_reward)
-        per_graph[graph_name].append(abs(total_reward))
+        # Use actual pool bound for metrics, not abs(total_reward).
+        # abs(total_reward) is RL reward noise, not a valid upper bound.
+        _s2_bound = env._best_pool_bound()
+        _s2_bound = _s2_bound if _s2_bound is not None else env.partition_bound
+        per_graph[graph_name].append(_s2_bound)
         stopper.update(total_reward, episode)
 
         metrics['rewards'].append(total_reward)
-        metrics['bounds'].append(abs(total_reward))
+        metrics['bounds'].append(_s2_bound)
         metrics['graph_names'].append(graph_name)
         metrics['step_counts'].append(step_count)
         metrics['action_counts_per_ep'].append(dict(action_counts))
@@ -474,10 +478,12 @@ def run_stage3(phase1_policy, phase2_policy,
         phase1_policy.update(p1_traj, total_reward)
         phase2_policy.update(p2_traj, total_reward)   # Pass actual trajectory
 
-        # Use actual extracted mathematical bound for validation,
-        # not abs(total_reward) which includes per-step reward noise.
+        # Use actual extracted mathematical bound for validation.
+        # If no terminal form exists yet (Phase 2 hasn't fired APPLY_PROOF2),
+        # fall back to partition_bound — NOT abs(total_reward), which is
+        # accumulated RL reward noise and is not a valid upper bound on rate r.
         actual_bound = env._best_pool_bound()
-        rl_bound = actual_bound if actual_bound is not None else abs(total_reward)
+        rl_bound = actual_bound if actual_bound is not None else env.partition_bound
         rewards.append(total_reward)
         per_graph[graph_name].append(rl_bound)
         stopper.update(total_reward, episode)

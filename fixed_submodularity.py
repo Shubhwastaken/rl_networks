@@ -103,12 +103,41 @@ def apply_pairwise_submodularity(
         if c > 1e-9:
             union_ineq.coeffs[index.yi_pi_idx(i)] = c
 
-    # Y_I: take max coefficient (LHS term, same logic as Y_ST/Y_I_Pi).
-    # Node IOs set Y_I directly (not via Y_ST), so submodularity must
-    # carry Y_I through. Without this, the union loses Y_I entirely.
+    # Y_I: combining two scalar coefficients on the same variable h(Y_I).
+    #
+    # The correct operation depends on whether Y_ST terms are present:
+    #
+    # PARTITION IO PATHWAY (at least one input has Y_ST terms):
+    #   max() is valid here because the Y_ST collapse step will later
+    #   replace Y_ST terms with a c_min * h(Y_I) contribution via the
+    #   proven weighted subadditivity theorem.  The Y_I coefficient from
+    #   the non-Y_ST side rides through unchanged and the collapse adjusts
+    #   it correctly.
+    #
+    # PURE NODE IO PATHWAY (neither input has Y_ST terms):
+    #   Both inputs are scalar inequalities on the SAME variable h(Y_I).
+    #   Submodularity h(A)+h(B) >= h(A∪B)+h(A∩B) applies to sets of
+    #   random variables, not to scalar multiples of a single entropy term.
+    #   max(c_a, c_b) * h(Y_I) is NOT a valid bound — it makes the LHS
+    #   weaker than either input while the RHS sources/edges accumulate
+    #   (min), creating a denominator that cancel_source_terms can shrink
+    #   to near-zero, producing spuriously tight invalid bounds.
+    #
+    #   The only safe bound for the union of two node IOs is
+    #   min(c_a, c_b) * h(Y_I) — this is the largest coefficient that is
+    #   still valid for BOTH inputs, making pairwise submod on pure node
+    #   IOs a no-op for terminal form generation (min Y_I + max sources
+    #   means cancel_source_terms always reverts).  The agent correctly
+    #   learns that add() / STORE_AND_RESET is the productive path for
+    #   combining node IOs.
     c_yi_a = ineq_a.coeffs[index.yi_idx()]
     c_yi_b = ineq_b.coeffs[index.yi_idx()]
-    c_yi_union = max(c_yi_a, c_yi_b)
+    if active_a or active_b:
+        # Partition IO pathway: max() is valid, collapse handles it later
+        c_yi_union = max(c_yi_a, c_yi_b)
+    else:
+        # Pure node IO pathway: only min() is mathematically safe
+        c_yi_union = min(c_yi_a, c_yi_b)
     if c_yi_union > 1e-9:
         union_ineq.coeffs[index.yi_idx()] = c_yi_union
 
