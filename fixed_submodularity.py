@@ -129,6 +129,11 @@ def apply_pairwise_submodularity(
     # Collapse Y_ST -> h(Y_I) if all sessions covered
     union_ineq = _collapse_to_yi_if_valid(union_ineq, index, sessions)
 
+    # Also try source cancellation for node IO pathway
+    # (node IOs set Y_I directly, not via Y_ST, so _collapse_to_yi_if_valid
+    #  is a no-op for them — this catches that case)
+    union_ineq = _cancel_sources_for_node_ios(union_ineq, index, sessions)
+
     # --- INTERSECTION ---
 
     # Y_ST: intersection of active sets
@@ -223,3 +228,32 @@ def _collapse_to_yi_if_valid(
         result.coeffs[index.source_idx(v)] = 0.0
 
     return result
+
+
+def _cancel_sources_for_node_ios(
+    ineq     : Inequality,
+    index    : EntropyIndex,
+    sessions : List[Tuple[str, str]]
+) -> Inequality:
+    """
+    Cancel source terms for node-IO-derived inequalities.
+
+    This is the node IO counterpart of _collapse_to_yi_if_valid:
+      - _collapse_to_yi_if_valid handles partition IOs (Y_ST -> Y_I + zero sources)
+      - This handles node IOs (Y_I already set, just zero sources and adjust Y_I)
+
+    Only fires when:
+      1. No Y_ST terms active (this is not a partition pathway)
+      2. Y_I > 0 (node IOs set Y_I directly)
+      3. All session source nodes have source terms (coverage complete)
+
+    The math: if Y_S_v appears on the RHS with coefficient |c_v|, and node v
+    sources n_src sessions, then h(Y_S_v) = n_src * r = (n_src/|I|) * h(Y_I).
+    So we subtract sum(|c_v| * n_src_v / |I|) from the Y_I coefficient and
+    zero all source coefficients.
+    """
+    # Skip if Y_ST terms present — partition pathway handled by _collapse
+    if ineq.active_yst():
+        return ineq
+
+    return ineq.cancel_source_terms()

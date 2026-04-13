@@ -336,6 +336,18 @@ class PartitionBoundEnv:
         for bi in self.base_inequalities:
             self.frac_pool.add(bi)
 
+        # Pre-seed with terminal-form baseline (n2 submod result).
+        # This gives the agent an immediate finite bound ~ PB as starting
+        # signal, fixing the "no gradient" problem in early Phase 3.
+        try:
+            from fixed_submodularity import apply_n2_submodularity_all_at_once
+            terminal_baseline = apply_n2_submodularity_all_at_once(
+                self.base_inequalities, self.index, self.sessions
+            )
+            self.frac_pool.add(make_fractional(terminal_baseline))
+        except Exception:
+            pass  # non-critical — partition IOs still available
+
         self.current_phase  = Phase.PHASE3
         self.phase3_steps   = 0
         self.accumulator    = []
@@ -738,6 +750,11 @@ class PartitionBoundEnv:
                 combined = self.accumulator[0].copy()
                 for ineq in self.accumulator[1:]:
                     combined = combined.add(ineq)
+                # Try source cancellation on the combined result.
+                # When accumulated node IOs cover all session sources,
+                # this zeros the source terms and adjusts Y_I, enabling
+                # the combined inequality to reach valid terminal form.
+                combined = combined.cancel_source_terms()
                 combined_fi = make_fractional(combined, lam=1.0)
                 self.frac_pool.add(combined_fi)
                 self.accumulator = []

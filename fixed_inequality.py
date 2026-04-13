@@ -186,7 +186,62 @@ class Inequality:
         for v in self.index.nodes:
             if self.coeffs[self.index.get_source_idx(v)] > tol:
                 return False
+            if self.coeffs[self.index.get_source_idx(v)] < -tol:
+                return False  # source terms on RHS not yet cancelled
         return True
+
+    def cancel_source_terms(self, tol: float = 1e-9) -> "Inequality":
+        """
+        Cancel RHS source terms by substituting source independence:
+          h(Y_S_v) = n_src_v * r  and  h(Y_I) = |I| * r
+          => h(Y_S_v) = (n_src_v / |I|) * h(Y_I)
+
+        Moves source contribution from RHS to LHS by adjusting the Y_I
+        coefficient.  This is the node IO counterpart of
+        _collapse_to_yi_if_valid: that function handles partition IOs
+        (Y_ST -> Y_I + zero sources), this one handles node IOs (Y_I
+        already set, just zero sources and adjust Y_I).
+
+        Condition: all session source nodes must have negative source
+        coefficients (i.e. be present on the RHS).
+
+        Returns self unchanged if cancellation is not possible or would
+        make Y_I non-positive (destructive cancellation).
+        """
+        sessions   = self.index.sessions
+        n_sessions = len(sessions)
+        if n_sessions == 0:
+            return self
+
+        # Need Y_I > 0 to have something to cancel against
+        yi = self.coeffs[self.index.yi_idx()]
+        if yi <= tol:
+            return self
+
+        # Check that every session's source node has a source term on RHS
+        source_nodes_needed = set(s for s, t in sessions)
+        for v in source_nodes_needed:
+            if self.coeffs[self.index.get_source_idx(v)] >= -tol:
+                return self  # not all sources covered -> can't cancel
+
+        result = self.copy()
+
+        # Compute Y_I deduction:  sum |c_v| * n_src_v / |I|
+        source_yi_deduction = 0.0
+        for v in self.index.nodes:
+            c = result.coeffs[self.index.get_source_idx(v)]
+            if c < -tol:
+                n_src = sum(1 for s, t in sessions if s == v)
+                source_yi_deduction += abs(c) * n_src / n_sessions
+                result.coeffs[self.index.get_source_idx(v)] = 0.0
+
+        result.coeffs[self.index.yi_idx()] -= source_yi_deduction
+
+        # If Y_I is now non-positive, cancellation was destructive -> revert
+        if result.coeffs[self.index.yi_idx()] <= tol:
+            return self
+
+        return result
 
     def extract_bound(
         self,
