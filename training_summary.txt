@@ -1,25 +1,5 @@
-Training completed: 2026-04-13 01:59:25
-Runtime: 310.0s (5.2 min)
+Training completed: 2026-04-13 17:56:09
+Runtime: 286.4s (4.8 min)
 
-NOVEL INEQUALITIES FOUND:
-  custom_7N_12E: r <= 2.000000
-  Trace: [?=1.0000 src=['t2'] parts=[1]]  0.333*Y_I <= 1.000*Y_S_t2 + 1.000*U_S3_t2 + 1.000*U_t2_v1
-
-  diamond_6N: r <= 1.000000
-  Trace: [?=1.0000 src=['t1'] parts=[1]]  0.500*Y_I <= 1.000*Y_S_t1 + 1.000*U_v1_t1
-
-  grid_3x4_12N: r <= 2.000000
-  Trace: [?=1.0000 src=['r2c0'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r2c0 + 1.000*U_r1c0_r2c0 + 1.000*U_r2c0_r2c1
-
-  grid_4x4_16N: r <= 2.000000
-  Trace: [?=1.0000 src=['r3c0'] parts=[1]]  0.250*Y_I <= 1.000*Y_S_r3c0 + 1.000*U_r2c0_r3c0 + 1.000*U_r3c0_r3c1
-
-  petersen_10N: r <= 1.500000
-  Trace: [?=1.0000 src=['9'] parts=[0]]  0.500*Y_I <= 1.000*Y_S_9 + 1.000*U_6_9 + 1.000*U_4_9 + 1.000*U_7_9
-
-  star_8N: r <= 2.000000
-  Trace: [?=1.0000 src=['t1'] parts=[0]]  0.500*Y_I <= 1.000*Y_S_t1 + 1.000*U_v1_t1 + 1.000*U_r2_t1
-
-  two_k4_10N: r <= 3.000000
-  Trace: [?=1.0000 src=['b2'] parts=[2]]  0.333*Y_I <= 1.000*Y_S_b2 + 1.000*U_b0_b2 + 1.000*U_b1_b2 + 1.000*U_b2_b3
-
+No super-PB bounds found in this run.
+Increase stage4_episodes or check CROSS_SUBMOD usage.

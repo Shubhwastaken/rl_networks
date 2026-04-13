@@ -340,7 +340,6 @@ class PartitionBoundEnv:
         # This gives the agent an immediate finite bound ~ PB as starting
         # signal, fixing the "no gradient" problem in early Phase 3.
         try:
-            from fixed_submodularity import apply_n2_submodularity_all_at_once
             terminal_baseline = apply_n2_submodularity_all_at_once(
                 self.base_inequalities, self.index, self.sessions
             )
