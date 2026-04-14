@@ -1,5 +1,40 @@
-Training completed: 2026-04-13 17:56:09
-Runtime: 286.4s (4.8 min)
+Training completed: 2026-04-14 18:15:46
+Runtime: 5585.5s (93.1 min)
 
-No super-PB bounds found in this run.
-Increase stage4_episodes or check CROSS_SUBMOD usage.
+NOVEL INEQUALITIES FOUND:
+  butterfly_8N: r <= 1.000000
+  Trace: [?=1.0000 src=['t1', 't4'] parts=[0, 1]]  0.250*Y_I <= 1.000*U_t1_t4
+
+  custom_7N_12E: r <= 1.666667
+  Trace: [?=1.0000 src=['S1', 'S2', 'v1'] parts=[1, 2, 0]]  0.200*Y_I <= 0.600*U_S1_S2 + 0.400*U_S1_v1
+
+  diamond_6N: r <= 1.000000
+  Trace: [?=1.0000 src=['S2', 'v1', 't2'] parts=[0, 2, 0]]  0.250*Y_I <= 0.500*U_S2_v1
+
+  grid_3x4_12N: r <= 1.000000
+  Trace: [?=1.0000 src=['r1c3', 'r2c3'] parts=[4, 0]]  0.333*Y_I <= 1.000*U_r1c3_r2c3
+
+  grid_4x4_16N: r <= 1.000000
+  Trace: [?=1.0000 src=['r0c1', 'r0c0'] parts=[1, 0]]  0.250*Y_I <= 1.000*U_r0c0_r0c1
+
+  grid_9N: r <= 1.000000
+  Trace: [?=1.0000 src=['b', 'e', 'g', 'h'] parts=[1, 0, 0, 1]]  0.110*Y_I <= 0.330*U_e_h
+
+  hu_3pairs_6N: r <= 1.000000
+  Trace: [?=1.0000 src=['a', 'c'] parts=[0, 1]]  0.333*Y_I <= 1.000*U_a_c
+
+  okamura_4N: r <= 1.000000
+  Trace: [?=1.0000 src=['c', 'a', 'b'] parts=[1, 0, 2]]  0.333*Y_I <= 0.750*U_b_c + 0.250*U_a_c
+
+  paper_7N: r <= 1.000000
+  Trace: [?=1.0000 src=['S2', 'S1'] parts=[2, 1]]  0.333*Y_I <= 1.000*U_S1_S2
+
+  petersen_10N: r <= 1.500000
+  Trace: [?=1.0000 src=['9', '2', '6'] parts=[1, 1, 2]]  0.100*Y_I <= 0.600*U_6_9
+
+  star_8N: r <= 1.000000
+  Trace: [?=1.0000 src=['r2', 't1', 'S1', 'v1'] parts=[0, 1, 1, 0]]  0.250*Y_I <= 0.500*U_v1_t1
+
+  two_k4_10N: r <= 0.666667
+  Trace: [?=1.0000 src=['b3', 'n', 'a2', 'b0'] parts=[3, 0, 2, 0]]  0.200*Y_I <= 0.400*U_b0_b3
+
