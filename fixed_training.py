@@ -166,89 +166,69 @@ def _greedy_session_partition(nodes, edges, sessions):
 
 def _find_optimal_partition(nodes, edges, sessions):
     """
-    Return the partition that achieves _compute_partition_bound, or None
-    if the search fails.  Mirrors the enumeration logic in
-    _compute_partition_bound but also tracks the winning partition so
-    Stage 4 can start from the true globally-optimal cut rather than
-    whatever Stage 3 happened to find.
-
-    Strategy (same as _compute_partition_bound):
-      1. Greedy graph-colorings (largest_first, smallest_last, DSATUR).
-      2. Exhaustive 2-partitions for graphs with <= 14 nodes.
-      3. Singleton partition (always valid independent set).
-    Returns the partition with the lowest bound, or None on error.
+    Returns the partition that achieves _compute_partition_bound.
+    Same enumeration logic as _compute_partition_bound (in fixed_environment)
+    but also returns the winning partition, not just the bound value.
+    Returns None if no partition beats the trivial bound (shouldn't happen).
     """
-    try:
-        import networkx as nx
-        from itertools import combinations as _comb
-        from collections import defaultdict as _dd
+    import networkx as nx
+    from collections import defaultdict as _dd
 
-        adj = {n: set() for n in nodes}
-        for u, v in edges:
-            adj[u].add(v); adj[v].add(u)
+    adj = {n: set() for n in nodes}
+    for u, v in edges:
+        adj[u].add(v); adj[v].add(u)
 
-        def _sessions_within(S):
-            Ss = set(S)
-            return sum(1 for s, t in sessions if s in Ss and t in Ss)
+    def _sessions_within(S):
+        Ss = set(S)
+        return sum(1 for s, t in sessions if s in Ss and t in Ss)
 
-        def _cut_edges(partition):
-            part_of = {}
-            for k, Pk in enumerate(partition):
-                for nd in Pk:
-                    part_of[nd] = k
-            return sum(1 for u, v in edges if part_of[u] != part_of[v])
+    def _cut_edges(partition):
+        part_of = {}
+        for k, Pk in enumerate(partition):
+            for nd in Pk: part_of[nd] = k
+        return sum(1 for u, v in edges if part_of[u] != part_of[v])
 
-        def _eval(partition):
-            # Independent-set check: no edge within any part
-            for Pk in partition:
-                if any(adj[u] & (set(Pk) - {u}) for u in Pk):
-                    return float('inf')
-            intra = sum(_sessions_within(Pk) for Pk in partition)
-            cut   = _cut_edges(partition)
-            denom = len(sessions) + intra
-            return cut / denom if denom > 0 else float('inf')
+    def _eval(partition):
+        for Pk in partition:
+            if any(adj[u] & (set(Pk) - {u}) for u in Pk):
+                return float('inf')
+        intra = sum(_sessions_within(Pk) for Pk in partition)
+        cut   = _cut_edges(partition)
+        denom = len(sessions) + intra
+        return cut / denom if denom > 0 else float('inf')
 
-        best_val  = len(edges) / max(len(sessions), 1)
-        best_part = None
+    best_val  = len(edges) / max(len(sessions), 1)
+    best_part = None
 
-        def _try(partition):
-            nonlocal best_val, best_part
-            v = _eval(partition)
-            if v < best_val - 1e-12:
-                best_val  = v
-                best_part = [list(g) for g in partition]
+    G = nx.Graph(); G.add_nodes_from(nodes); G.add_edges_from(edges)
+    for strat in ['largest_first', 'smallest_last', 'DSATUR']:
+        try:
+            col    = nx.coloring.greedy_color(G, strategy=strat)
+            groups = _dd(list)
+            for nd, c in col.items(): groups[c].append(nd)
+            part = list(groups.values())
+            val  = _eval(part)
+            if val < best_val - 1e-9:
+                best_val = val; best_part = part
+        except Exception:
+            pass
 
-        # 1. Greedy colorings
-        G = nx.Graph()
-        G.add_nodes_from(nodes)
-        G.add_edges_from(edges)
-        for strat in ['largest_first', 'smallest_last', 'DSATUR']:
-            try:
-                col    = nx.coloring.greedy_color(G, strategy=strat)
-                groups = _dd(list)
-                for nd, c in col.items():
-                    groups[c].append(nd)
-                _try(list(groups.values()))
-            except Exception:
-                pass
+    if len(nodes) <= 14:
+        V = list(nodes); n = len(V)
+        for mask in range(1, 1 << (n - 1)):
+            S = [V[i] for i in range(n) if mask & (1 << i)]
+            T = [V[i] for i in range(n) if not (mask & (1 << i))]
+            if S and T:
+                val = _eval([S, T])
+                if val < best_val - 1e-9:
+                    best_val = val; best_part = [S, T]
 
-        # 2. Exhaustive 2-partitions (only feasible for small graphs)
-        if len(nodes) <= 14:
-            V = list(nodes)
-            n = len(V)
-            for mask in range(1, 1 << (n - 1)):
-                S = [V[i] for i in range(n) if     mask & (1 << i)]
-                T = [V[i] for i in range(n) if not (mask & (1 << i))]
-                if S and T:
-                    _try([S, T])
+    singleton = [[v] for v in nodes]
+    val = _eval(singleton)
+    if val < best_val - 1e-9:
+        best_part = singleton
 
-        # 3. Singleton (always a valid independent set)
-        _try([[v] for v in nodes])
-
-        return best_part   # None if nothing beat the trivial bound
-
-    except Exception:
-        return None
+    return best_part
 
 
 # -----------------------------------------------------------------------
@@ -707,10 +687,15 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         # reward=1.0 for matching the inflated baseline, the stopper stabilises
         # at that plateau, and exploration stalls.  Passing the globally optimal
         # partition forces the agent to compete against the true PB.
+        opt_global_bound = _compute_partition_bound(nodes, edges, sessions)
+
+        # Resolve the globally optimal partition by brute-force enumeration
+        # (same logic as _compute_partition_bound but also returns the winner).
         opt_partition = _find_optimal_partition(nodes, edges, sessions)
         if opt_partition is not None:
             partition = opt_partition
             p_weights = best_partitions.get(graph_name, (None, {}, None))[1]
+        # else: fall back to Stage 3 / greedy partition already set above
 
         # Set up env for Phase 3 directly
         env.nodes    = nodes
@@ -733,10 +718,13 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         # Use the globally optimal partition bound as the agent's baseline.
         # This is the true PB the agent must beat, not the (possibly worse)
         # bound achievable by Stage 3's specific partition.
-        env.partition_bound = _compute_partition_bound(nodes, edges, sessions)
+        env.partition_bound = opt_global_bound
 
         env._start_phase2()   # builds index, node_ios, base_inequalities
-        env._start_phase3(preseed=False)   # Fix A: agent must earn its bound
+        # Fix A: preseed=False — agent must earn a finite bound via
+        # FRACTIONAL_IO → STORE_AND_RESET rather than inheriting a free
+        # terminal-form inequality that yields reward=1.0 immediately.
+        env._start_phase3(preseed=False)
         env.internal_per_part = env.internal_per_part or []
 
         state = env._get_state()
@@ -826,7 +814,13 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         metrics['rewards'].append(total_reward)
         metrics['bounds'].append(best_b if best_b < 1e9 else -1)
         metrics['graph_names'].append(graph_name)
-        metrics['novel_found'].append(1 if best_b < pb - 1e-8 else 0)
+        # novel_found only fires when the bound is BOTH below PB AND above LP.
+        # After the LP clamp above, best_b == pb for invalid bounds, so the
+        # first condition (< pb) already gates out LP violations.  The explicit
+        # LP check below is a belt-and-suspenders guard.
+        _lp_floor_nf = lp_bounds.get(graph_name, 0.0)
+        _is_novel = (best_b < pb - 1e-8) and (best_b >= _lp_floor_nf - 1e-9)
+        metrics['novel_found'].append(1 if _is_novel else 0)
         metrics['cross_partition_used'].append(1 if used_cross else 0)
 
         # Validate against LP lower bound
@@ -1004,7 +998,7 @@ def evaluate(phase1_policy, phase2_policy, phase3_policy,
         env.partition         = partition
         env.partition_weights = env.partition_weights or {}
         env._start_phase2()
-        env._start_phase3()
+        env._start_phase3(preseed=False)   # Fix A: no free terminal seed in eval
         env.internal_per_part = env.internal_per_part or []
 
         state2 = env._get_state()
@@ -1024,6 +1018,12 @@ def evaluate(phase1_policy, phase2_policy, phase3_policy,
             len(sessions), len(edges), env.internal_per_part
         )
         if p3_bound == float('inf'): p3_bound = pb * 2
+        # Fix 2: apply LP floor in eval — degenerate single-edge bounds
+        # can slip below LP; clamp them to PB so they don't pollute
+        # the novel% and P3best columns.
+        _eval_lp_floor = lp_bounds.get(graph_name, 0.0)
+        if p3_bound < _eval_lp_floor - 1e-6:
+            p3_bound = pb
         results[graph_name]['p3_bounds'].append(p3_bound)
         if p3_bound < pb - 1e-8:
             results[graph_name]['novel'] += 1
@@ -1063,10 +1063,10 @@ if __name__ == "__main__":
     t0 = time.time()
     (phase1_policy, phase2_policy, phase3_policy,
      train_metrics, novel_bounds) = train(
-        stage1_episodes=10000,   # Phase 2 proof calculus  — Tier 1 graphs (5)
-        stage2_episodes=10000,   # Phase 1 partition learn — Tier 1 graphs (5)
-        stage3_episodes=10000,   # Joint fine-tuning       — Tier 1+2 graphs (10)
-        stage4_episodes=10000,   # Phase 3 fractional IO   — All graphs (11)
+        stage1_episodes=150,   # Phase 2 proof calculus  — Tier 1 graphs (5)
+        stage2_episodes=150,   # Phase 1 partition learn — Tier 1 graphs (5)
+        stage3_episodes=150,   # Joint fine-tuning       — Tier 1+2 graphs (10)
+        stage4_episodes=150,   # Phase 3 fractional IO   — All graphs (11)
         graph_dataset_size=5
     )
     eval_results = evaluate(

@@ -174,9 +174,22 @@ class Inequality:
     def internal_coeff_sum(self) -> float:
         return self.get_lhs_internal_coefficient()
 
+    # Minimum Y_I coefficient for a terminal inequality to be considered
+    # mathematically non-degenerate.  The standard n2-submod proof always
+    # produces Y_I = 1.0.  Single-edge fractional IOs can produce Y_I as
+    # small as lam*(1/|I|) ≈ 0.06, which yields trivially valid but
+    # structurally vacuous bounds (bound = edge_cap / (tiny * |I|) ≈ LP).
+    # We require Y_I >= 1/(2 * max_partitions) so that only inequalities
+    # that genuinely combine multiple partition IOs are considered terminal.
+    # With n≤4 partitions this floor is 0.125; the degenerate values are
+    # typically 0.03-0.09 and are blocked.
+    MIN_YI_COEFF: float = 0.125
+
     def check_valid_terminal_form(self, tol: float = 1e-4) -> bool:
         c1 = self.get_yi_coefficient()
-        if c1 <= 0:
+        # Block degenerate single-edge fractional IOs whose Y_I coefficient
+        # is too small to represent a genuine multi-partition combination.
+        if c1 < self.MIN_YI_COEFF:
             return False
         for i in range(len(self.index.partitions)):
             if self.coeffs[self.index.get_yst_idx(i)] > tol * c1:
