@@ -174,21 +174,18 @@ class Inequality:
     def internal_coeff_sum(self) -> float:
         return self.get_lhs_internal_coefficient()
 
-    # Minimum Y_I coefficient for a terminal inequality to be considered
-    # mathematically non-degenerate.  The standard n2-submod proof always
-    # produces Y_I = 1.0.  Single-edge fractional IOs can produce Y_I as
-    # small as lam*(1/|I|) ≈ 0.06, which yields trivially valid but
-    # structurally vacuous bounds (bound = edge_cap / (tiny * |I|) ≈ LP).
-    # We require Y_I >= 1/(2 * max_partitions) so that only inequalities
-    # that genuinely combine multiple partition IOs are considered terminal.
-    # With n≤4 partitions this floor is 0.125; the degenerate values are
-    # typically 0.03-0.09 and are blocked.
-    MIN_YI_COEFF: float = 0.125
+    # Minimum Y_I coefficient for a non-degenerate terminal inequality.
+    # n2-submod always produces Y_I=1.0.  A valid 2-partition fractional
+    # combination via CROSS_SUBMOD should produce Y_I >= 0.5.
+    # Single-edge FIOs that game the floor by tuning lam so Y_I=1/|I|
+    # (giving bound=1.0=LP) are blocked — they pass the old 0.125 floor
+    # by adapting lam but are still structurally vacuous.
+    MIN_YI_COEFF: float = 0.5
 
     def check_valid_terminal_form(self, tol: float = 1e-4) -> bool:
         c1 = self.get_yi_coefficient()
-        # Block degenerate single-edge fractional IOs whose Y_I coefficient
-        # is too small to represent a genuine multi-partition combination.
+        # Require Y_I >= 0.5: blocks single-node fractional IOs that tune
+        # lam to game the floor while still producing bound = LP.
         if c1 < self.MIN_YI_COEFF:
             return False
         for i in range(len(self.index.partitions)):
@@ -200,7 +197,16 @@ class Inequality:
             if self.coeffs[self.index.get_source_idx(v)] > tol:
                 return False
             if self.coeffs[self.index.get_source_idx(v)] < -tol:
-                return False  # source terms on RHS not yet cancelled
+                return False
+        # Require at least 2 edges on RHS: a single-edge bound can never
+        # exploit multi-partition graph structure and always collapses to
+        # bound = 1/(c1*|I|) = LP by choosing the right lam.
+        edge_count = sum(
+            1 for e in self.index.edges
+            if self.coeffs[self.index.get_edge_signal_idx(e)] < -tol
+        )
+        if edge_count < 2:
+            return False
         return True
 
     def cancel_source_terms(self, tol: float = 1e-9) -> "Inequality":

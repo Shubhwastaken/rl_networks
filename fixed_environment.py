@@ -367,6 +367,9 @@ class PartitionBoundEnv:
         self.stored_derived = []
         self._found_terminal = False
         self.combination_log = []
+        # Potential-based shaping: track best bound seen so far this episode.
+        # Any improvement triggers a small reward proportional to the gap closed.
+        self._phase3_best_bound = float('inf')
 
     # -----------------------------------------------------------------------
     # step()
@@ -677,6 +680,25 @@ class PartitionBoundEnv:
     # Phase 3 step (fractional IO + joint search + crypto/decode)
     # -----------------------------------------------------------------------
 
+    def _pool_improvement_bonus(self) -> float:
+        """Potential-based shaping: reward proportional to best_bound improvement.
+
+        Each time an action causes frac_pool.best_bound() to drop below the
+        previous episode minimum, we give a small bonus = 0.05 * improvement_fraction.
+        This gives dense credit to the multi-step sequence that progressively
+        tightens the bound, without distorting the terminal reward scale.
+        """
+        if not hasattr(self, '_phase3_best_bound'):
+            self._phase3_best_bound = float('inf')
+        new_best = self.frac_pool.best_bound(
+            len(self.sessions), len(self.edges), self.internal_per_part or []
+        )
+        if new_best < self._phase3_best_bound - 1e-9 and new_best < 1e9:
+            improvement = (self._phase3_best_bound - new_best) / max(self.partition_bound, 1e-9)
+            self._phase3_best_bound = new_best
+            return 0.05 * improvement
+        return 0.0
+
     def _step_phase3(self, action):
         """
         Phase 3: search for bounds that beat the partition bound.
@@ -718,6 +740,7 @@ class PartitionBoundEnv:
                 else:
                     reward = 0.02   # same-partition (low value)
                 self.frac_pool.add(fi)
+                reward += self._pool_improvement_bonus()
             else:
                 reward = -0.1
             return self._get_state(), reward, False
@@ -779,11 +802,12 @@ class PartitionBoundEnv:
                 is_mixed  = a_has_yst != b_has_yst   # one partition IO + one node IO
                 is_cross  = a_parts and b_parts and not (a_parts & b_parts)
                 if is_mixed:
-                    reward = 0.4   # genuine collapse opportunity
+                    reward = 0.8   # genuine collapse opportunity — doubled to compete with timeout risk
                 elif is_cross:
                     reward = 0.1   # cross-partition but same type, limited value
                 else:
                     reward = 0.02  # same partition, same type — minimal
+                reward += self._pool_improvement_bonus()
             return self._get_state(), reward, False
 
         elif action_type == ActionType.STORE_AND_RESET:
@@ -811,6 +835,7 @@ class PartitionBoundEnv:
                 has_cross_content = len(acc_part_ids) >= 2
                 self.accumulator = []
                 reward = 0.12 if has_cross_content else 0.0
+                reward += self._pool_improvement_bonus()
             else:
                 reward = 0.0
             return self._get_state(), reward, False

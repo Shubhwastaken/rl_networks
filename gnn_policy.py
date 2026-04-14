@@ -905,7 +905,7 @@ class GNNPhase3Policy:
     """
 
     def __init__(self, coeff_dim=256, graph_hidden=64, token_dim=128,
-                 lr=3e-5, entropy_coeff_start=0.10, entropy_coeff_end=0.01,
+                 lr=3e-5, entropy_coeff_start=0.10, entropy_coeff_end=0.05,
                  total_episodes=10000):
         self.net = Phase3Net(
             graph_hidden=graph_hidden, coeff_dim=coeff_dim,
