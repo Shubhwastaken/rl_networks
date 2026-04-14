@@ -340,6 +340,7 @@ class PartitionBoundEnv:
         # This gives the agent an immediate finite bound ~ PB as starting
         # signal, fixing the "no gradient" problem in early Phase 3.
         try:
+            from fixed_submodularity import apply_n2_submodularity_all_at_once
             terminal_baseline = apply_n2_submodularity_all_at_once(
                 self.base_inequalities, self.index, self.sessions
             )
@@ -735,13 +736,28 @@ class PartitionBoundEnv:
                 )
                 self.frac_pool.add(fu)
                 self.frac_pool.add(fi2)
-                # Cross-partition bonus
-                a_parts = set(getattr(a,'partition_ids',[]))
-                b_parts = set(getattr(b,'partition_ids',[]))
-                if a_parts and b_parts and not (a_parts & b_parts):
-                    reward = 0.3   # cross-partition submod bonus
+                # Reward based on what the combination can actually produce.
+                # The only productive CROSS_SUBMOD case is mixed: one input
+                # has Y_ST terms (partition IO) and the other has Y_I directly
+                # (node IO). This triggers _collapse_to_yi_if_valid in the
+                # union, combining partition session coverage with the node
+                # IO's edge subset — the one path that can produce sub-PB
+                # bounds via submodularity.
+                #
+                # Pure cross-partition node IO pairs (both without Y_ST) are
+                # a no-op after the min() fix — rewarding them misled the agent.
+                a_has_yst = bool(a.active_yst())
+                b_has_yst = bool(b.active_yst())
+                a_parts   = set(getattr(a, 'partition_ids', []))
+                b_parts   = set(getattr(b, 'partition_ids', []))
+                is_mixed  = a_has_yst != b_has_yst   # one partition IO + one node IO
+                is_cross  = a_parts and b_parts and not (a_parts & b_parts)
+                if is_mixed:
+                    reward = 0.4   # genuine collapse opportunity
+                elif is_cross:
+                    reward = 0.1   # cross-partition but same type, limited value
                 else:
-                    reward = 0.05
+                    reward = 0.02  # same partition, same type — minimal
             return self._get_state(), reward, False
 
         elif action_type == ActionType.STORE_AND_RESET:
@@ -1101,9 +1117,16 @@ class PartitionBoundEnv:
         for i in range(k_acc):
             for j in range(i+1, k_acc):
                 valid.append({'type': ActionType.APPLY_SUBMODULARITY, 'idx_i': i, 'idx_j': j})
-                a_parts = set(getattr(self.accumulator[i], 'partition_ids', []))
-                b_parts = set(getattr(self.accumulator[j], 'partition_ids', []))
-                if a_parts and b_parts and not (a_parts & b_parts):
+                a_has_yst = bool(self.accumulator[i].active_yst())
+                b_has_yst = bool(self.accumulator[j].active_yst())
+                a_parts   = set(getattr(self.accumulator[i], 'partition_ids', []))
+                b_parts   = set(getattr(self.accumulator[j], 'partition_ids', []))
+                is_mixed  = a_has_yst != b_has_yst  # one partition IO + one node IO
+                is_cross  = a_parts and b_parts and not (a_parts & b_parts)
+                # Offer CROSS_SUBMOD for the genuinely productive cases:
+                # mixed (partition IO + node IO) triggers collapse pathway;
+                # cross-partition pairs are worth exploring even if weaker.
+                if is_mixed or is_cross:
                     valid.append({'type': ActionType.CROSS_SUBMOD, 'idx_i': i, 'idx_j': j})
 
         if self.accumulator:

@@ -484,6 +484,13 @@ def run_stage3(phase1_policy, phase2_policy,
         # accumulated RL reward noise and is not a valid upper bound on rate r.
         actual_bound = env._best_pool_bound()
         rl_bound = actual_bound if actual_bound is not None else env.partition_bound
+        # Sanity check: a valid upper bound cannot be below the LP lower bound.
+        # If the extracted bound violates this, discard it and fall back to PB.
+        # This catches cases where Phase 2 produces an invalid terminal form
+        # (e.g. petersen_10N where LP_LB=1.25 but pool returns 1.0).
+        _lp_floor_s3 = lp_bounds.get(graph_name, 0.0)
+        if rl_bound < _lp_floor_s3 - 1e-9:
+            rl_bound = env.partition_bound
         rewards.append(total_reward)
         per_graph[graph_name].append(rl_bound)
         stopper.update(total_reward, episode)
@@ -624,7 +631,21 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         env._refinement_steps = 0
         env.prev_internal_count = 0
 
-        env.partition_bound = _compute_partition_bound(nodes, edges, sessions)
+        # Compute PB for the SPECIFIC partition being used, not the global
+        # optimum. _compute_partition_bound searches all partitions and returns
+        # the tightest possible PB, which may be much lower than the agent's
+        # partition achieves. Using the global optimum as the target makes the
+        # agent appear to find "novel" bounds when it is really just
+        # rediscovering what a better partition would have given directly.
+        # Correct baseline: cut_edges / (|I| + internal_sessions).
+        _part_of = {}
+        for _k, _Pk in enumerate(partition):
+            for _nd in _Pk:
+                _part_of[_nd] = _k
+        _cut  = sum(1 for _u, _v in edges if _part_of[_u] != _part_of[_v])
+        _ipp  = internal_per_partition(partition, sessions)
+        _denom = len(sessions) + sum(_ipp)
+        env.partition_bound = _cut / _denom if _denom > 0 else float('inf')
 
         env._start_phase2()   # builds index, node_ios, base_inequalities
         env._start_phase3()   # initialises frac_pool, sets phase=PHASE3
@@ -680,7 +701,11 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         # to the best terminal inequality found. This catches improvements
         # that the RL agent hasn't learned to make yet, giving a denser
         # reward signal during early training.
+        # GUARD: only accept oracle improvements that stay above LP lower bound.
+        # Without this guard, repeated crypto/decode applications compound and
+        # drive the bound below LP, producing mathematically invalid results.
         if env.func_dep_actions is not None and best_b < 1e9:
+            _lp_floor = lp_bounds.get(graph_name, 0.0)
             for ineq in env.frac_pool:
                 if not ineq.check_valid_terminal_form():
                     continue
@@ -688,12 +713,19 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
                     ineq, env.func_dep_actions, env.index,
                     env.internal_per_part, len(sessions), len(edges)
                 )
-                if fd_bound < best_b - 1e-8:
+                if fd_bound < best_b - 1e-8 and fd_bound >= _lp_floor - 1e-9:
                     best_b = fd_bound
                     break   # one improvement per episode is enough
 
         per_graph[graph_name].append(best_b)
         stopper.update(total_reward, episode)
+
+        # Clamp best_b to LP lower bound before recording metrics and novel bounds.
+        # If best_b is below LP it is mathematically invalid — treat it as PB
+        # so it doesn't pollute the novel_found signal or the stopper.
+        _lp_floor_s4 = lp_bounds.get(graph_name, 0.0)
+        if best_b < _lp_floor_s4 - 1e-9:
+            best_b = pb   # invalid — discard, use PB as conservative fallback
 
         metrics['rewards'].append(total_reward)
         metrics['bounds'].append(best_b if best_b < 1e9 else -1)
