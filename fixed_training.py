@@ -164,6 +164,93 @@ def _greedy_session_partition(nodes, edges, sessions):
     return list(groups.values())
 
 
+def _find_optimal_partition(nodes, edges, sessions):
+    """
+    Return the partition that achieves _compute_partition_bound, or None
+    if the search fails.  Mirrors the enumeration logic in
+    _compute_partition_bound but also tracks the winning partition so
+    Stage 4 can start from the true globally-optimal cut rather than
+    whatever Stage 3 happened to find.
+
+    Strategy (same as _compute_partition_bound):
+      1. Greedy graph-colorings (largest_first, smallest_last, DSATUR).
+      2. Exhaustive 2-partitions for graphs with <= 14 nodes.
+      3. Singleton partition (always valid independent set).
+    Returns the partition with the lowest bound, or None on error.
+    """
+    try:
+        import networkx as nx
+        from itertools import combinations as _comb
+        from collections import defaultdict as _dd
+
+        adj = {n: set() for n in nodes}
+        for u, v in edges:
+            adj[u].add(v); adj[v].add(u)
+
+        def _sessions_within(S):
+            Ss = set(S)
+            return sum(1 for s, t in sessions if s in Ss and t in Ss)
+
+        def _cut_edges(partition):
+            part_of = {}
+            for k, Pk in enumerate(partition):
+                for nd in Pk:
+                    part_of[nd] = k
+            return sum(1 for u, v in edges if part_of[u] != part_of[v])
+
+        def _eval(partition):
+            # Independent-set check: no edge within any part
+            for Pk in partition:
+                if any(adj[u] & (set(Pk) - {u}) for u in Pk):
+                    return float('inf')
+            intra = sum(_sessions_within(Pk) for Pk in partition)
+            cut   = _cut_edges(partition)
+            denom = len(sessions) + intra
+            return cut / denom if denom > 0 else float('inf')
+
+        best_val  = len(edges) / max(len(sessions), 1)
+        best_part = None
+
+        def _try(partition):
+            nonlocal best_val, best_part
+            v = _eval(partition)
+            if v < best_val - 1e-12:
+                best_val  = v
+                best_part = [list(g) for g in partition]
+
+        # 1. Greedy colorings
+        G = nx.Graph()
+        G.add_nodes_from(nodes)
+        G.add_edges_from(edges)
+        for strat in ['largest_first', 'smallest_last', 'DSATUR']:
+            try:
+                col    = nx.coloring.greedy_color(G, strategy=strat)
+                groups = _dd(list)
+                for nd, c in col.items():
+                    groups[c].append(nd)
+                _try(list(groups.values()))
+            except Exception:
+                pass
+
+        # 2. Exhaustive 2-partitions (only feasible for small graphs)
+        if len(nodes) <= 14:
+            V = list(nodes)
+            n = len(V)
+            for mask in range(1, 1 << (n - 1)):
+                S = [V[i] for i in range(n) if     mask & (1 << i)]
+                T = [V[i] for i in range(n) if not (mask & (1 << i))]
+                if S and T:
+                    _try([S, T])
+
+        # 3. Singleton (always a valid independent set)
+        _try([[v] for v in nodes])
+
+        return best_part   # None if nothing beat the trivial bound
+
+    except Exception:
+        return None
+
+
 # -----------------------------------------------------------------------
 # Stage 1 — Train Phase 2 (proof calculus)
 # -----------------------------------------------------------------------
@@ -613,6 +700,18 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
             partition = _greedy_session_partition(nodes, edges, sessions)
             p_weights = {}
 
+        # Fix D (part 1): Use the globally optimal partition for this graph,
+        # not the best one Stage 3 happened to find.  Stage 3 partitions can
+        # be sub-optimal (e.g. paper_7N: Stage 3 finds PB=2.0, true PB=1.667)
+        # which means env.partition_bound is set too high.  The agent then gets
+        # reward=1.0 for matching the inflated baseline, the stopper stabilises
+        # at that plateau, and exploration stalls.  Passing the globally optimal
+        # partition forces the agent to compete against the true PB.
+        opt_partition = _find_optimal_partition(nodes, edges, sessions)
+        if opt_partition is not None:
+            partition = opt_partition
+            p_weights = best_partitions.get(graph_name, (None, {}, None))[1]
+
         # Set up env for Phase 3 directly
         env.nodes    = nodes
         env.edges    = edges
@@ -631,24 +730,13 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         env._refinement_steps = 0
         env.prev_internal_count = 0
 
-        # Compute PB for the SPECIFIC partition being used, not the global
-        # optimum. _compute_partition_bound searches all partitions and returns
-        # the tightest possible PB, which may be much lower than the agent's
-        # partition achieves. Using the global optimum as the target makes the
-        # agent appear to find "novel" bounds when it is really just
-        # rediscovering what a better partition would have given directly.
-        # Correct baseline: cut_edges / (|I| + internal_sessions).
-        _part_of = {}
-        for _k, _Pk in enumerate(partition):
-            for _nd in _Pk:
-                _part_of[_nd] = _k
-        _cut  = sum(1 for _u, _v in edges if _part_of[_u] != _part_of[_v])
-        _ipp  = internal_per_partition(partition, sessions)
-        _denom = len(sessions) + sum(_ipp)
-        env.partition_bound = _cut / _denom if _denom > 0 else float('inf')
+        # Use the globally optimal partition bound as the agent's baseline.
+        # This is the true PB the agent must beat, not the (possibly worse)
+        # bound achievable by Stage 3's specific partition.
+        env.partition_bound = _compute_partition_bound(nodes, edges, sessions)
 
         env._start_phase2()   # builds index, node_ios, base_inequalities
-        env._start_phase3()   # initialises frac_pool, sets phase=PHASE3
+        env._start_phase3(preseed=False)   # Fix A: agent must earn its bound
         env.internal_per_part = env.internal_per_part or []
 
         state = env._get_state()
@@ -718,7 +806,15 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
                     break   # one improvement per episode is enough
 
         per_graph[graph_name].append(best_b)
-        stopper.update(total_reward, episode)
+
+        # Fix D (part 2): Track *improvement over PB* rather than raw reward
+        # in the early stopper.  Raw reward plateaus at 1.0 when the agent
+        # matches PB every episode (the old pre-seed behaviour), causing the
+        # stopper to declare convergence without any genuine progress.
+        # Using (pb - best_b) means the stopper only resets its best when the
+        # agent actually beats PB — a strictly tighter progress criterion.
+        _improvement_signal = pb - (best_b if best_b < 1e9 else pb)
+        stopper.update(_improvement_signal, episode)
 
         # Clamp best_b to LP lower bound before recording metrics and novel bounds.
         # If best_b is below LP it is mathematically invalid — treat it as PB

@@ -322,8 +322,17 @@ class PartitionBoundEnv:
             max_crypto_cuts=20
         )
 
-    def _start_phase3(self):
-        """Set up Phase 3: fractional IO search starting from Phase 1/2 knowledge."""
+    def _start_phase3(self, preseed: bool = False):
+        """Set up Phase 3: fractional IO search starting from Phase 1/2 knowledge.
+
+        Args:
+            preseed: If True, add a pre-built terminal-form inequality
+                     (≈ PB) to frac_pool as a starting signal.
+                     Defaults to False so the agent must earn a finite
+                     bound by exploring FRACTIONAL_IO → STORE_AND_RESET
+                     rather than immediately satisfying the stopper with
+                     reward = 1.0 every episode.
+        """
         if self.index is None:
             self._start_phase2()   # ensure index is built
 
@@ -337,16 +346,20 @@ class PartitionBoundEnv:
             self.frac_pool.add(bi)
 
         # Pre-seed with terminal-form baseline (n2 submod result).
-        # This gives the agent an immediate finite bound ~ PB as starting
-        # signal, fixing the "no gradient" problem in early Phase 3.
-        try:
-            from fixed_submodularity import apply_n2_submodularity_all_at_once
-            terminal_baseline = apply_n2_submodularity_all_at_once(
-                self.base_inequalities, self.index, self.sessions
-            )
-            self.frac_pool.add(make_fractional(terminal_baseline))
-        except Exception:
-            pass  # non-critical — partition IOs still available
+        # Only used when explicitly requested (preseed=True).  Keeping it
+        # off by default forces the agent to explore the multi-step
+        # FRACTIONAL_IO → ADD_TO_ACCUMULATOR → CROSS_SUBMOD →
+        # STORE_AND_RESET → DECLARE_TERMINAL sequence instead of
+        # short-circuiting to reward=1.0 via the seed every episode.
+        if preseed:
+            try:
+                from fixed_submodularity import apply_n2_submodularity_all_at_once
+                terminal_baseline = apply_n2_submodularity_all_at_once(
+                    self.base_inequalities, self.index, self.sessions
+                )
+                self.frac_pool.add(make_fractional(terminal_baseline))
+            except Exception:
+                pass  # non-critical — partition IOs still available
 
         self.current_phase  = Phase.PHASE3
         self.phase3_steps   = 0
@@ -689,9 +702,22 @@ class PartitionBoundEnv:
                     self.partition, self.nodes, self.edges,
                     self.sessions, self.index
                 )
+                # Fix B: shaping reward for novel cross-partition FIOs.
+                # A cross-partition fractional IO with a non-trivial λ is
+                # the building block needed to escape the PB family.
+                # Reward it only when the result is genuinely new in the
+                # pool (deduplication prevents padding with clones).
+                is_novel_cross = (
+                    fi.is_cross_partition()
+                    and not self.frac_pool.contains_equivalent(fi)
+                )
+                if is_novel_cross:
+                    reward = 0.15   # meaningful signal; cross-partition + novel
+                elif fi.is_cross_partition():
+                    reward = 0.05   # cross-partition but already in pool
+                else:
+                    reward = 0.02   # same-partition (low value)
                 self.frac_pool.add(fi)
-                # Bonus if cross-partition (escaping PB family)
-                reward = 0.1 if fi.is_cross_partition() else 0.02
             else:
                 reward = -0.1
             return self._get_state(), reward, False
@@ -772,8 +798,22 @@ class PartitionBoundEnv:
                 combined = combined.cancel_source_terms()
                 combined_fi = make_fractional(combined, lam=1.0)
                 self.frac_pool.add(combined_fi)
+
+                # Fix C: shaping reward when the committed accumulator
+                # contains cross-partition content.  This is the step
+                # that "banks" a multi-step FRACTIONAL_IO sequence into
+                # the pool — exactly the behaviour we want to encourage.
+                # Check each item: if any came from different partitions
+                # (has partition_ids spanning ≥2 groups), reward the commit.
+                acc_part_ids = set()
+                for a in self.accumulator:
+                    acc_part_ids.update(getattr(a, 'partition_ids', []))
+                has_cross_content = len(acc_part_ids) >= 2
                 self.accumulator = []
-            return self._get_state(), 0.0, False
+                reward = 0.12 if has_cross_content else 0.0
+            else:
+                reward = 0.0
+            return self._get_state(), reward, False
 
         elif action_type == ActionType.APPLY_CRYPTO:
             # Apply crypto inequality to every terminal-form inequality in frac_pool

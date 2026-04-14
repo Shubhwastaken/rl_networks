@@ -436,6 +436,19 @@ class FractionalPool:
                     best = b
         return best
 
+    def contains_equivalent(self, ineq: "FractionalInequality",
+                             tol: float = 1e-6) -> bool:
+        """Return True if the pool already holds an inequality whose
+        coefficient vector is within *tol* of *ineq*'s coefficients.
+        Used by Fix B to avoid rewarding the agent for re-adding clones."""
+        if not isinstance(ineq, FractionalInequality):
+            return False
+        for existing in self.items:
+            if existing.coeffs.shape == ineq.coeffs.shape:
+                if np.max(np.abs(existing.coeffs - ineq.coeffs)) < tol:
+                    return True
+        return False
+
     def has_cross_partition(self) -> bool:
         return any(i.is_cross_partition() for i in self.items)
 
