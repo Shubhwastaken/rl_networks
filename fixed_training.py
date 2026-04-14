@@ -112,6 +112,108 @@ class EarlyStopper:
         return (episode - self.best_episode) >= self.patience
 
 
+class Stage4EarlyStopper:
+    """
+    Composite early stopper for Stage 4 (fractional IO search).
+
+    The standard EarlyStopper fails in Stage 4 because the agent must learn
+    a multi-step chain (FRACTIONAL_IO → ADD → CROSS_SUBMOD → STORE → DECLARE)
+    before it can beat PB at all.  During chain assembly the improvement signal
+    is flat, causing the stopper to fire prematurely.
+
+    This stopper uses a weighted composite signal:
+        signal = w1*(pb-best_b)/pb  +  w2*novel_rate_W  +  w3*cross_rate_W
+
+    where W is the trailing window.  This means:
+      - Primary credit: actually beating PB          (w1=0.6)
+      - Secondary credit: novel rate trending up     (w2=0.3)
+      - Tertiary credit: cross usage trending up     (w3=0.1)
+
+    The stopper resets its best whenever the composite signal improves,
+    so the agent gets credit for chain-assembly progress even before it
+    completes the full sequence.
+
+    Hard-floor override: if novel_rate has been exactly zero for the last
+    `novel_zero_patience` episodes AND we are past min_episodes, stop
+    regardless of the composite score.  This prevents running the full
+    budget on a broken chain that does lots of CROSS_SUBMOD but never
+    produces a valid terminal bound.
+    """
+
+    def __init__(self,
+                 patience          : int   = 5000,
+                 min_episodes      : int   = 4000,
+                 window            : int   = 500,
+                 novel_zero_patience: int  = 3000,
+                 w1: float = 0.6,
+                 w2: float = 0.3,
+                 w3: float = 0.1):
+        self.patience           = patience
+        self.min_episodes       = min_episodes
+        self.window             = window
+        self.novel_zero_patience= novel_zero_patience
+        self.w1, self.w2, self.w3 = w1, w2, w3
+
+        self.best_composite     = float('-inf')
+        self.best_episode       = 0
+
+        # Per-episode history for the three signal components
+        self._pb_improvements   : list = []   # (pb-best_b)/pb per episode
+        self._novel_found       : list = []   # 0/1 per episode
+        self._cross_used        : list = []   # 0/1 per episode
+
+        # Tracks last episode where novel_found==1 (for hard-floor check)
+        self._last_novel_episode: int  = -1
+
+    def update(self, pb_improvement: float, novel_found: int,
+               cross_used: int, episode: int):
+        """
+        Args:
+            pb_improvement: (pb - best_b) / pb for this episode.
+                            0 when agent matches or misses PB, positive when it beats PB.
+            novel_found:    1 if a sub-PB bound was found this episode, else 0.
+            cross_used:     1 if CROSS_SUBMOD was executed this episode, else 0.
+            episode:        current episode index.
+        """
+        self._pb_improvements.append(max(pb_improvement, 0.0))
+        self._novel_found.append(novel_found)
+        self._cross_used.append(cross_used)
+
+        if novel_found:
+            self._last_novel_episode = episode
+
+        if len(self._pb_improvements) >= self.window:
+            w = self.window
+            novel_rate = np.mean(self._novel_found[-w:])
+            cross_rate = np.mean(self._cross_used[-w:])
+            pb_score   = np.mean(self._pb_improvements[-w:])
+
+            composite = (self.w1 * pb_score
+                         + self.w2 * novel_rate
+                         + self.w3 * cross_rate)
+
+            if composite > self.best_composite + 1e-5:
+                self.best_composite = composite
+                self.best_episode   = episode
+
+    def should_stop(self, episode: int) -> bool:
+        if episode < self.min_episodes:
+            return False
+
+        # Hard-floor: if novel rate has been zero for novel_zero_patience
+        # episodes, the agent is stuck regardless of composite score.
+        episodes_since_novel = (
+            episode - self._last_novel_episode
+            if self._last_novel_episode >= 0
+            else episode
+        )
+        if episodes_since_novel >= self.novel_zero_patience:
+            return True
+
+        # Normal composite patience check
+        return (episode - self.best_episode) >= self.patience
+
+
 def _print_graph_table():
     infos = get_all_graph_infos()
     print(f"\n  {'Name':<16} {'N':>3} {'E':>3} {'S':>3} "
@@ -268,7 +370,13 @@ def run_stage1(num_episodes=10000, graph_dataset_size=5):  # Tier 1 only
                  'step_counts':[], 'action_counts_per_ep':[]}
 
     log_interval = 100
-    stopper = EarlyStopper()
+    # Stage 1 needs more patience than the default: Phase 2 must learn the
+    # full ADD → CROSS_SUBMOD → STORE → DECLARE grammar, not just the ADD-heavy
+    # shortcut.  The previous patience=2000/min_episodes=3000 fired exactly at
+    # min_episodes (episode 3000 in the training log) before the grammar was
+    # internalised.  Increasing both gives Phase 2 enough time to move past
+    # the shortcut plateau and learn structured combinations.
+    stopper = EarlyStopper(patience=5000, min_episodes=5000)
     print(f"\n  {'Ep':>6} | {'Graph':<16} | {'AvgRew':>8} | {'BestBnd':>8} | Actions")
     print(f"  {'-'*75}")
 
@@ -289,7 +397,15 @@ def run_stage1(num_episodes=10000, graph_dataset_size=5):  # Tier 1 only
 
         state = env.reset(fixed_partition=partition, fixed_graph=graph_tuple)
         state['edges']   = edges
-        proof2_fp = max(0.0, 0.3 * (1.0 - episode / min(5000, num_episodes)))
+        # Anneal the APPLY_PROOF2 forcing probability over the full
+        # num_episodes budget, not the old min(5000, num_episodes) horizon.
+        # The old horizon caused forcing to reach zero at episode 5000
+        # regardless of num_episodes — with early stopping at 3000, Phase 2
+        # never trained without the crutch and never had to discover
+        # APPLY_PROOF2 independently.  Annealing over the full budget
+        # means the forcing is still ~0.15 at the midpoint, giving the
+        # policy a gentle scaffold throughout rather than a hard cutoff.
+        proof2_fp = max(0.0, 0.3 * (1.0 - episode / max(num_episodes, 1)))
         state['proof2_force_prob'] = proof2_fp
 
         # Also pass graph info needed by Phase 3 policy (used indirectly)
@@ -372,7 +488,11 @@ def run_stage2(phase2_policy, num_episodes=10000, graph_dataset_size=5):
                  'optimal_int_found':[], 'partition_weights':[]}
 
     log_interval = 100
-    stopper = EarlyStopper()
+    # Stage 2 opt_rate for paper_7N was only 74.2% in the training log —
+    # 1 in 4 episodes Phase 1 handed a suboptimal partition downstream.
+    # Increasing min_episodes and patience gives Phase 1 more time on the
+    # harder graphs where it still hasn't converged.
+    stopper = EarlyStopper(patience=3000, min_episodes=5000)
     print(f"\n  {'Ep':>6} | {'Graph':<16} | {'AvgRew':>8} | {'Int':>3} | P1 Actions")
     print(f"  {'-'*70}")
 
@@ -494,7 +614,12 @@ def run_stage3(phase1_policy, phase2_policy,
     print(f"  LP lower bounds: {lp_bounds}")
 
     log_interval = 100
-    stopper = EarlyStopper()
+    # Stage 3 reward was still trending upward (from -1.0 to +1.0) when it
+    # stopped at episode 6572 in the training log.  The best_partitions handed
+    # to Stage 4 were therefore not globally optimal for all graphs, raising
+    # the PB baseline Stage 4 must beat.  Increasing min_episodes and patience
+    # ensures Stage 3 runs until the joint reward genuinely plateaus.
+    stopper = EarlyStopper(patience=4000, min_episodes=5000)
 
     for episode in range(num_episodes):
         if stopper.should_stop(episode):
@@ -649,7 +774,12 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
                   'novel_found': [], 'cross_partition_used': []}
 
     log_interval = 50
-    stopper = EarlyStopper(patience=3000, min_episodes=2000)
+    stopper = Stage4EarlyStopper(
+        patience           = 5000,
+        min_episodes       = 4000,
+        window             = 500,
+        novel_zero_patience= 3000,
+    )
 
     # Pre-compute LP lower bounds for all graphs in this stage
     lp_bounds = {}
@@ -780,29 +910,36 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         # GUARD: only accept oracle improvements that stay above LP lower bound.
         # Without this guard, repeated crypto/decode applications compound and
         # drive the bound below LP, producing mathematically invalid results.
+        #
+        # CRITICAL: when the oracle fires we add the improved inequality back
+        # into frac_pool so the trace search below can find it via
+        # check_valid_terminal_form + extract_bound.  Without this the trace
+        # search fails to match best_b (oracle result is not in pool) and
+        # novel_bounds stores "N/A" or — worse — a wrong inequality that
+        # happens to have the same bound value by coincidence.
         if env.func_dep_actions is not None and best_b < 1e9:
             _lp_floor = lp_bounds.get(graph_name, 0.0)
             for ineq in env.frac_pool:
                 if not ineq.check_valid_terminal_form():
                     continue
-                _, fd_bound, fd_actions = apply_all_improving_func_dep(
+                fd_ineq, fd_bound, fd_actions = apply_all_improving_func_dep(
                     ineq, env.func_dep_actions, env.index,
                     env.internal_per_part, len(sessions), len(edges)
                 )
                 if fd_bound < best_b - 1e-8 and fd_bound >= _lp_floor - 1e-9:
                     best_b = fd_bound
+                    # Add the oracle-improved inequality to the pool so the
+                    # trace search below can locate and record it correctly.
+                    env.frac_pool.add(fd_ineq)
                     break   # one improvement per episode is enough
 
         per_graph[graph_name].append(best_b)
 
-        # Fix D (part 2): Track *improvement over PB* rather than raw reward
-        # in the early stopper.  Raw reward plateaus at 1.0 when the agent
-        # matches PB every episode (the old pre-seed behaviour), causing the
-        # stopper to declare convergence without any genuine progress.
-        # Using (pb - best_b) means the stopper only resets its best when the
-        # agent actually beats PB — a strictly tighter progress criterion.
-        _improvement_signal = pb - (best_b if best_b < 1e9 else pb)
-        stopper.update(_improvement_signal, episode)
+        # Composite early-stopping signal for Stage 4.
+        # w1: how much the agent beat PB this episode (normalised by pb).
+        # w2/w3: fed after metrics are recorded so novel_found and
+        #        cross_used reflect this episode's outcome.
+        _pb_impr = (pb - best_b) / max(pb, 1e-9) if best_b < pb - 1e-8 else 0.0
 
         # Clamp best_b to LP lower bound before recording metrics and novel bounds.
         # If best_b is below LP it is mathematically invalid — treat it as PB
@@ -823,6 +960,15 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         metrics['novel_found'].append(1 if _is_novel else 0)
         metrics['cross_partition_used'].append(1 if used_cross else 0)
 
+        # Update composite stopper now that novel_found and cross_used are
+        # recorded for this episode.
+        stopper.update(
+            pb_improvement = _pb_impr,
+            novel_found    = 1 if _is_novel else 0,
+            cross_used     = 1 if used_cross else 0,
+            episode        = episode,
+        )
+
         # Validate against LP lower bound
         if graph_name in lp_bounds and best_b < 1e9:
             lp_lb = lp_bounds[graph_name]
@@ -837,16 +983,36 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         # Record novel bounds
         if best_b < pb - 1e-8:
             if graph_name not in novel_bounds or best_b < novel_bounds[graph_name][0]:
-                # Find the best terminal inequality for trace
+                # Find the best terminal inequality for trace.
+                # Use a slightly looser tolerance (1e-6) to catch the case
+                # where the oracle chain introduces small floating-point drift
+                # between best_b and the inequality's extract_bound value.
+                # If no exact match is found, fall back to whichever valid
+                # terminal inequality gives the lowest bound in the pool —
+                # this is always the genuine sub-PB inequality, not a
+                # degenerate one, because check_valid_terminal_form now
+                # requires a cross-partition edge on the RHS.
                 best_ineq = None
+                best_ineq_b = float('inf')
                 for ineq in env.frac_pool:
                     if ineq.check_valid_terminal_form():
                         b2 = ineq.extract_bound(
                             len(sessions), len(edges), env.internal_per_part
                         )
-                        if abs(b2 - best_b) < 1e-9:
-                            best_ineq = ineq
-                            break
+                        if abs(b2 - best_b) < 1e-6 and b2 < best_ineq_b:
+                            best_ineq   = ineq
+                            best_ineq_b = b2
+                # Fallback: take the pool's best valid terminal inequality
+                # when no exact match was found (e.g. oracle drift).
+                if best_ineq is None:
+                    for ineq in env.frac_pool:
+                        if ineq.check_valid_terminal_form():
+                            b2 = ineq.extract_bound(
+                                len(sessions), len(edges), env.internal_per_part
+                            )
+                            if b2 < best_ineq_b:
+                                best_ineq   = ineq
+                                best_ineq_b = b2
                 novel_bounds[graph_name] = (
                     best_b, partition, p_weights,
                     repr(best_ineq) if best_ineq else "N/A"

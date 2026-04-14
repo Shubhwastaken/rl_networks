@@ -11,6 +11,19 @@ CHANGES FOR PHASE 3 FRACTIONAL SEARCH:
     for Phase 3 state encoding and trace logging. Mathematically identical.
   - FractionalPool: Phase 3's working set with priority eviction that
     explicitly rewards cross-partition and fractional-λ inequalities.
+
+FIX — check_valid_terminal_form:
+  Replaced the edge_count < 2 guard with a stricter structural requirement:
+  the RHS must contain at least one edge whose two endpoints belong to
+  different partition sets (a genuine cross-partition edge).
+
+  Rationale: a within-partition single-edge bound always reduces to
+  bound = edge_cap / (c1 * |I| + internal) which equals LP for the right λ
+  regardless of graph structure — it can never exploit multi-partition
+  submodularity.  The edge_count >= 2 guard was insufficient because two
+  within-partition edges from different partitions (but both within their
+  own set) suffer the same collapse.  Requiring at least one cross-partition
+  edge on the RHS is the mathematically correct definition of "genuine".
 """
 
 from dataclasses import dataclass, field
@@ -66,6 +79,11 @@ class EntropyIndex:
 
         self.dim = idx
         self._precompute_session_sets()
+        # Build a fast node->partition_id lookup used by the cross-edge check.
+        self._node_to_part: Dict[str, int] = {}
+        for i, part in enumerate(self.partitions):
+            for nd in part:
+                self._node_to_part[nd] = i
 
     def _precompute_session_sets(self):
         self.st_sessions       = []
@@ -110,6 +128,13 @@ class EntropyIndex:
         for i in partitions:
             covered |= self.st_sessions[i]
         return covered
+
+    def edge_is_cross_partition(self, e: Tuple[str, str]) -> bool:
+        """Return True if edge e connects nodes in different partition sets."""
+        u, v = e
+        pu = self._node_to_part.get(u, -1)
+        pv = self._node_to_part.get(v, -1)
+        return pu >= 0 and pv >= 0 and pu != pv
 
 
 class Inequality:
@@ -198,14 +223,26 @@ class Inequality:
                 return False
             if self.coeffs[self.index.get_source_idx(v)] < -tol:
                 return False
-        # Require at least 2 edges on RHS: a single-edge bound can never
-        # exploit multi-partition graph structure and always collapses to
-        # bound = 1/(c1*|I|) = LP by choosing the right lam.
-        edge_count = sum(
-            1 for e in self.index.edges
-            if self.coeffs[self.index.get_edge_signal_idx(e)] < -tol
+        # Require at least one cross-partition edge on the RHS.
+        #
+        # A within-partition single-edge bound always reduces to
+        #   r <= edge_cap / (c1*|I| + internal)
+        # which equals the LP relaxation for the right choice of λ,
+        # regardless of graph structure.  It can never exploit
+        # multi-partition submodularity to beat PB.
+        #
+        # Two within-partition edges (even from different partitions)
+        # suffer the same collapse — the old edge_count >= 2 guard was
+        # insufficient.  Requiring at least one cross-partition edge is
+        # the mathematically correct structural requirement: such an edge
+        # is the only way submodularity over partition boundaries can
+        # tighten the bound below PB.
+        has_cross_partition_edge = any(
+            self.coeffs[self.index.get_edge_signal_idx(e)] < -tol
+            and self.index.edge_is_cross_partition(e)
+            for e in self.index.edges
         )
-        if edge_count < 2:
+        if not has_cross_partition_edge:
             return False
         return True
 
