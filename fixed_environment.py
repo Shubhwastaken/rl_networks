@@ -687,16 +687,29 @@ class PartitionBoundEnv:
         previous episode minimum, we give a small bonus = 0.05 * improvement_fraction.
         This gives dense credit to the multi-step sequence that progressively
         tightens the bound, without distorting the terminal reward scale.
+
+        BUG FIX: When _phase3_best_bound is float('inf') (no valid terminal form
+        found yet) the improvement fraction (inf - new_best) / pb is inf, which
+        propagates into total_reward and poisons np.mean(rewards) with inf values
+        in the Stage 4 logging.  Guard by returning 0.0 whenever the previous
+        best was infinite — the first finite terminal form is its own reward.
         """
         if not hasattr(self, '_phase3_best_bound'):
             self._phase3_best_bound = float('inf')
         new_best = self.frac_pool.best_bound(
             len(self.sessions), len(self.edges), self.internal_per_part or []
         )
+        # Guard 1: no reward when we have no finite baseline to improve upon.
+        if self._phase3_best_bound >= 1e9:
+            # Still update the tracker so the *next* improvement can be measured.
+            if new_best < 1e9:
+                self._phase3_best_bound = new_best
+            return 0.0
+        # Guard 2: new_best must be finite and a genuine improvement.
         if new_best < self._phase3_best_bound - 1e-9 and new_best < 1e9:
             improvement = (self._phase3_best_bound - new_best) / max(self.partition_bound, 1e-9)
             self._phase3_best_bound = new_best
-            return 0.05 * improvement
+            return 0.05 * min(improvement, 10.0)   # cap at 0.5 to avoid reward spikes
         return 0.0
 
     def _step_phase3(self, action):

@@ -89,6 +89,12 @@ EARLY_STOP_PATIENCE  = 2000
 EARLY_STOP_MIN_EPS   = 3000
 
 
+def _safe_mean(values):
+    """np.mean with inf/nan filtered out; returns 0.0 on empty."""
+    finite = [v for v in values if v is not None and v == v and abs(v) < 1e9]
+    return float(np.mean(finite)) if finite else 0.0
+
+
 class EarlyStopper:
     def __init__(self, patience=EARLY_STOP_PATIENCE,
                  min_episodes=EARLY_STOP_MIN_EPS, window=500):
@@ -102,7 +108,7 @@ class EarlyStopper:
     def update(self, reward, episode):
         self.rewards.append(reward)
         if len(self.rewards) >= self.window:
-            cur = np.mean(self.rewards[-self.window:])
+            cur = _safe_mean(self.rewards[-self.window:])
             if cur > self.best_avg + 1e-4:
                 self.best_avg    = cur
                 self.best_episode= episode
@@ -452,7 +458,7 @@ def run_stage1(num_episodes=10000, graph_dataset_size=5):  # Tier 1 only
 
         if (episode + 1) % log_interval == 0:
             n   = log_interval
-            avg = np.mean(rewards[-n:])
+            avg = _safe_mean(rewards[-n:])
             bst = abs(min(rewards[-n:]))
             print(f"  {episode+1:>6} | {graph_name:<16} | "
                   f"{avg:>8.4f} | {bst:>8.4f} | {_action_summary(action_counts)}")
@@ -488,16 +494,46 @@ def run_stage2(phase2_policy, num_episodes=10000, graph_dataset_size=5):
                  'optimal_int_found':[], 'partition_weights':[]}
 
     log_interval = 100
-    # Stage 2 opt_rate for paper_7N was only 74.2% in the training log —
-    # 1 in 4 episodes Phase 1 handed a suboptimal partition downstream.
-    # Increasing min_episodes and patience gives Phase 1 more time on the
-    # harder graphs where it still hasn't converged.
-    stopper = EarlyStopper(patience=3000, min_episodes=5000)
+
+    # Issue 1 fix: replace global windowed-reward EarlyStopper with a
+    # per-graph opt_rate stopper.  The old stopper used a global average
+    # reward window — diamond/star converge fast and dominate it, masking
+    # paper_7N's 74% plateau and causing premature stopping at ep 9954.
+    # New rule: stop only when EVERY graph has >=85% opt_rate over its
+    # last 500 episodes AND min_episodes has elapsed.
+    _OPT_THRESHOLD   = 0.85
+    _OPT_WINDOW      = 500
+    _S2_MIN_EPISODES = 8000
+
+    class _PerGraphOptStopper:
+        def __init__(self, threshold, window, min_eps):
+            self.threshold = threshold
+            self.window    = window
+            self.min_eps   = min_eps
+            self._history  = defaultdict(list)
+
+        def update(self, graph_name, is_optimal):
+            self._history[graph_name].append(1 if is_optimal else 0)
+
+        def should_stop(self, episode, all_graph_names):
+            if episode < self.min_eps:
+                return False
+            for gn in all_graph_names:
+                hist = self._history[gn]
+                if len(hist) < self.window:
+                    return False
+                if np.mean(hist[-self.window:]) < self.threshold:
+                    return False
+            return True
+
+    stopper = _PerGraphOptStopper(_OPT_THRESHOLD, _OPT_WINDOW, _S2_MIN_EPISODES)
+    all_graph_names_seen: set = set()
+
     print(f"\n  {'Ep':>6} | {'Graph':<16} | {'AvgRew':>8} | {'Int':>3} | P1 Actions")
     print(f"  {'-'*70}")
 
     for episode in range(num_episodes):
-        if stopper.should_stop(episode):
+        if stopper.should_stop(episode, all_graph_names_seen):
             print(f"\n  Early stopping at episode {episode}")
             break
 
@@ -555,7 +591,8 @@ def run_stage2(phase2_policy, num_episodes=10000, graph_dataset_size=5):
 
         phase1_policy.update(p1_traj, total_reward)
         rewards.append(total_reward)
-        stopper.update(total_reward, episode)
+        all_graph_names_seen.add(graph_name)
+        stopper.update(graph_name, int_count >= opt_int)
 
         metrics['rewards'].append(total_reward)
         metrics['internals'].append(int_count)
@@ -568,7 +605,7 @@ def run_stage2(phase2_policy, num_episodes=10000, graph_dataset_size=5):
 
         if (episode + 1) % log_interval == 0:
             n    = log_interval
-            avg  = np.mean(rewards[-n:])
+            avg  = _safe_mean(rewards[-n:])
             avgi = np.mean(internals[-n:])
             print(f"  {episode+1:>6} | {graph_name:<16} | "
                   f"{avg:>8.4f} | {avgi:>3.1f} | {_action_summary(p1_action_counts)}")
@@ -654,12 +691,13 @@ def run_stage3(phase1_policy, phase2_policy,
     print(f"  LP lower bounds: {lp_bounds}")
 
     log_interval = 100
-    # Stage 3 reward was still trending upward (from -1.0 to +1.0) when it
-    # stopped at episode 6572 in the training log.  The best_partitions handed
-    # to Stage 4 were therefore not globally optimal for all graphs, raising
-    # the PB baseline Stage 4 must beat.  Increasing min_episodes and patience
-    # ensures Stage 3 runs until the joint reward genuinely plateaus.
-    stopper = EarlyStopper(patience=4000, min_episodes=5000)
+    # Issue 1 fix (Stage 3): Stage 3 stopped at episode 8258 because the
+    # stopper fired while the joint reward was still trending upward.
+    # best_partitions handed to Stage 4 were therefore suboptimal for several
+    # graphs, raising the PB baseline Stage 4 must beat.
+    # Increase min_episodes=8000 and patience=5000 so Stage 3 only stops
+    # once the joint reward has genuinely plateaued.
+    stopper = EarlyStopper(patience=5000, min_episodes=8000)
 
     for episode in range(num_episodes):
         if stopper.should_stop(episode):
@@ -761,7 +799,7 @@ def run_stage3(phase1_policy, phase2_policy,
 
         if (episode + 1) % log_interval == 0:
             n   = log_interval
-            avg = np.mean(rewards[-n:])
+            avg = _safe_mean(rewards[-n:])
             print(f"  Ep {episode+1:>6} | {graph_name:<16} | avg={avg:.4f}")
 
     metrics['best_partitions'] = {
@@ -1014,25 +1052,6 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         metrics['novel_found'].append(1 if _is_novel else 0)
         metrics['cross_partition_used'].append(1 if used_cross else 0)
 
-        # FIX 3: Intermediate reward injection.
-        # The policy only gets a reward signal when it beats PB — this is too
-        # sparse for harder graphs (butterfly, grid_9N, paper_7N).  Inject a
-        # small shaped reward whenever the agent produces a valid bound below PB,
-        # even if not novel.  This gives ~10x more non-zero training signals and
-        # prevents the policy from collapsing to no-op sequences on hard graphs.
-        # Scale: 0.1 * fractional improvement.  Capped so it never dominates
-        # the main novel reward (which is O(1) when truly novel).
-        if best_b < pb - 1e-8 and best_b < 1e9:
-            _intermediate_r = 0.1 * (pb - best_b) / max(pb, 1e-9)
-            if trajectory:
-                # Distribute the bonus evenly across all steps so the policy
-                # gradient doesn't collapse onto the last action only.
-                _bonus_per_step = _intermediate_r / len(trajectory)
-                for _t in trajectory:
-                    _t['reward'] = _t.get('reward', 0.0) + _bonus_per_step
-                # Re-run policy update with the augmented trajectory.
-                phase3_policy.update(trajectory, total_reward + _intermediate_r)
-
         # Update composite stopper now that novel_found and cross_used are
         # recorded for this episode.
         stopper.update(
@@ -1091,78 +1110,9 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
                     repr(best_ineq) if best_ineq else "N/A"
                 )
 
-                # FIX 2: Serialize discovered inequalities to disk immediately.
-                # Novel bounds exist only in memory — if training crashes or
-                # the process is killed, all discoveries are lost.  Write a
-                # checkpoint every time a new best bound is found so results
-                # survive regardless of what happens next.
-                try:
-                    _ckpt = {}
-                    for _gn, (_b, _part, _w, _tr) in novel_bounds.items():
-                        _ckpt[_gn] = {
-                            'bound': float(_b),
-                            'trace': str(_tr)[:500],
-                            'partition': [[str(n) for n in g] for g in _part],
-                            'episode': episode,
-                        }
-                    with open('novel_bounds_checkpoint.json', 'w') as _f:
-                        json.dump(_ckpt, _f, indent=2)
-                except Exception as _e:
-                    pass  # never let serialization crash training
-
-                # FIX 4: Experience replay of successful sequences.
-                # When the agent finds a novel bound it almost certainly did so
-                # via a lucky exploration sequence it can't reliably reproduce.
-                # Replay 5 additional episodes on the same graph immediately
-                # so the policy gradient reinforces the winning strategy while
-                # the state is still warm.  Use temperature=0.8 (slightly
-                # below training temperature) to encourage exploitation of the
-                # discovered path rather than pure re-exploration.
-                _replay_graph = (nodes, edges, sessions)
-                for _rep in range(5):
-                    try:
-                        env.nodes = nodes; env.edges = edges; env.sessions = sessions
-                        env.adjacency = {n: set() for n in nodes}; env.edge_set = set()
-                        for _u, _v in edges:
-                            env.adjacency[_u].add(_v); env.adjacency[_v].add(_u)
-                            env.edge_set.add((_u,_v)); env.edge_set.add((_v,_u))
-                        env.partition = partition; env.partition_weights = p_weights
-                        env.assignment = {}; env.num_groups = len(partition)
-                        env._assignment_complete = True; env._refinement_steps = 0
-                        env.prev_internal_count = 0; env.partition_bound = opt_global_bound
-                        env._start_phase2(); env._start_phase3(preseed=False)
-                        env.internal_per_part = env.internal_per_part or []
-                        _rs = env._get_state()
-                        _rs['nodes'] = nodes; _rs['edges'] = edges
-                        _rs['sessions'] = sessions; _rs['partition'] = partition
-                        _rs['partition_weights'] = p_weights; _rs['temperature'] = 0.8
-                        _rep_traj = []; _rep_r = 0.0; _rep_done = False
-                        while not _rep_done:
-                            _va = env.get_valid_actions()
-                            if not _va:
-                                _rs, _rw, _rep_done = env._extract_phase3_bound()
-                                _rep_r += _rw; break
-                            _ra = phase3_policy.select_action(_rs, _va)
-                            _rs, _rw, _rep_done = env.step(_ra)
-                            _rs['nodes'] = nodes; _rs['edges'] = edges
-                            _rs['sessions'] = sessions; _rs['partition'] = partition
-                            _rs['temperature'] = 0.8
-                            _rep_traj.append({'reward': _rw}); _rep_r += _rw
-                        _rep_b = env.frac_pool.best_bound(
-                            len(sessions), len(edges), env.internal_per_part)
-                        if _rep_b < pb - 1e-8 and _rep_traj:
-                            _irep = 0.1 * (pb - _rep_b) / max(pb, 1e-9)
-                            _bps = _irep / len(_rep_traj)
-                            for _t in _rep_traj: _t['reward'] = _t.get('reward',0)+_bps
-                            phase3_policy.update(_rep_traj, _rep_r + _irep)
-                        else:
-                            phase3_policy.update(_rep_traj, _rep_r)
-                    except Exception:
-                        pass  # never let replay crash main training
-
         if (episode + 1) % log_interval == 0:
             n       = log_interval
-            avg_r   = np.mean(rewards[-n:])
+            avg_r   = _safe_mean(rewards[-n:])
             novel_r = np.mean(metrics['novel_found'][-n:])
             cross_r = np.mean(metrics['cross_partition_used'][-n:])
             print(f"  Ep {episode+1:>6} | {graph_name:<16} | "
@@ -1254,12 +1204,21 @@ def train(stage1_episodes=10000, stage2_episodes=10000,
     )
     return (phase1_policy, phase2_policy, phase3_policy,
             {'stage1': s1, 'stage2': s2, 'stage3': s3, 'stage4': s4},
-            novel_bounds)
+            novel_bounds, best_partitions)
 
 
 def evaluate(phase1_policy, phase2_policy, phase3_policy,
+             best_partitions=None,
              num_episodes=500, graph_dataset_size=5):
-    """Evaluation across all phases."""
+    """Evaluation across all phases.
+
+    Issue 3 fix: accept best_partitions from Stage 3 and use them directly
+    instead of re-running Phase 1 from scratch.  The old code ran a fresh
+    Phase 1 rollout per episode, which (a) used a different partition than
+    Stage 4 training did, and (b) started Phase 3 with a cold empty pool and
+    no warm-start, causing P3 avg > 4.0 on harder graphs.  Using the stored
+    best partition matches exactly what Stage 4 training does.
+    """
     env = PartitionBoundEnv(graph_dataset_size=graph_dataset_size, stage=4)
     results = defaultdict(lambda: {'p2_bounds':[], 'p3_bounds':[], 'novel':0})
 
@@ -1276,80 +1235,85 @@ def evaluate(phase1_policy, phase2_policy, phase3_policy,
         graph_name = identify_graph(nodes, edges, sessions)
         pb = _compute_partition_bound(nodes, edges, sessions)
 
-        # Phase 1+2 rollout (standard bound)
-        state = env.reset(fixed_graph=graph_tuple)
-        state['edges'] = edges; state['sessions'] = sessions
-
-        while env.current_phase == Phase.PHASE1:
-            valid = env.get_valid_actions()
-            if not valid: break
-            action = phase1_policy.select_action(state, valid)
-            state, _, done = env.step(action)
+        # ----------------------------------------------------------------
+        # Phase 1+2: use stored best_partition when available (Issue 3 fix).
+        # Fall back to a live Phase 1 rollout only for graphs not seen in
+        # Stage 3 (e.g. if graph_dataset_size > Stage 3's dataset size).
+        # ----------------------------------------------------------------
+        if best_partitions and graph_name in best_partitions:
+            # Use the partition Stage 3 already optimised — same as Stage 4.
+            partition       = best_partitions[graph_name][0]
+            partition_weights = best_partitions[graph_name][1]
+            # P2 bound: set env up and compute via Phase 2 with known partition
+            state = env.reset(fixed_graph=graph_tuple)
+            env.partition = [list(g) for g in partition]
+            env.partition_weights = partition_weights or {}
+            env._assignment_complete = True
+            env.num_groups = len(partition)
             state['edges'] = edges; state['sessions'] = sessions
-
-        partition = [list(g) for g in env.partition] if env.partition else []
-        state['nodes'] = nodes; state['sessions'] = sessions
-        state['partition'] = partition
-
-        while env.current_phase == Phase.PHASE2:
-            valid = env.get_valid_actions()
-            if not valid: break
-            action = phase2_policy.select_action(state, valid)
-            state, _, done = env.step(action)
+            state['nodes'] = nodes; state['partition'] = partition
+            while env.current_phase == Phase.PHASE2:
+                valid = env.get_valid_actions()
+                if not valid: break
+                action = phase2_policy.select_action(state, valid)
+                state, _, done = env.step(action)
+                state['edges'] = edges; state['sessions'] = sessions
+                if done: break
+        else:
+            # Fallback: run Phase 1 live (graph not in best_partitions)
+            state = env.reset(fixed_graph=graph_tuple)
             state['edges'] = edges; state['sessions'] = sessions
-            if done: break
+            while env.current_phase == Phase.PHASE1:
+                valid = env.get_valid_actions()
+                if not valid: break
+                action = phase1_policy.select_action(state, valid)
+                state, _, done = env.step(action)
+                state['edges'] = edges; state['sessions'] = sessions
+            partition = [list(g) for g in env.partition] if env.partition else []
+            partition_weights = env.partition_weights or {}
+            state['nodes'] = nodes; state['sessions'] = sessions
+            state['partition'] = partition
+            while env.current_phase == Phase.PHASE2:
+                valid = env.get_valid_actions()
+                if not valid: break
+                action = phase2_policy.select_action(state, valid)
+                state, _, done = env.step(action)
+                state['edges'] = edges; state['sessions'] = sessions
+                if done: break
 
         p2_bound = abs(env._best_pool_bound() or pb * 2)
         results[graph_name]['p2_bounds'].append(p2_bound)
 
-        # Phase 3 rollout (fractional bound)
-        env.partition         = partition
-        env.partition_weights = env.partition_weights or {}
-        # FIX 1: Stochastic multi-rollout evaluation.
-        # The original eval ran a single greedy (temperature=1.0 default but
-        # entropy has been annealed) rollout.  On harder graphs (butterfly,
-        # grid_9N, paper_7N) this collapsed to bad sequences — P3 avg > 4.0.
-        # Fix: run EVAL_ROLLOUTS independent stochastic rollouts per episode
-        # (temperature=1.0 to match training entropy) and keep the best bound
-        # found.  This correctly measures "can the policy find the bound at
-        # all" rather than "does it find it deterministically every time".
-        EVAL_ROLLOUTS = 10
+        # Phase 3 rollout — use the same partition/weights as Phase 1/2 above
+        env.partition         = [list(g) for g in partition]
+        env.partition_weights = partition_weights or {}
+        env._start_phase2()
+        env._start_phase3(preseed=False)
+        env.internal_per_part = env.internal_per_part or []
+
+        state2 = env._get_state()
+        state2['nodes']    = nodes; state2['edges'] = edges
+        state2['sessions'] = sessions; state2['partition'] = partition
+
+        while env.current_phase == Phase.PHASE3:
+            valid = env.get_valid_actions()
+            if not valid: break
+            action = phase3_policy.select_action(state2, valid)
+            state2, _, done = env.step(action)
+            state2['nodes'] = nodes; state2['edges'] = edges
+            state2['sessions'] = sessions; state2['partition'] = partition
+            if done: break
+
+        p3_bound = env.frac_pool.best_bound(
+            len(sessions), len(edges), env.internal_per_part
+        )
+        if p3_bound == float('inf'): p3_bound = pb * 2
+        # Fix 2: apply LP floor in eval — degenerate single-edge bounds
+        # can slip below LP; clamp them to PB so they don't pollute
+        # the novel% and P3best columns.
         _eval_lp_floor = lp_bounds.get(graph_name, 0.0)
-        p3_bound = pb * 2  # pessimistic default
-
-        for _roll in range(EVAL_ROLLOUTS):
-            env.partition         = [list(g) for g in partition]
-            env.partition_weights = env.partition_weights or {}
-            env._start_phase2()
-            env._start_phase3(preseed=False)
-            env.internal_per_part = env.internal_per_part or []
-
-            state2 = env._get_state()
-            state2['nodes']       = nodes;     state2['edges']    = edges
-            state2['sessions']    = sessions;  state2['partition'] = partition
-            state2['temperature'] = 1.0   # stochastic — mirrors training entropy
-
-            while env.current_phase == Phase.PHASE3:
-                valid = env.get_valid_actions()
-                if not valid: break
-                action = phase3_policy.select_action(state2, valid)
-                state2, _, done = env.step(action)
-                state2['nodes']       = nodes;    state2['edges']    = edges
-                state2['sessions']    = sessions; state2['partition'] = partition
-                state2['temperature'] = 1.0
-                if done: break
-
-            _roll_b = env.frac_pool.best_bound(
-                len(sessions), len(edges), env.internal_per_part
-            )
-            if _roll_b == float('inf'):
-                _roll_b = pb * 2
-            # Apply LP floor — degenerate bounds below LP are invalid.
-            if _roll_b < _eval_lp_floor - 1e-6:
-                _roll_b = pb
-            if _roll_b < p3_bound:
-                p3_bound = _roll_b   # keep best across rollouts
-
+        if p3_bound < _eval_lp_floor - 1e-6:
+            p3_bound = pb
         results[graph_name]['p3_bounds'].append(p3_bound)
         if p3_bound < pb - 1e-8:
             results[graph_name]['novel'] += 1
@@ -1388,7 +1352,7 @@ def evaluate(phase1_policy, phase2_policy, phase3_policy,
 if __name__ == "__main__":
     t0 = time.time()
     (phase1_policy, phase2_policy, phase3_policy,
-     train_metrics, novel_bounds) = train(
+     train_metrics, novel_bounds, best_partitions) = train(
         stage1_episodes=15000,   # Phase 2 proof calculus  — Tier 1 graphs (5)
         stage2_episodes=15000,   # Phase 1 partition learn — Tier 1 graphs (5)
         stage3_episodes=15000,   # Joint fine-tuning       — Tier 1+2 graphs (10)
@@ -1397,6 +1361,7 @@ if __name__ == "__main__":
     )
     eval_results = evaluate(
         phase1_policy, phase2_policy, phase3_policy,
+        best_partitions=best_partitions,
         num_episodes=500, graph_dataset_size=5
     )
 
