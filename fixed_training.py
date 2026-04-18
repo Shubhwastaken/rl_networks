@@ -1365,8 +1365,8 @@ if __name__ == "__main__":
      train_metrics, novel_bounds, best_partitions) = train(
         stage1_episodes=15000,   # Phase 2 proof calculus  — Tier 1 graphs (5)
         stage2_episodes=15000,   # Phase 1 partition learn — Tier 1 graphs (5)
-        stage3_episodes=20000,   # Joint fine-tuning       — Tier 1+2 graphs (10) — increased from 15k
-        stage4_episodes=25000,   # Phase 3 fractional IO   — All graphs (12) — increased from 15k
+        stage3_episodes=25000,   # Joint fine-tuning       — Tier 1+2 graphs (10) — increased from 15k
+        stage4_episodes=35000,   # Phase 3 fractional IO   — All graphs (12) — increased from 15k
         graph_dataset_size=5
     )
     eval_results = evaluate(
