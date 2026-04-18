@@ -1475,7 +1475,7 @@ if __name__ == "__main__":
                 f.write(f"  RL Bound:   r <= {b:.6f}\n")
                 f.write(f"  PB:         r <= {pb2:.6f}\n")
                 f.write(f"  Improvement:{(pb2-b)/pb2*100:.3f}%\n")
-                f.write(f"  Inequality: {trace[:400].encode('ascii','replace').decode()}\n")
+                f.write(f"  Inequality: {trace.encode('ascii','replace').decode()}\n")
         else:
             f.write("No novel bounds found in this run.\n")
 
