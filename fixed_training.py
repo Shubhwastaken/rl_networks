@@ -1205,12 +1205,12 @@ def train(stage1_episodes=10000, stage2_episodes=10000,
     phase1_policy, s2             = run_stage2(phase2_policy, stage2_episodes, graph_dataset_size)
     phase1_policy, phase2_policy, s3, best_partitions = run_stage3(
         phase1_policy, phase2_policy, stage3_episodes,
-        graph_dataset_size=min(10, graph_dataset_size*2)
+        graph_dataset_size=min(13, graph_dataset_size*3)
     )
     phase3_policy, s4, novel_bounds = run_stage4(
         phase1_policy, phase2_policy, best_partitions,
         coeff_dim, stage4_episodes,
-        graph_dataset_size=min(12, graph_dataset_size*3)
+        graph_dataset_size=min(16, graph_dataset_size*4)
     )
     return (phase1_policy, phase2_policy, phase3_policy,
             {'stage1': s1, 'stage2': s2, 'stage3': s3, 'stage4': s4},
@@ -1365,14 +1365,14 @@ if __name__ == "__main__":
      train_metrics, novel_bounds, best_partitions) = train(
         stage1_episodes=15000,   # Phase 2 proof calculus  — Tier 1 graphs (5)
         stage2_episodes=15000,   # Phase 1 partition learn — Tier 1 graphs (5)
-        stage3_episodes=25000,   # Joint fine-tuning       — Tier 1+2 graphs (10) — increased from 15k
-        stage4_episodes=35000,   # Phase 3 fractional IO   — All graphs (12) — increased from 15k
+        stage3_episodes=20000,   # Joint fine-tuning       — Tier 1+2 graphs (10) — increased from 15k
+        stage4_episodes=35000,   # Phase 3 fractional IO   — All graphs (16) — increased from 15k
         graph_dataset_size=5
     )
     eval_results = evaluate(
         phase1_policy, phase2_policy, phase3_policy,
         best_partitions=best_partitions,
-        num_episodes=500, graph_dataset_size=5
+        num_episodes=4800, graph_dataset_size=16
     )
 
     runtime = time.time() - t0
@@ -1418,14 +1418,67 @@ if __name__ == "__main__":
     with open('training_summary.txt', 'w') as f:
         f.write(f"Training completed: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"Runtime: {runtime:.1f}s ({runtime/60:.1f} min)\n\n")
+
+        # --- Results table: Graph | PB | LP | RL Bound | Improvement ---
+        f.write("=" * 80 + "\n")
+        f.write("RESULTS TABLE\n")
+        f.write("=" * 80 + "\n")
+        f.write(f"  {'Graph':<22} {'PB':>8} {'LP LB':>8} {'RL Bound':>10} {'Improv%':>9} {'Status':>12}\n")
+        f.write(f"  {'-'*75}\n")
+
+        # Collect all graphs from Stage 4 dataset
+        from fixed_graph_generation import get_all_graph_infos, identify_graph
+        from lp_lower_bound import compute_lp_lower_bound
+        from fixed_environment import _compute_partition_bound
+
+        all_infos = get_all_graph_infos()
+        for info in all_infos:
+            gn = info.name
+            nodes, edges, sessions = info.nodes, info.edges, info.sessions
+            pb  = _compute_partition_bound(nodes, edges, sessions)
+            lp  = compute_lp_lower_bound(nodes, edges, sessions)
+
+            if gn in novel_bounds:
+                rl_b = novel_bounds[gn][0]
+                improv = (pb - rl_b) / pb * 100
+                if abs(rl_b - lp) < 1e-6:
+                    status = "TIGHT (=LP)"
+                elif rl_b < pb - 1e-6:
+                    status = "NOVEL"
+                else:
+                    status = "NO IMPROV"
+            else:
+                rl_b   = pb   # no improvement found
+                improv = 0.0
+                status = "NOT FOUND"
+
+            f.write(f"  {gn:<22} {pb:>8.4f} {lp:>8.4f} {rl_b:>10.6f} {improv:>8.2f}%  {status:>10}\n")
+
+        f.write(f"\n  {'='*75}\n")
+        n_novel  = len(novel_bounds)
+        n_tight  = sum(1 for gn,(b,*_) in novel_bounds.items()
+                       if abs(b - compute_lp_lower_bound(
+                           *next((i.nodes,i.edges,i.sessions)
+                                 for i in all_infos if i.name==gn))) < 1e-6)
+        f.write(f"  Novel bounds found: {n_novel} / {len(all_infos)} graphs\n")
+        f.write(f"  Tight (= LP lower bound): {n_tight}\n\n")
+
+        # --- Full inequality traces ---
         if novel_bounds:
-            f.write("NOVEL INEQUALITIES FOUND:\n")
+            f.write("=" * 80 + "\n")
+            f.write("NOVEL INEQUALITIES (full traces)\n")
+            f.write("=" * 80 + "\n")
             for gn, (b, part, w, trace) in sorted(novel_bounds.items()):
-                f.write(f"  {gn}: r <= {b:.6f}\n")
-                f.write(f"  Trace: {trace[:300].encode('ascii', 'replace').decode()}\n\n")
+                pb2 = _compute_partition_bound(
+                    *next((i.nodes,i.edges,i.sessions) for i in all_infos if i.name==gn))
+                f.write(f"\n  Graph:      {gn}\n")
+                f.write(f"  RL Bound:   r <= {b:.6f}\n")
+                f.write(f"  PB:         r <= {pb2:.6f}\n")
+                f.write(f"  Improvement:{(pb2-b)/pb2*100:.3f}%\n")
+                f.write(f"  Inequality: {trace[:400].encode('ascii','replace').decode()}\n")
         else:
-            f.write("No super-PB bounds found in this run.\n")
-            f.write("Increase stage4_episodes or check CROSS_SUBMOD usage.\n")
+            f.write("No novel bounds found in this run.\n")
+
     print("Summary saved to training_summary.txt")
     # --- Auto-generate plots ---
     print("\n--- Generating plots ---")
