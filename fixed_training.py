@@ -692,16 +692,26 @@ def run_stage3(phase1_policy, phase2_policy,
 
     log_interval = 100
     # Issue 1 fix (Stage 3): Stage 3 stopped at episode 8258 because the
-    # stopper fired while the joint reward was still trending upward.
-    # best_partitions handed to Stage 4 were therefore suboptimal for several
-    # graphs, raising the PB baseline Stage 4 must beat.
-    # Increase min_episodes=8000 and patience=5000 so Stage 3 only stops
-    # once the joint reward has genuinely plateaued.
-    stopper = EarlyStopper(patience=5000, min_episodes=8000)
+    # Stage 3 stopped at exactly ep 8000 (the min_episodes floor) last run,
+    # meaning it was still learning — best_partitions for two_k4/petersen
+    # were suboptimal and caused Stage 4 regressions.
+    # Fix: increase min_episodes=12000 and patience=6000, AND add a secondary
+    # reward-plateau condition: don't stop until avg_reward > -1.0 has been
+    # sustained for 1000 consecutive episodes. This ensures Stage 3 only exits
+    # once the joint policy has genuinely converged, not just hit the floor.
+    _S3_REWARD_PLATEAU_THRESHOLD = -1.0
+    _S3_REWARD_PLATEAU_WINDOW    = 1000
+    stopper = EarlyStopper(patience=6000, min_episodes=12000)
+
+    def _s3_reward_plateaued(rewards_list):
+        """True if avg reward has been above threshold for plateau window."""
+        if len(rewards_list) < _S3_REWARD_PLATEAU_WINDOW:
+            return False
+        return _safe_mean(rewards_list[-_S3_REWARD_PLATEAU_WINDOW:]) > _S3_REWARD_PLATEAU_THRESHOLD
 
     for episode in range(num_episodes):
-        if stopper.should_stop(episode):
-            print(f"\n  Early stopping at episode {episode}")
+        if stopper.should_stop(episode) and _s3_reward_plateaued(rewards):
+            print(f"\n  Early stopping at episode {episode} (reward plateaued above {_S3_REWARD_PLATEAU_THRESHOLD})")
             break
 
         env.reset()
@@ -1355,8 +1365,8 @@ if __name__ == "__main__":
      train_metrics, novel_bounds, best_partitions) = train(
         stage1_episodes=15000,   # Phase 2 proof calculus  — Tier 1 graphs (5)
         stage2_episodes=15000,   # Phase 1 partition learn — Tier 1 graphs (5)
-        stage3_episodes=15000,   # Joint fine-tuning       — Tier 1+2 graphs (10)
-        stage4_episodes=15000,   # Phase 3 fractional IO   — All graphs (11)
+        stage3_episodes=20000,   # Joint fine-tuning       — Tier 1+2 graphs (10) — increased from 15k
+        stage4_episodes=25000,   # Phase 3 fractional IO   — All graphs (12) — increased from 15k
         graph_dataset_size=5
     )
     eval_results = evaluate(
