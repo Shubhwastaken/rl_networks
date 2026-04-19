@@ -403,9 +403,12 @@ class FractionalInequality(Inequality):
         result = FractionalInequality(self.index)
         result.coeffs = base.coeffs
         result.active_st_partitions = base.active_st_partitions
+        # Merge source nodes and partition ids from both operands
         result.source_nodes  = self.source_nodes  + getattr(other, 'source_nodes',  [])
         result.partition_ids = self.partition_ids + getattr(other, 'partition_ids', [])
-        result.lam = self.lam
+        # Combined lam: average of both (tracks that both contributed)
+        other_lam = getattr(other, 'lam', 1.0)
+        result.lam = (self.lam + other_lam) / 2.0
         return result
 
     def scale(self, lam: float) -> "FractionalInequality":
@@ -426,9 +429,25 @@ class FractionalInequality(Inequality):
         """True when λ ∉ ℤ — the hallmark of an inequality outside the PB family."""
         return abs(self.lam - round(self.lam)) > 1e-6
 
+    def has_fractional_coefficients(self) -> bool:
+        """True if any coefficient in the inequality is non-integer."""
+        import numpy as np
+        return any(abs(c - round(c)) > 1e-6 for c in self.coeffs if abs(c) > 1e-9)
+
+    def proof_type(self) -> str:
+        """
+        Classify the proof path used to derive this inequality:
+        - FRACTIONAL: has fractional coefficients — fractional IO was used
+        - INTEGER:    all coefficients are integers — classical partition path
+        """
+        return "FRACTIONAL" if self.has_fractional_coefficients() else "INTEGER"
+
     def __repr__(self) -> str:
         base = Inequality.__repr__(self)
-        tag  = f"[λ={self.lam:.4f} src={self.source_nodes} parts={self.partition_ids}]"
+        src_str   = self.source_nodes  if self.source_nodes  else "none"
+        parts_str = list(set(self.partition_ids)) if self.partition_ids else "none"
+        proof     = self.proof_type()
+        tag = f"[proof={proof} λ={self.lam:.4f} src={src_str} parts={parts_str}]"
         return f"{tag}  {base}"
 
 

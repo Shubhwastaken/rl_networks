@@ -1139,7 +1139,7 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
                     print(f"     {gn}: {b:.6f} < PB={pb2:.6f} "
                           f"(improvement={(pb2-b)/pb2*100:.2f}%)")
                     if trace != "N/A":
-                        print(f"     Trace: {trace[:200].encode('ascii', 'replace').decode()}")
+                        print(f"     Trace: {trace[:200]}")
 
     # Final summary
     print(f"\n{'='*70}")
@@ -1158,7 +1158,7 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
             print(f"  Partition bound: r <= {pb2:.6f}")
             print(f"  Improvement: {(pb2-b)/pb2*100:.3f}%")
             print(f"  Partition used: {_partition_str(part, ss if 'ss' in locals() else [])}")
-            print(f"  Inequality: {trace[:400].encode('ascii', 'replace').decode()}")
+            print(f"  Inequality: {trace[:400]}")
     else:
         print("\n  No super-PB bounds found in Stage 4.")
         print("  This does not mean none exist — increase num_episodes")
@@ -1476,7 +1476,7 @@ if __name__ == "__main__":
                 f.write(f"  RL Bound:   r <= {b:.6f}\n")
                 f.write(f"  PB:         r <= {pb2:.6f}\n")
                 f.write(f"  Improvement:{(pb2-b)/pb2*100:.3f}%\n")
-                f.write(f"  Inequality: {trace.encode('ascii','replace').decode()}\n")
+                f.write(f"  Inequality: {trace}\n")
         else:
             f.write("No novel bounds found in this run.\n")
 
