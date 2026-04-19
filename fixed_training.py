@@ -1429,13 +1429,15 @@ if __name__ == "__main__":
         # Collect all graphs from Stage 4 dataset
         from fixed_graph_generation import get_all_graph_infos, identify_graph
         from lp_lower_bound import compute_lp_lower_bound
-        from fixed_environment import _compute_partition_bound
+        # Use info.optimal_bound — exhaustive search from registry, NOT
+        # _compute_partition_bound which uses greedy and returns wrong values
+        # e.g. paper_7N: greedy returns 2.0, exhaustive correct answer is 1.667
 
         all_infos = get_all_graph_infos()
         for info in all_infos:
             gn = info.name
             nodes, edges, sessions = info.nodes, info.edges, info.sessions
-            pb  = _compute_partition_bound(nodes, edges, sessions)
+            pb  = info.optimal_bound   # exhaustive search, not greedy
             lp  = compute_lp_lower_bound(nodes, edges, sessions)
 
             if gn in novel_bounds:
@@ -1469,8 +1471,7 @@ if __name__ == "__main__":
             f.write("NOVEL INEQUALITIES (full traces)\n")
             f.write("=" * 80 + "\n")
             for gn, (b, part, w, trace) in sorted(novel_bounds.items()):
-                pb2 = _compute_partition_bound(
-                    *next((i.nodes,i.edges,i.sessions) for i in all_infos if i.name==gn))
+                pb2 = next(i.optimal_bound for i in all_infos if i.name==gn)
                 f.write(f"\n  Graph:      {gn}\n")
                 f.write(f"  RL Bound:   r <= {b:.6f}\n")
                 f.write(f"  PB:         r <= {pb2:.6f}\n")
