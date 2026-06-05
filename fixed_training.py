@@ -35,6 +35,7 @@ import numpy as np
 from collections import defaultdict
 from rl_functional_dep_integration import apply_all_improving_func_dep
 from lp_lower_bound import compute_lp_lower_bound, validate_bound_against_lp
+from stage4_proof_logger import Stage4ProofLogger, generate_proof_document
 import json, time
 
 SEED = 42
@@ -896,6 +897,16 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         print(f"    {gname:<16}: PB={pb:.4f}  LP_LB={lb:.4f}  gap={pb-lb:.4f}")
     print()
 
+    # ---- Stage 4 Proof Logger ----
+    # Logs every Phase 3 agent action and resulting inequality state.
+    # Only novel episodes (bound < PB) get full step traces saved to JSON.
+    # No changes to env, policies, or math — pure observation layer.
+    proof_logger = Stage4ProofLogger(
+        output_path = "stage4_proof_log.json",
+        verbose     = True,   # print proof summary to stdout when novel bound found
+        only_novel  = True,   # only store full step traces for novel episodes
+    )
+
     for episode in range(num_episodes):
         if stopper.should_stop(episode):
             print(f"\n  Early stopping at episode {episode}")
@@ -959,6 +970,10 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         env._start_phase3(preseed=False)
         env.internal_per_part = env.internal_per_part or []
 
+        # Begin logging this episode — called after phase3 is initialised
+        # so the logger has access to the complete env state (index, pool, etc.)
+        proof_logger.begin_episode(graph_name, episode, partition, env)
+
         state = env._get_state()
         state['nodes']             = nodes
         state['edges']             = edges
@@ -986,7 +1001,9 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
             if action['type'] == ActionType.CROSS_SUBMOD:
                 used_cross = True
 
-            state, reward, done = env.step(action)
+            # logger.step wraps env.step — logs before/after state, then
+            # calls the real env.step unchanged. Returns identical (state, reward, done).
+            state, reward, done = proof_logger.step(env, action)
             state['nodes']             = nodes
             state['edges']             = edges
             state['sessions']          = sessions
@@ -1049,6 +1066,11 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         _lp_floor_s4 = lp_bounds.get(graph_name, 0.0)
         if best_b < _lp_floor_s4 - 1e-9:
             best_b = pb   # invalid — discard, use PB as conservative fallback
+
+        # Close the episode log — records summary and (for novel episodes)
+        # the terminal inequality detail. Called after LP clamp so the
+        # logged best_b is always the valid, final value.
+        proof_logger.end_episode(best_b, pb)
 
         metrics['rewards'].append(total_reward)
         metrics['bounds'].append(best_b if best_b < 1e9 else -1)
@@ -1140,6 +1162,21 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
                           f"(improvement={(pb2-b)/pb2*100:.2f}%)")
                     if trace != "N/A":
                         print(f"     Trace: {trace[:200]}")
+
+    # Write all logged episodes to JSON and generate per-graph proof documents
+    proof_logger.flush()
+    if novel_bounds:
+        print("\n  Generating proof documents from action log...")
+        for gn in sorted(novel_bounds.keys()):
+            try:
+                doc_path = f"proof_{gn}.txt"
+                generate_proof_document(
+                    log_path   = "stage4_proof_log.json",
+                    graph_name = gn,
+                    out_path   = doc_path,
+                )
+            except Exception as e:
+                print(f"  [warn] Could not generate proof doc for {gn}: {e}")
 
     # Final summary
     print(f"\n{'='*70}")
