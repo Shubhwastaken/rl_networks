@@ -114,58 +114,35 @@ LAMBDA_GRID = [0.25, 0.33, 0.40, 0.50, 0.60, 0.67, 0.75]
 # ---------------------------------------------------------------------------
 
 def _compute_partition_bound(nodes, edges, sessions) -> float:
-    """Returns the tightest partition bound for this graph."""
-    from itertools import combinations as _comb
-    adj = {n: set() for n in nodes}
-    for u, v in edges:
-        adj[u].add(v); adj[v].add(u)
+    """Returns the tightest partition bound for this graph.
 
-    def _sessions_within(S):
-        Ss = set(S)
-        return sum(1 for s, t in sessions if s in Ss and t in Ss)
+    Delegates to compute_optimal_bound from fixed_graph_generation, which
+    uses exhaustive k-coloring (k<=4 for n<=10, k<=3 for n<=14) plus
+    exhaustive 2-partition search and greedy colorings.  This is strictly
+    more thorough than the old local implementation, which only tried
+    greedy colorings + exhaustive 2-partitions and therefore missed optimal
+    partitions with 3 or 4 groups (e.g. paper_7N: 4-group opt PB=1.667
+    was missed, returning 2.000 instead).
 
-    def _cut_edges(partition):
-        part_of = {}
-        for k, Pk in enumerate(partition):
-            for nd in Pk: part_of[nd] = k
-        return sum(1 for u, v in edges if part_of[u] != part_of[v])
+    The 6 affected graphs and their correct PBs:
+      paper_7N            2.000 → 1.667  (4-group partition)
+      grid_3x4_12N        5.667 → 2.833  (3-group partition)
+      petersen_10N        2.143 → 1.875  (3-group partition)
+      two_k4_10N          3.200 → 2.667  (4-group partition)
+      al_bashabsheh_7N    2.400 → 2.000  (4-group partition)
+      kramer_savari_ladder_8N  4.000 → 2.000  (3-group partition)
 
-    def _eval(partition):
-        for Pk in partition:
-            if any(adj[u] & (set(Pk) - {u}) for u in Pk):
-                return float('inf')
-        intra = sum(_sessions_within(Pk) for Pk in partition)
-        cut   = _cut_edges(partition)
-        denom = len(sessions) + intra
-        return cut / denom if denom > 0 else float('inf')
-
-    best = len(edges) / max(len(sessions), 1)
-
-    # Greedy colorings
-    import networkx as nx
-    G = nx.Graph(); G.add_nodes_from(nodes); G.add_edges_from(edges)
-    from collections import defaultdict
-    for strat in ['largest_first', 'smallest_last', 'DSATUR']:
-        try:
-            col = nx.coloring.greedy_color(G, strategy=strat)
-            groups = defaultdict(list)
-            for nd, c in col.items(): groups[c].append(nd)
-            best = min(best, _eval(list(groups.values())))
-        except Exception:
-            pass
-
-    # Exhaustive 2-partitions for small graphs
-    if len(nodes) <= 14:
-        V = list(nodes); n = len(V)
-        for mask in range(1, 1 << (n-1)):
-            S = [V[i] for i in range(n) if mask & (1 << i)]
-            T = [V[i] for i in range(n) if not (mask & (1 << i))]
-            if S and T:
-                best = min(best, _eval([S, T]))
-
-    # Singleton partition (always valid)
-    best = min(best, _eval([[v] for v in nodes]))
-    return best
+    Using the wrong (inflated) PB as the agent's baseline in Stage 4 meant:
+      - env.partition_bound was set too high
+      - The agent received reward=1.0 for merely matching an inflated baseline
+      - Genuinely novel bounds below true PB but above inflated PB were
+        never flagged as novel
+      - _find_optimal_partition also returned the inflated partition, so
+        the wrong starting point was used for Phase 3 exploration
+    """
+    from fixed_graph_generation import compute_optimal_bound
+    best_bound, _, _ = compute_optimal_bound(nodes, edges, sessions)
+    return best_bound
 
 
 # ---------------------------------------------------------------------------
