@@ -1072,6 +1072,11 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         # logged best_b is always the valid, final value.
         proof_logger.end_episode(best_b, pb)
 
+        # Flush every 200 episodes — protects against crash at end of training.
+        # Only novel episodes have step traces in memory so this is cheap.
+        if episode % 200 == 0 and episode > 0:
+            proof_logger.flush()
+
         metrics['rewards'].append(total_reward)
         metrics['bounds'].append(best_b if best_b < 1e9 else -1)
         metrics['graph_names'].append(graph_name)
@@ -1406,6 +1411,12 @@ if __name__ == "__main__":
         stage4_episodes=35000,   # Phase 3 fractional IO   — All graphs (16) — increased from 15k
         graph_dataset_size=5
     )
+    # Free GPU memory accumulated during training before running evaluation.
+    # Training fills ~14.5 GiB; without this, evaluate() OOMs immediately.
+    import torch
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
     eval_results = evaluate(
         phase1_policy, phase2_policy, phase3_policy,
         best_partitions=best_partitions,

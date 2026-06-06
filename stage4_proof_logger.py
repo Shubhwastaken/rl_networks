@@ -339,14 +339,22 @@ class Stage4ProofLogger:
             self._prev_best_b = new_best_b
 
         # ---- build step record ----
+        def _to_python(v):
+            """Convert numpy scalars to plain Python types."""
+            import numpy as np
+            if isinstance(v, np.bool_):    return bool(v)
+            if isinstance(v, np.integer):  return int(v)
+            if isinstance(v, np.floating): return float(v)
+            if isinstance(v, np.ndarray):  return v.tolist()
+            return v
+
         step_record = {
             "step":         len(self._current["steps"]) + 1,
             "action_type":  aname,
-            "action_raw":   {k: (v if not hasattr(v, 'item') else float(v))
-                             for k, v in action.items()},
+            "action_raw":   {k: _to_python(v) for k, v in action.items()},
             "reward":       round(float(reward), 6),
             "done":         bool(done),
-            "pool_improved": improved,
+            "pool_improved": bool(improved),
             "pre_accumulator":  pre_acc,
             "pre_pool":         pre_pool,
             "post_pool":        post_pool,
@@ -418,7 +426,10 @@ class Stage4ProofLogger:
 
         # Only keep full step trace for novel episodes (saves memory)
         if self.only_novel and not is_novel:
-            self._current["steps"] = []
+            # Don't store non-novel episodes at all — at 10k episodes this
+            # accumulates significant memory for zero proof value.
+            self._current = None
+            return
 
         self._episodes.append(self._current)
         self._current = None
@@ -429,8 +440,23 @@ class Stage4ProofLogger:
 
     def flush(self) -> None:
         """Write all logged episodes to the output JSON file."""
+        import numpy as np
+
+        class _SafeEncoder(json.JSONEncoder):
+            """Handles numpy scalars that standard json can't serialize."""
+            def default(self, o):
+                if isinstance(o, (np.bool_,)):
+                    return bool(o)
+                if isinstance(o, (np.integer,)):
+                    return int(o)
+                if isinstance(o, (np.floating,)):
+                    return float(o)
+                if isinstance(o, np.ndarray):
+                    return o.tolist()
+                return super().default(o)
+
         with open(self.output_path, "w") as f:
-            json.dump(self._episodes, f, indent=2)
+            json.dump(self._episodes, f, indent=2, cls=_SafeEncoder)
         print(f"\n[Stage4ProofLogger] Written {len(self._episodes)} episodes "
               f"to {self.output_path}")
         novel = sum(1 for ep in self._episodes if ep["summary"].get("is_novel"))

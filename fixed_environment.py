@@ -928,9 +928,20 @@ class PartitionBoundEnv:
         Extract the best bound from the fractional pool.
 
         Reward design (Phase 3 only):
+          bound < lp_lower_bound  → heavy penalty (mathematically impossible)
           bound < partition_bound → POSITIVE: 5 + 20*(PB-bound)/PB
           bound = partition_bound → 1.0  (matched, no improvement)
           bound > partition_bound → negative, proportional to gap
+
+        LP floor guard: _lp_lower_bound is set by run_stage4() on the env
+        before each episode.  If not set (Stage 1-3 episodes), the guard
+        is skipped via the getattr default of 0.0.  A sub-LP bound is
+        mathematically impossible (it would violate the max-flow lower
+        bound), so we penalise it identically to finding no terminal form
+        at all.  This prevents the agent from learning to chase sub-LP
+        results that produce large positive rewards but are later discarded
+        by the post-hoc clamp in run_stage4(), which creates a silent
+        reward poisoning problem.
         """
         pb = self.partition_bound
         best_bound = self.frac_pool.best_bound(
@@ -939,6 +950,15 @@ class PartitionBoundEnv:
         if best_bound == float('inf'):
             # No terminal form found — heavy penalty
             return self._get_state(), -pb, True
+
+        # ── LP floor guard ───────────────────────────────────────────────────
+        # A bound below the LP lower bound is mathematically invalid.
+        # Penalise it as heavily as finding no terminal form so the agent
+        # never learns to reproduce the action sequences that cause it.
+        lp_lb = getattr(self, '_lp_lower_bound', 0.0)
+        if lp_lb > 0.0 and best_bound < lp_lb - 1e-9:
+            return self._get_state(), -pb, True
+        # ─────────────────────────────────────────────────────────────────────
 
         if best_bound < pb - 1e-8:
             # BEAT THE PARTITION BOUND
