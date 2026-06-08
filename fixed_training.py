@@ -275,18 +275,68 @@ def _greedy_session_partition(nodes, edges, sessions):
 
 def _find_optimal_partition(nodes, edges, sessions):
     """
-    Returns the partition that achieves the true optimal partition bound.
-
-    Previously this replicated _compute_partition_bound's limited search
-    (greedy colorings + exhaustive 2-partition), which missed 3- and 4-group
-    optimal partitions for 6 graphs.  Now delegates to compute_optimal_bound
-    which does exhaustive k-coloring (k<=4 for n<=10, k<=3 for n<=14) and
-    is guaranteed to match the registry's optimal_bound.
-
-    Returns None only if the trivial partition is already optimal.
+    Returns the partition that achieves _compute_partition_bound.
+    Same enumeration logic as _compute_partition_bound (in fixed_environment)
+    but also returns the winning partition, not just the bound value.
+    Returns None if no partition beats the trivial bound (shouldn't happen).
     """
-    from fixed_graph_generation import compute_optimal_bound
-    _, _, best_part = compute_optimal_bound(nodes, edges, sessions)
+    import networkx as nx
+    from collections import defaultdict as _dd
+
+    adj = {n: set() for n in nodes}
+    for u, v in edges:
+        adj[u].add(v); adj[v].add(u)
+
+    def _sessions_within(S):
+        Ss = set(S)
+        return sum(1 for s, t in sessions if s in Ss and t in Ss)
+
+    def _cut_edges(partition):
+        part_of = {}
+        for k, Pk in enumerate(partition):
+            for nd in Pk: part_of[nd] = k
+        return sum(1 for u, v in edges if part_of[u] != part_of[v])
+
+    def _eval(partition):
+        for Pk in partition:
+            if any(adj[u] & (set(Pk) - {u}) for u in Pk):
+                return float('inf')
+        intra = sum(_sessions_within(Pk) for Pk in partition)
+        cut   = _cut_edges(partition)
+        denom = len(sessions) + intra
+        return cut / denom if denom > 0 else float('inf')
+
+    best_val  = len(edges) / max(len(sessions), 1)
+    best_part = None
+
+    G = nx.Graph(); G.add_nodes_from(nodes); G.add_edges_from(edges)
+    for strat in ['largest_first', 'smallest_last', 'DSATUR']:
+        try:
+            col    = nx.coloring.greedy_color(G, strategy=strat)
+            groups = _dd(list)
+            for nd, c in col.items(): groups[c].append(nd)
+            part = list(groups.values())
+            val  = _eval(part)
+            if val < best_val - 1e-9:
+                best_val = val; best_part = part
+        except Exception:
+            pass
+
+    if len(nodes) <= 14:
+        V = list(nodes); n = len(V)
+        for mask in range(1, 1 << (n - 1)):
+            S = [V[i] for i in range(n) if mask & (1 << i)]
+            T = [V[i] for i in range(n) if not (mask & (1 << i))]
+            if S and T:
+                val = _eval([S, T])
+                if val < best_val - 1e-9:
+                    best_val = val; best_part = [S, T]
+
+    singleton = [[v] for v in nodes]
+    val = _eval(singleton)
+    if val < best_val - 1e-9:
+        best_part = singleton
+
     return best_part
 
 
@@ -652,7 +702,7 @@ def run_stage3(phase1_policy, phase2_policy,
     # once the joint policy has genuinely converged, not just hit the floor.
     _S3_REWARD_PLATEAU_THRESHOLD = -1.0
     _S3_REWARD_PLATEAU_WINDOW    = 1000
-    stopper = EarlyStopper(patience=6000, min_episodes=12000)
+    stopper = EarlyStopper(patience=6000, min_episodes=8000)
 
     def _s3_reward_plateaued(rewards_list):
         """True if avg reward has been above threshold for plateau window."""
@@ -1194,16 +1244,32 @@ def train(stage1_episodes=10000, stage2_episodes=10000,
     Stage 3 automatically uses size=10, Stage 4 uses size=12.
     """
     phase2_policy, coeff_dim, s1 = run_stage1(stage1_episodes, graph_dataset_size)
+    torch.save(phase2_policy.state_dict(), "ckpt_stage1_phase2.pt")
+    print("[checkpoint] Stage 1 saved -> ckpt_stage1_phase2.pt")
+
     phase1_policy, s2             = run_stage2(phase2_policy, stage2_episodes, graph_dataset_size)
+    torch.save(phase1_policy.state_dict(), "ckpt_stage2_phase1.pt")
+    torch.save(phase2_policy.state_dict(), "ckpt_stage2_phase2.pt")
+    print("[checkpoint] Stage 2 saved -> ckpt_stage2_phase1.pt, ckpt_stage2_phase2.pt")
+
     phase1_policy, phase2_policy, s3, best_partitions = run_stage3(
         phase1_policy, phase2_policy, stage3_episodes,
         graph_dataset_size=min(13, graph_dataset_size*3)
     )
+    torch.save(phase1_policy.state_dict(), "ckpt_stage3_phase1.pt")
+    torch.save(phase2_policy.state_dict(), "ckpt_stage3_phase2.pt")
+    import json as _json
+    with open("ckpt_stage3_best_partitions.json", "w") as _f:
+        _json.dump({k: [list(p) for p in v] for k, v in best_partitions.items()}, _f)
+    print("[checkpoint] Stage 3 saved -> ckpt_stage3_phase1.pt, ckpt_stage3_phase2.pt, ckpt_stage3_best_partitions.json")
+
     phase3_policy, s4, novel_bounds = run_stage4(
         phase1_policy, phase2_policy, best_partitions,
         coeff_dim, stage4_episodes,
         graph_dataset_size=min(16, graph_dataset_size*4)
     )
+    torch.save(phase3_policy.state_dict(), "ckpt_stage4_phase3.pt")
+    print("[checkpoint] Stage 4 saved -> ckpt_stage4_phase3.pt")
     return (phase1_policy, phase2_policy, phase3_policy,
             {'stage1': s1, 'stage2': s2, 'stage3': s3, 'stage4': s4},
             novel_bounds, best_partitions)
@@ -1355,10 +1421,10 @@ if __name__ == "__main__":
     t0 = time.time()
     (phase1_policy, phase2_policy, phase3_policy,
      train_metrics, novel_bounds, best_partitions) = train(
-        stage1_episodes=15000,   # Phase 2 proof calculus  — Tier 1 graphs (5)
+        stage1_episodes=10000,   # Phase 2 proof calculus  — Tier 1 graphs (5)
         stage2_episodes=15000,   # Phase 1 partition learn — Tier 1 graphs (5)
-        stage3_episodes=20000,   # Joint fine-tuning       — Tier 1+2 graphs (10) — increased from 15k
-        stage4_episodes=35000,   # Phase 3 fractional IO   — All graphs (16) — increased from 15k
+        stage3_episodes=17500,   # Joint fine-tuning       — Tier 1+2 graphs (10)
+        stage4_episodes=15000,   # Phase 3 fractional IO   — All graphs (16)
         graph_dataset_size=5
     )
     # Free GPU memory accumulated during training before running evaluation.
