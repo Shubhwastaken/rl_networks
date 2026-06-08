@@ -32,6 +32,7 @@ Linkage mechanism:
 
 import random
 import numpy as np
+import torch
 from collections import defaultdict
 from rl_functional_dep_integration import apply_all_improving_func_dep
 from lp_lower_bound import compute_lp_lower_bound, validate_bound_against_lp
@@ -376,7 +377,7 @@ def run_stage1(num_episodes=10000, graph_dataset_size=5):  # Tier 1 only
     metrics   = {'rewards':[], 'bounds':[], 'graph_names':[],
                  'step_counts':[], 'action_counts_per_ep':[]}
 
-    log_interval = 100
+    log_interval = 500
     # Stage 1 needs more patience than the default: Phase 2 must learn the
     # full ADD → CROSS_SUBMOD → STORE → DECLARE grammar, not just the ADD-heavy
     # shortcut.  The previous patience=2000/min_episodes=3000 fired exactly at
@@ -494,7 +495,7 @@ def run_stage2(phase2_policy, num_episodes=10000, graph_dataset_size=5):
     metrics   = {'rewards':[], 'internals':[], 'graph_names':[],
                  'optimal_int_found':[], 'partition_weights':[]}
 
-    log_interval = 100
+    log_interval = 500
 
     # Issue 1 fix: replace global windowed-reward EarlyStopper with a
     # per-graph opt_rate stopper.  The old stopper used a global average
@@ -691,7 +692,7 @@ def run_stage3(phase1_policy, phase2_policy,
             lp_bounds[gn] = compute_lp_lower_bound(nodes_g, edges_g, sessions_g)
     print(f"  LP lower bounds: {lp_bounds}")
 
-    log_interval = 100
+    log_interval = 500
     # Issue 1 fix (Stage 3): Stage 3 stopped at episode 8258 because the
     # Stage 3 stopped at exactly ep 8000 (the min_episodes floor) last run,
     # meaning it was still learning — best_partitions for two_k4/petersen
@@ -1423,7 +1424,7 @@ if __name__ == "__main__":
      train_metrics, novel_bounds, best_partitions) = train(
         stage1_episodes=10000,   # Phase 2 proof calculus  — Tier 1 graphs (5)
         stage2_episodes=15000,   # Phase 1 partition learn — Tier 1 graphs (5)
-        stage3_episodes=17500,   # Joint fine-tuning       — Tier 1+2 graphs (10)
+        stage3_episodes=15000,   # Joint fine-tuning       — Tier 1+2 graphs (10)
         stage4_episodes=15000,   # Phase 3 fractional IO   — All graphs (16)
         graph_dataset_size=5
     )
