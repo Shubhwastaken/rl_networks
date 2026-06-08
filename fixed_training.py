@@ -30,6 +30,7 @@ Linkage mechanism:
   its exploration budget on the fractional combination step.
 """
 
+import os
 import random
 import numpy as np
 import torch
@@ -372,6 +373,18 @@ def run_stage1(num_episodes=10000, graph_dataset_size=5):  # Tier 1 only
                                     total_episodes=num_episodes)
     phase2_policy.unfreeze()
 
+    # Resume from latest periodic checkpoint if available
+    _resume_ep = 0
+    if os.path.exists("ckpt_stage1_phase2_latest.pt") and os.path.exists("ckpt_stage1_meta.pt"):
+        _meta = torch.load("ckpt_stage1_meta.pt", weights_only=True)
+        if _meta.get("coeff_dim", coeff_dim) == coeff_dim:
+            phase2_policy.net.load_state_dict(
+                torch.load("ckpt_stage1_phase2_latest.pt", weights_only=True))
+            _resume_ep = _meta["episode"]
+            print(f"  [resume] Stage 1 resuming from episode {_resume_ep}")
+        else:
+            print(f"  [resume] coeff_dim mismatch — starting Stage 1 from scratch")
+
     rewards   = []
     per_graph = defaultdict(list)
     metrics   = {'rewards':[], 'bounds':[], 'graph_names':[],
@@ -388,7 +401,7 @@ def run_stage1(num_episodes=10000, graph_dataset_size=5):  # Tier 1 only
     print(f"\n  {'Ep':>6} | {'Graph':<16} | {'AvgRew':>8} | {'BestBnd':>8} | Actions")
     print(f"  {'-'*75}")
 
-    for episode in range(num_episodes):
+    for episode in range(_resume_ep, num_episodes):
         if stopper.should_stop(episode):
             print(f"\n  Early stopping at episode {episode}")
             break
@@ -464,6 +477,10 @@ def run_stage1(num_episodes=10000, graph_dataset_size=5):  # Tier 1 only
             bst = abs(min(rewards[-n:]))
             print(f"  {episode+1:>6} | {graph_name:<16} | "
                   f"{avg:>8.4f} | {bst:>8.4f} | {_action_summary(action_counts)}")
+            # Periodic checkpoint — survives mid-stage crashes
+            torch.save(phase2_policy.net.state_dict(), "ckpt_stage1_phase2_latest.pt")
+            torch.save({"episode": episode + 1, "coeff_dim": coeff_dim},
+                       "ckpt_stage1_meta.pt")
 
     print(f"\n  Per-graph bounds (Stage 1):")
     for gname in sorted(per_graph.keys()):
@@ -488,6 +505,19 @@ def run_stage2(phase2_policy, num_episodes=10000, graph_dataset_size=5):
     phase2_policy.freeze()
     env  = PartitionBoundEnv(graph_dataset_size=graph_dataset_size, stage=2)
     phase1_policy = GNNPhase1Policy(total_episodes=num_episodes)
+
+    # Resume from latest periodic checkpoint if available
+    _resume_ep_s2 = 0
+    if (os.path.exists("ckpt_stage2_phase1_latest.pt") and
+            os.path.exists("ckpt_stage2_phase2_latest.pt") and
+            os.path.exists("ckpt_stage2_meta.pt")):
+        phase1_policy.net.load_state_dict(
+            torch.load("ckpt_stage2_phase1_latest.pt", weights_only=True))
+        phase2_policy.net.load_state_dict(
+            torch.load("ckpt_stage2_phase2_latest.pt", weights_only=True))
+        _meta_s2 = torch.load("ckpt_stage2_meta.pt", weights_only=True)
+        _resume_ep_s2 = _meta_s2["episode"]
+        print(f"  [resume] Stage 2 resuming from episode {_resume_ep_s2}")
 
     rewards   = []
     internals = []
@@ -534,7 +564,7 @@ def run_stage2(phase2_policy, num_episodes=10000, graph_dataset_size=5):
     print(f"\n  {'Ep':>6} | {'Graph':<16} | {'AvgRew':>8} | {'Int':>3} | P1 Actions")
     print(f"  {'-'*70}")
 
-    for episode in range(num_episodes):
+    for episode in range(_resume_ep_s2, num_episodes):
         if stopper.should_stop(episode, all_graph_names_seen):
             print(f"\n  Early stopping at episode {episode}")
             break
@@ -611,6 +641,10 @@ def run_stage2(phase2_policy, num_episodes=10000, graph_dataset_size=5):
             avgi = np.mean(internals[-n:])
             print(f"  {episode+1:>6} | {graph_name:<16} | "
                   f"{avg:>8.4f} | {avgi:>3.1f} | {_action_summary(p1_action_counts)}")
+            # Periodic checkpoint
+            torch.save(phase1_policy.net.state_dict(), "ckpt_stage2_phase1_latest.pt")
+            torch.save(phase2_policy.net.state_dict(), "ckpt_stage2_phase2_latest.pt")
+            torch.save({"episode": episode + 1}, "ckpt_stage2_meta.pt")
 
     print(f"\n  Per-graph Phase 1 (Stage 2):")
     for gname in sorted(per_graph.keys()):
@@ -675,13 +709,35 @@ def run_stage3(phase1_policy, phase2_policy,
 
     env = PartitionBoundEnv(graph_dataset_size=graph_dataset_size, stage=3)
 
+    # Resume from latest periodic checkpoint if available
+    _resume_ep_s3 = 0
+    if (os.path.exists("ckpt_stage3_phase1_latest.pt") and
+            os.path.exists("ckpt_stage3_phase2_latest.pt") and
+            os.path.exists("ckpt_stage3_meta.pt")):
+        phase1_policy.net.load_state_dict(
+            torch.load("ckpt_stage3_phase1_latest.pt", weights_only=True))
+        phase2_policy.net.load_state_dict(
+            torch.load("ckpt_stage3_phase2_latest.pt", weights_only=True))
+        _meta_s3 = torch.load("ckpt_stage3_meta.pt", weights_only=True)
+        _resume_ep_s3 = _meta_s3["episode"]
+        print(f"  [resume] Stage 3 resuming from episode {_resume_ep_s3}")
+
     rewards   = []
     per_graph = defaultdict(list)
     metrics   = {'rewards':[], 'bounds':[], 'graph_names':[],
                  'best_partitions':{}}
 
     # Store best (partition, weights) per graph for Phase 4 handoff
-    best_partitions: dict = {}   # graph_name -> (partition, weights, bound)
+    best_partitions: dict = {}
+    # Restore best_partitions from latest checkpoint if resuming
+    if _resume_ep_s3 > 0 and os.path.exists("ckpt_stage3_best_partitions_latest.json"):
+        with open("ckpt_stage3_best_partitions_latest.json") as _bf:
+            import json as _j
+            _bp_raw = _j.load(_bf)
+        # Stored as lists of lists — restore tuples; weights/bound unknown so use defaults
+        best_partitions = {k: ([list(p) for p in v], {}, float('inf'))
+                           for k, v in _bp_raw.items()}
+        print(f"  [resume] Restored best_partitions for {list(best_partitions.keys())}")   # graph_name -> (partition, weights, bound)
 
     # Pre-compute LP lower bounds for validation
     lp_bounds = {}
@@ -711,7 +767,7 @@ def run_stage3(phase1_policy, phase2_policy,
             return False
         return _safe_mean(rewards_list[-_S3_REWARD_PLATEAU_WINDOW:]) > _S3_REWARD_PLATEAU_THRESHOLD
 
-    for episode in range(num_episodes):
+    for episode in range(_resume_ep_s3, num_episodes):
         if stopper.should_stop(episode) and _s3_reward_plateaued(rewards):
             print(f"\n  Early stopping at episode {episode} (reward plateaued above {_S3_REWARD_PLATEAU_THRESHOLD})")
             break
@@ -813,6 +869,13 @@ def run_stage3(phase1_policy, phase2_policy,
             n   = log_interval
             avg = _safe_mean(rewards[-n:])
             print(f"  Ep {episode+1:>6} | {graph_name:<16} | avg={avg:.4f}")
+            # Periodic checkpoint
+            torch.save(phase1_policy.net.state_dict(), "ckpt_stage3_phase1_latest.pt")
+            torch.save(phase2_policy.net.state_dict(), "ckpt_stage3_phase2_latest.pt")
+            _bp_serial = {k: [list(p) for p in v[0]] for k, v in best_partitions.items()}
+            with open("ckpt_stage3_best_partitions_latest.json", "w") as _bf:
+                import json as _j; _j.dump(_bp_serial, _bf)
+            torch.save({"episode": episode + 1}, "ckpt_stage3_meta.pt")
 
     metrics['best_partitions'] = {
         k: {'partition': v[0], 'weights': v[1], 'bound': v[2]}
@@ -871,6 +934,16 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         total_episodes=num_episodes
     )
 
+    # Resume from latest periodic checkpoint if available
+    _resume_ep_s4 = 0
+    if (os.path.exists("ckpt_stage4_phase3_latest.pt") and
+            os.path.exists("ckpt_stage4_meta.pt")):
+        phase3_policy.net.load_state_dict(
+            torch.load("ckpt_stage4_phase3_latest.pt", weights_only=True))
+        _meta_s4 = torch.load("ckpt_stage4_meta.pt", weights_only=True)
+        _resume_ep_s4 = _meta_s4["episode"]
+        print(f"  [resume] Stage 4 resuming from episode {_resume_ep_s4}")
+
     rewards    = []
     per_graph  = defaultdict(list)
     novel_bounds = {}   # graph_name -> (bound, partition, weights, trace)
@@ -908,7 +981,7 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         only_novel  = True,   # only store full step traces for novel episodes
     )
 
-    for episode in range(num_episodes):
+    for episode in range(_resume_ep_s4, num_episodes):
         if stopper.should_stop(episode):
             print(f"\n  Early stopping at episode {episode}")
             break
@@ -1156,6 +1229,9 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
             print(f"  Ep {episode+1:>6} | {graph_name:<16} | "
                   f"avg_r={avg_r:.4f} | novel_rate={100*novel_r:.1f}% | "
                   f"cross_used={100*cross_r:.1f}%")
+            # Periodic checkpoint
+            torch.save(phase3_policy.net.state_dict(), "ckpt_stage4_phase3_latest.pt")
+            torch.save({"episode": episode + 1}, "ckpt_stage4_meta.pt")
 
             if novel_bounds:
                 print(f"  ** NOVEL BOUNDS FOUND **")
@@ -1240,37 +1316,91 @@ def train(stage1_episodes=10000, stage2_episodes=10000,
           stage3_episodes=10000, stage4_episodes=10000,
           graph_dataset_size=5):
     """
-    Run all four stages.
-    graph_dataset_size controls Stage 1+2 (Tier 1 only = 5).
-    Stage 3 automatically uses size=10, Stage 4 uses size=12.
+    Run all four stages with full checkpoint/resume support.
+    - Completed stages are skipped automatically if their final .pt files exist.
+    - Each stage saves a *_latest.pt every log_interval episodes for crash recovery.
+    - graph_dataset_size controls Stage 1+2 (Tier 1 only = 5).
+    - Stage 3 automatically uses size=10, Stage 4 uses size=12.
     """
-    phase2_policy, coeff_dim, s1 = run_stage1(stage1_episodes, graph_dataset_size)
-    torch.save(phase2_policy.state_dict(), "ckpt_stage1_phase2.pt")
-    print("[checkpoint] Stage 1 saved -> ckpt_stage1_phase2.pt")
-
-    phase1_policy, s2             = run_stage2(phase2_policy, stage2_episodes, graph_dataset_size)
-    torch.save(phase1_policy.state_dict(), "ckpt_stage2_phase1.pt")
-    torch.save(phase2_policy.state_dict(), "ckpt_stage2_phase2.pt")
-    print("[checkpoint] Stage 2 saved -> ckpt_stage2_phase1.pt, ckpt_stage2_phase2.pt")
-
-    phase1_policy, phase2_policy, s3, best_partitions = run_stage3(
-        phase1_policy, phase2_policy, stage3_episodes,
-        graph_dataset_size=min(13, graph_dataset_size*3)
-    )
-    torch.save(phase1_policy.state_dict(), "ckpt_stage3_phase1.pt")
-    torch.save(phase2_policy.state_dict(), "ckpt_stage3_phase2.pt")
     import json as _json
-    with open("ckpt_stage3_best_partitions.json", "w") as _f:
-        _json.dump({k: [list(p) for p in v] for k, v in best_partitions.items()}, _f)
-    print("[checkpoint] Stage 3 saved -> ckpt_stage3_phase1.pt, ckpt_stage3_phase2.pt, ckpt_stage3_best_partitions.json")
 
-    phase3_policy, s4, novel_bounds = run_stage4(
-        phase1_policy, phase2_policy, best_partitions,
-        coeff_dim, stage4_episodes,
-        graph_dataset_size=min(16, graph_dataset_size*4)
-    )
-    torch.save(phase3_policy.state_dict(), "ckpt_stage4_phase3.pt")
-    print("[checkpoint] Stage 4 saved -> ckpt_stage4_phase3.pt")
+    # ---- Stage 1 ----
+    _s1_done = (os.path.exists("ckpt_stage1_phase2.pt") and
+                os.path.exists("ckpt_stage1_coeff_dim.pt"))
+    if _s1_done:
+        coeff_dim = torch.load("ckpt_stage1_coeff_dim.pt", weights_only=True)["coeff_dim"]
+        phase2_policy = GNNPhase2Policy(coeff_dim=coeff_dim, total_episodes=stage1_episodes)
+        phase2_policy.net.load_state_dict(
+            torch.load("ckpt_stage1_phase2.pt", weights_only=True))
+        s1 = {}
+        print(f"[skip] Stage 1 already complete (coeff_dim={coeff_dim}), loaded from checkpoint.")
+    else:
+        phase2_policy, coeff_dim, s1 = run_stage1(stage1_episodes, graph_dataset_size)
+        torch.save(phase2_policy.net.state_dict(), "ckpt_stage1_phase2.pt")
+        torch.save({"coeff_dim": coeff_dim}, "ckpt_stage1_coeff_dim.pt")
+        print("[checkpoint] Stage 1 saved -> ckpt_stage1_phase2.pt")
+
+    # ---- Stage 2 ----
+    _s2_done = (os.path.exists("ckpt_stage2_phase1.pt") and
+                os.path.exists("ckpt_stage2_phase2.pt"))
+    if _s2_done:
+        phase1_policy = GNNPhase1Policy(total_episodes=stage2_episodes)
+        phase1_policy.net.load_state_dict(
+            torch.load("ckpt_stage2_phase1.pt", weights_only=True))
+        phase2_policy.net.load_state_dict(
+            torch.load("ckpt_stage2_phase2.pt", weights_only=True))
+        s2 = {}
+        print("[skip] Stage 2 already complete, loaded from checkpoint.")
+    else:
+        phase1_policy, s2 = run_stage2(phase2_policy, stage2_episodes, graph_dataset_size)
+        torch.save(phase1_policy.net.state_dict(), "ckpt_stage2_phase1.pt")
+        torch.save(phase2_policy.net.state_dict(), "ckpt_stage2_phase2.pt")
+        print("[checkpoint] Stage 2 saved -> ckpt_stage2_phase1.pt, ckpt_stage2_phase2.pt")
+
+    # ---- Stage 3 ----
+    _s3_done = (os.path.exists("ckpt_stage3_phase1.pt") and
+                os.path.exists("ckpt_stage3_phase2.pt") and
+                os.path.exists("ckpt_stage3_best_partitions.json"))
+    if _s3_done:
+        phase1_policy.net.load_state_dict(
+            torch.load("ckpt_stage3_phase1.pt", weights_only=True))
+        phase2_policy.net.load_state_dict(
+            torch.load("ckpt_stage3_phase2.pt", weights_only=True))
+        with open("ckpt_stage3_best_partitions.json") as _f:
+            _bp_raw = _json.load(_f)
+        best_partitions = {k: ([list(p) for p in v], {}, float('inf'))
+                           for k, v in _bp_raw.items()}
+        s3 = {}
+        print("[skip] Stage 3 already complete, loaded from checkpoint.")
+    else:
+        phase1_policy, phase2_policy, s3, best_partitions = run_stage3(
+            phase1_policy, phase2_policy, stage3_episodes,
+            graph_dataset_size=min(13, graph_dataset_size*3)
+        )
+        torch.save(phase1_policy.net.state_dict(), "ckpt_stage3_phase1.pt")
+        torch.save(phase2_policy.net.state_dict(), "ckpt_stage3_phase2.pt")
+        with open("ckpt_stage3_best_partitions.json", "w") as _f:
+            _json.dump({k: [list(p) for p in v[0]] for k, v in best_partitions.items()}, _f)
+        print("[checkpoint] Stage 3 saved -> ckpt_stage3_phase1.pt, ckpt_stage3_phase2.pt, ckpt_stage3_best_partitions.json")
+
+    # ---- Stage 4 ----
+    _s4_done = os.path.exists("ckpt_stage4_phase3.pt")
+    if _s4_done:
+        phase3_policy = GNNPhase3Policy(coeff_dim=coeff_dim, total_episodes=stage4_episodes)
+        phase3_policy.net.load_state_dict(
+            torch.load("ckpt_stage4_phase3.pt", weights_only=True))
+        s4 = {}
+        novel_bounds = {}
+        print("[skip] Stage 4 already complete, loaded from checkpoint.")
+    else:
+        phase3_policy, s4, novel_bounds = run_stage4(
+            phase1_policy, phase2_policy, best_partitions,
+            coeff_dim, stage4_episodes,
+            graph_dataset_size=min(16, graph_dataset_size*4)
+        )
+        torch.save(phase3_policy.net.state_dict(), "ckpt_stage4_phase3.pt")
+        print("[checkpoint] Stage 4 saved -> ckpt_stage4_phase3.pt")
+
     return (phase1_policy, phase2_policy, phase3_policy,
             {'stage1': s1, 'stage2': s2, 'stage3': s3, 'stage4': s4},
             novel_bounds, best_partitions)
