@@ -734,9 +734,18 @@ def run_stage3(phase1_policy, phase2_policy,
         with open("ckpt_stage3_best_partitions_latest.json") as _bf:
             import json as _j
             _bp_raw = _j.load(_bf)
-        # Stored as lists of lists — restore tuples; weights/bound unknown so use defaults
-        best_partitions = {k: ([list(p) for p in v], {}, float('inf'))
-                           for k, v in _bp_raw.items()}
+        # Restore full tuple including weights and bound
+        def _restore_bp(v):
+            if isinstance(v, dict):
+                # New format with weights
+                return ([list(p) for p in v["partition"]],
+                        {eval(ek) if ek.startswith("(") else ek: ev
+                         for ek, ev in v.get("weights", {}).items()},
+                        float(v["bound"]) if v.get("bound") is not None else float("inf"))
+            else:
+                # Old format: just list of partitions, no weights
+                return ([list(p) for p in v], {}, float("inf"))
+        best_partitions = {k: _restore_bp(v) for k, v in _bp_raw.items()}
         print(f"  [resume] Restored best_partitions for {list(best_partitions.keys())}")   # graph_name -> (partition, weights, bound)
 
     # Pre-compute LP lower bounds for validation
@@ -872,7 +881,10 @@ def run_stage3(phase1_policy, phase2_policy,
             # Periodic checkpoint
             torch.save(phase1_policy.net.state_dict(), "ckpt_stage3_phase1_latest.pt")
             torch.save(phase2_policy.net.state_dict(), "ckpt_stage3_phase2_latest.pt")
-            _bp_serial = {k: [list(p) for p in v[0]] for k, v in best_partitions.items()}
+            _bp_serial = {k: {"partition": [list(p) for p in v[0]],
+                                  "weights": {str(ek): float(ev) for ek, ev in v[1].items()},
+                                  "bound": float(v[2]) if v[2] != float("inf") else None}
+                          for k, v in best_partitions.items()}
             with open("ckpt_stage3_best_partitions_latest.json", "w") as _bf:
                 import json as _j; _j.dump(_bp_serial, _bf)
             torch.save({"episode": episode + 1}, "ckpt_stage3_meta.pt")
@@ -1368,8 +1380,15 @@ def train(stage1_episodes=10000, stage2_episodes=10000,
             torch.load("ckpt_stage3_phase2.pt", weights_only=True))
         with open("ckpt_stage3_best_partitions.json") as _f:
             _bp_raw = _json.load(_f)
-        best_partitions = {k: ([list(p) for p in v], {}, float('inf'))
-                           for k, v in _bp_raw.items()}
+        def _restore_bp_final(v):
+            if isinstance(v, dict):
+                return ([list(p) for p in v["partition"]],
+                        {eval(ek) if ek.startswith("(") else ek: ev
+                         for ek, ev in v.get("weights", {}).items()},
+                        float(v["bound"]) if v.get("bound") is not None else float("inf"))
+            else:
+                return ([list(p) for p in v], {}, float("inf"))
+        best_partitions = {k: _restore_bp_final(v) for k, v in _bp_raw.items()}
         s3 = {}
         print("[skip] Stage 3 already complete, loaded from checkpoint.")
     else:
@@ -1380,7 +1399,10 @@ def train(stage1_episodes=10000, stage2_episodes=10000,
         torch.save(phase1_policy.net.state_dict(), "ckpt_stage3_phase1.pt")
         torch.save(phase2_policy.net.state_dict(), "ckpt_stage3_phase2.pt")
         with open("ckpt_stage3_best_partitions.json", "w") as _f:
-            _json.dump({k: [list(p) for p in v[0]] for k, v in best_partitions.items()}, _f)
+            _json.dump({k: {"partition": [list(p) for p in v[0]],
+                            "weights": {str(ek): float(ev) for ek, ev in v[1].items()},
+                            "bound": float(v[2]) if v[2] != float("inf") else None}
+                        for k, v in best_partitions.items()}, _f)
         print("[checkpoint] Stage 3 saved -> ckpt_stage3_phase1.pt, ckpt_stage3_phase2.pt, ckpt_stage3_best_partitions.json")
 
     # ---- Stage 4 ----
@@ -1421,12 +1443,21 @@ def evaluate(phase1_policy, phase2_policy, phase3_policy,
     env = PartitionBoundEnv(graph_dataset_size=graph_dataset_size, stage=4)
     results = defaultdict(lambda: {'p2_bounds':[], 'p3_bounds':[], 'novel':0})
 
+    # Live eval log — flushed after every episode so Ctrl+C never loses data
+    _eval_log_path = "eval_results.json"
+    _eval_log = {"episodes": [], "summary": {}, "complete": False}
+    def _flush_eval_log():
+        with open(_eval_log_path, "w") as _f:
+            json.dump(_eval_log, _f, indent=2)
+
     # Pre-compute LP lower bounds for evaluation
     lp_bounds = {}
     for nodes_g, edges_g, sessions_g in env.graph_dataset:
         gn = identify_graph(nodes_g, edges_g, sessions_g)
         if gn not in lp_bounds:
             lp_bounds[gn] = compute_lp_lower_bound(nodes_g, edges_g, sessions_g)
+    _eval_log["lp_bounds"] = lp_bounds
+    _flush_eval_log()
 
     for episode in range(num_episodes):
         graph_tuple = random.choice(env.graph_dataset)
@@ -1514,8 +1545,22 @@ def evaluate(phase1_policy, phase2_policy, phase3_policy,
         if p3_bound < _eval_lp_floor - 1e-6:
             p3_bound = pb
         results[graph_name]['p3_bounds'].append(p3_bound)
-        if p3_bound < pb - 1e-8:
+        is_novel = p3_bound < pb - 1e-8
+        if is_novel:
             results[graph_name]['novel'] += 1
+
+        # Write episode to live log and flush immediately
+        _eval_log["episodes"].append({
+            "episode":    episode,
+            "graph":      graph_name,
+            "p2_bound":   float(p2_bound),
+            "p3_bound":   float(p3_bound),
+            "partition_bound": float(pb),
+            "lp_lower_bound":  float(lp_bounds.get(graph_name, 0.0)),
+            "is_novel":   bool(is_novel),
+            "lp_valid":   bool(p3_bound >= lp_bounds.get(graph_name, 0.0) - 1e-6),
+        })
+        _flush_eval_log()
 
     print(f"\n{'='*70}")
     print("EVALUATION SUMMARY")
@@ -1545,6 +1590,37 @@ def evaluate(phase1_policy, phase2_policy, phase3_policy,
         print(f"\n  !! {eval_violations} graphs have bounds below LP lower bound — INVALID")
     else:
         print(f"\n  LP validation: ALL evaluation bounds are valid. Approach is sound.")
+
+    # Write final summary to eval log
+    summary = {}
+    for gname in sorted(results.keys()):
+        r   = results[gname]
+        pb2 = _compute_partition_bound(
+            *next(t for t in env.graph_dataset if identify_graph(*t) == gname)
+        )
+        lp_lb = lp_bounds.get(gname, 0.0)
+        p2a = float(np.mean(r['p2_bounds']))
+        p3a = float(np.mean(r['p3_bounds']))
+        p3b = float(min(r['p3_bounds']))
+        nv  = 100.0 * r['novel'] / max(len(r['p3_bounds']), 1)
+        summary[gname] = {
+            "partition_bound": float(pb2),
+            "lp_lower_bound":  float(lp_lb),
+            "p2_avg":    p2a,
+            "p3_avg":    p3a,
+            "p3_best":   p3b,
+            "novel_pct": nv,
+            "lp_valid":  bool(p3b >= lp_lb - 1e-6),
+            "is_novel":  bool(p3b < pb2 - 1e-8),
+            "improvement_pct": float(100.0 * (pb2 - p3b) / pb2) if p3b < pb2 - 1e-8 else 0.0,
+        }
+    _eval_log["summary"] = summary
+    _eval_log["complete"] = True
+    _eval_log["total_episodes"] = num_episodes
+    _eval_log["lp_violations"] = eval_violations
+    _flush_eval_log()
+    print(f"\n  [eval log] Results saved to eval_results.json")
+
     return dict(results)
 
 
