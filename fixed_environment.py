@@ -857,7 +857,7 @@ class PartitionBoundEnv:
                     )
                     if new_best < pb - 1e-8:
                         improvement = (pb - new_best) / pb
-                        reward = 2.0 + 10.0 * improvement
+                        reward = 1.0 + 3.0 * improvement  # reduced to balance vs CROSS_SUBMOD
                     else:
                         reward = 0.2
                 else:
@@ -888,7 +888,7 @@ class PartitionBoundEnv:
                     )
                     if new_best < pb - 1e-8:
                         improvement = (pb - new_best) / pb
-                        reward = 2.0 + 10.0 * improvement
+                        reward = 1.0 + 3.0 * improvement  # reduced to balance vs CROSS_SUBMOD
                     else:
                         reward = 0.15
                 else:
@@ -940,7 +940,17 @@ class PartitionBoundEnv:
         if best_bound < pb - 1e-8:
             # BEAT THE PARTITION BOUND
             improvement = (pb - best_bound) / pb
-            reward = 5.0 + 20.0 * improvement
+            # Bonus for using CROSS_SUBMOD chain — promotes the fractional path
+            # over pure crypto/decode. Both paths are valid but CROSS_SUBMOD
+            # produces structurally richer inequalities worth encouraging.
+            used_cross = any(
+                e.get('action') == 'CROSS_SUBMOD'
+                for e in (self.combination_log or [])
+            )
+            if used_cross:
+                reward = 7.0 + 20.0 * improvement  # higher bonus for cross_submod path
+            else:
+                reward = 5.0 + 15.0 * improvement  # still good for crypto/decode path
         elif abs(best_bound - pb) < 1e-6:
             reward = 1.0
         else:
