@@ -737,13 +737,15 @@ def run_stage3(phase1_policy, phase2_policy,
         # Restore full tuple including weights and bound
         def _restore_bp(v):
             if isinstance(v, dict):
-                # New format with weights
+                def _restore_key(ek):
+                    if ek.startswith("("): return eval(ek)
+                    try: return int(ek)
+                    except ValueError: return ek
                 return ([list(p) for p in v["partition"]],
-                        {eval(ek) if ek.startswith("(") else ek: ev
+                        {_restore_key(ek): ev
                          for ek, ev in v.get("weights", {}).items()},
                         float(v["bound"]) if v.get("bound") is not None else float("inf"))
             else:
-                # Old format: just list of partitions, no weights
                 return ([list(p) for p in v], {}, float("inf"))
         best_partitions = {k: _restore_bp(v) for k, v in _bp_raw.items()}
         print(f"  [resume] Restored best_partitions for {list(best_partitions.keys())}")   # graph_name -> (partition, weights, bound)
@@ -998,7 +1000,19 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
             print(f"\n  Early stopping at episode {episode}")
             break
 
-        graph_tuple = random.choice(env.graph_dataset)
+        # Biased sampling: graphs without a novel bound yet get 3x weight.
+        # Once a novel bound is found, the graph drops to 1x so the agent
+        # spends most of its budget on unsolved graphs rather than
+        # re-discovering bounds it already has.
+        _graph_weights = [
+            1.0 if identify_graph(*gt) in novel_bounds else 3.0
+            for gt in env.graph_dataset
+        ]
+        _total_w = sum(_graph_weights)
+        _graph_probs = [w / _total_w for w in _graph_weights]
+        graph_tuple = env.graph_dataset[
+            np.random.choice(len(env.graph_dataset), p=_graph_probs)
+        ]
         nodes, edges, sessions = graph_tuple
         graph_name = identify_graph(nodes, edges, sessions)
 
@@ -1047,7 +1061,8 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         # Use the globally optimal partition bound as the agent's baseline.
         # This is the true PB the agent must beat, not the (possibly worse)
         # bound achievable by Stage 3's specific partition.
-        env.partition_bound = opt_global_bound
+        env.partition_bound   = opt_global_bound
+        env._lp_lower_bound   = lp_bounds.get(graph_name, 0.0)
 
         env._start_phase2()   # builds index, node_ios, base_inequalities
         # Fix A: preseed=False — agent must earn a finite bound via
@@ -1382,8 +1397,12 @@ def train(stage1_episodes=10000, stage2_episodes=10000,
             _bp_raw = _json.load(_f)
         def _restore_bp_final(v):
             if isinstance(v, dict):
+                def _restore_key(ek):
+                    if ek.startswith("("): return eval(ek)
+                    try: return int(ek)
+                    except ValueError: return ek
                 return ([list(p) for p in v["partition"]],
-                        {eval(ek) if ek.startswith("(") else ek: ev
+                        {_restore_key(ek): ev
                          for ek, ev in v.get("weights", {}).items()},
                         float(v["bound"]) if v.get("bound") is not None else float("inf"))
             else:
