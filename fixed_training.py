@@ -44,7 +44,7 @@ SEED = 42
 random.seed(SEED)
 np.random.seed(SEED)
 
-from fixed_environment import PartitionBoundEnv, ActionType, Phase, _compute_partition_bound
+from fixed_environment import PartitionBoundEnv, ActionType, Phase, _compute_partition_bound, MAX_DERIVED
 from partition import generate_random_valid_partition, decode_partition
 from gnn_policy import (
     GNNPhase1Policy, GNNPhase2Policy, GNNPhase3Policy, LAMBDA_GRID
@@ -1458,7 +1458,25 @@ def evaluate(phase1_policy, phase2_policy, phase3_policy,
     Stage 4 training did, and (b) started Phase 3 with a cold empty pool and
     no warm-start, causing P3 avg > 4.0 on harder graphs.  Using the stored
     best partition matches exactly what Stage 4 training does.
+
+    OOM fixes:
+      1. torch.no_grad() wraps all policy inference -- no gradient tape built.
+      2. env.pool / frac_pool / accumulator / stored_derived explicitly cleared
+         after each episode so inequality objects don't accumulate.
+      3. _eval_log['episodes'] trimmed to last 200 entries in memory; full
+         history is on disk via per-episode flush so no data is lost.
+      4. torch.cuda.empty_cache() every 100 episodes releases fragmented CUDA
+         allocations before they coalesce into an OOM.
     """
+    with torch.no_grad():
+        return _evaluate_inner(phase1_policy, phase2_policy, phase3_policy,
+                               best_partitions, num_episodes, graph_dataset_size)
+
+
+def _evaluate_inner(phase1_policy, phase2_policy, phase3_policy,
+                    best_partitions=None,
+                    num_episodes=500, graph_dataset_size=5):
+    """Inner implementation of evaluate() — called inside torch.no_grad()."""
     env = PartitionBoundEnv(graph_dataset_size=graph_dataset_size, stage=4)
     results = defaultdict(lambda: {'p2_bounds':[], 'p3_bounds':[], 'novel':0})
 
@@ -1493,12 +1511,13 @@ def evaluate(phase1_policy, phase2_policy, phase3_policy,
             # Use the partition Stage 3 already optimised — same as Stage 4.
             partition       = best_partitions[graph_name][0]
             partition_weights = best_partitions[graph_name][1]
-            # P2 bound: set env up and compute via Phase 2 with known partition
-            state = env.reset(fixed_graph=graph_tuple)
-            env.partition = [list(g) for g in partition]
+            # P2 bound: set env up and compute via Phase 2 with known partition.
+            # Use fixed_partition= so reset() calls _start_phase2() internally
+            # and sets current_phase = PHASE2.  The old manual field-setting
+            # forgot _start_phase2(), leaving current_phase = PHASE1 and the
+            # while-loop below never firing → pool empty → pb*2 fallback.
+            state = env.reset(fixed_graph=graph_tuple, fixed_partition=partition)
             env.partition_weights = partition_weights or {}
-            env._assignment_complete = True
-            env.num_groups = len(partition)
             state['edges'] = edges; state['sessions'] = sessions
             state['nodes'] = nodes; state['partition'] = partition
             while env.current_phase == Phase.PHASE2:
@@ -1580,6 +1599,24 @@ def evaluate(phase1_policy, phase2_policy, phase3_policy,
             "lp_valid":   bool(p3_bound >= lp_bounds.get(graph_name, 0.0) - 1e-6),
         })
         _flush_eval_log()
+
+        # OOM fix 2: trim in-memory episode list to last 200 entries.
+        # Full history is already on disk — this just prevents the list
+        # growing to 4800 dicts in RAM.
+        if len(_eval_log["episodes"]) > 200:
+            _eval_log["episodes"] = _eval_log["episodes"][-200:]
+
+        # OOM fix 3: explicitly release pool/accumulator objects from this
+        # episode. Without this, inequality objects accumulate across all
+        # episodes because Python's GC doesn't release them fast enough.
+        env.pool = []
+        env.frac_pool = env.frac_pool.__class__(MAX_DERIVED)
+        env.accumulator = []
+        env.stored_derived = []
+
+        # OOM fix 4: release fragmented CUDA memory every 100 episodes.
+        if episode % 100 == 0 and torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
     print(f"\n{'='*70}")
     print("EVALUATION SUMMARY")
