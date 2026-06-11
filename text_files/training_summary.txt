@@ -1,0 +1,30 @@
+Training completed: 2026-06-11 11:20:47
+Runtime: 8944.1s (149.1 min)
+
+================================================================================
+RESULTS TABLE
+================================================================================
+  Graph                        PB    LP LB   RL Bound   Improv%       Status
+  ---------------------------------------------------------------------------
+  paper_7N                 1.6667   1.0000   1.666667     0.00%   NOT FOUND
+  diamond_6N               1.7500   1.0000   1.750000     0.00%   NOT FOUND
+  butterfly_8N             1.5000   1.0000   1.500000     0.00%   NOT FOUND
+  grid_9N                  2.0000   1.0000   2.000000     0.00%   NOT FOUND
+  star_8N                  2.2500   1.0000   2.250000     0.00%   NOT FOUND
+  hu_3pairs_6N             1.3333   1.0000   1.333333     0.00%   NOT FOUND
+  okamura_4N               1.2500   1.0000   1.250000     0.00%   NOT FOUND
+  ford_fulkerson_6N        5.0000   2.0000   5.000000     0.00%   NOT FOUND
+  grid_3x4_12N             2.8333   1.0000   2.833333     0.00%   NOT FOUND
+  petersen_10N             1.8750   1.2500   1.875000     0.00%   NOT FOUND
+  two_k4_10N               2.6667   0.6667   2.666667     0.00%   NOT FOUND
+  al_bashabsheh_7N         2.0000   1.5000   2.000000     0.00%   NOT FOUND
+  hu_2pairs_6N             2.0000   1.0000   2.000000     0.00%   NOT FOUND
+  grid_4x4_16N             3.0000   1.0000   3.000000     0.00%   NOT FOUND
+  okamura_seymour_8N       3.0000   1.5000   3.000000     0.00%   NOT FOUND
+  kramer_savari_ladder_8N   2.0000   1.0000   2.000000     0.00%   NOT FOUND
+
+  ===========================================================================
+  Novel bounds found: 0 / 16 graphs
+  Tight (= LP lower bound): 0
+
+No novel bounds found in this run.

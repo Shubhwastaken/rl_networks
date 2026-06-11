@@ -1,0 +1,90 @@
+======================================================================
+PROOF DOCUMENT: diamond_6N
+Generated from Stage 4 action log — episode 283
+======================================================================
+
+NETWORK
+  Nodes   : ['S1', 'S2', 'v1', 'v2', 't1', 't2']
+  Edges   : [['S1', 'v1'], ['S1', 'v2'], ['S2', 'v1'], ['S2', 'v2'], ['v1', 't1'], ['v2', 't2'], ['v1', 'v2']]
+  Sessions: [['S1', 't1'], ['S2', 't2']]
+
+PARTITION (from RL Phase 1)
+  P1 = {S1, S2, t1, t2}
+  P2 = {v1}
+  P3 = {v2}
+
+RESULT
+  r <= 1.000000  (partition bound = 1.750000, improvement = 42.86%)
+
+TERMINAL INEQUALITY
+  [proof=INTEGER λ=1.0000 src=none parts=none]  1.000*Y_I_P0 + 2.000*Y_I <= 1.000*U_S1_v1 + 1.000*U_S1_v2 + 1.000*U_S2_v1 + 1.000*U_S2_v2 + 1.000*U_v1_t1 + 1.000*U_v2_t2
+
+STEP-BY-STEP AGENT PROOF TRACE
+----------------------------------------------------------------------
+
+Step 1: FRACTIONAL_IO  (reward = 0.1500)
+  FRACTIONAL IO: 0.4000 * IO(S1) + 0.6000 * IO(v2)
+  Pool after: size=10  best_bound=None
+
+Step 2: FRACTIONAL_IO  (reward = 0.1500)
+  FRACTIONAL IO: 0.3300 * IO(S1) + 0.6700 * IO(v2)
+  Pool after: size=11  best_bound=None
+
+Step 3: FRACTIONAL_IO  (reward = 0.1500)
+  FRACTIONAL IO: 0.6700 * IO(v2) + 0.3300 * IO(t1)
+  Pool after: size=12  best_bound=None
+
+Step 4: SWAP_NODE  (reward = 0.0000)
+  Pool after: size=12  best_bound=None
+
+Step 5: SWAP_NODE  (reward = 0.0000)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['S2'] parts=[0]]  0.500*Y_I <= 1.000*Y_S_S2 + 1.000*U_S2_v1 + 1.000*U_S2_v2
+      YI coeff = 0.5,  has_YST = False,  edge_total = 2.0
+  Pool after: size=12  best_bound=None
+
+Step 6: MOVE_NODE  (reward = 0.8000)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['S2'] parts=[0]]  0.500*Y_I <= 1.000*Y_S_S2 + 1.000*U_S2_v1 + 1.000*U_S2_v2
+      YI coeff = 0.5,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=INTEGER λ=1.0000 src=none parts=none]  1.000*Y_ST_P0 + 1.000*Y_I_P0 <= 1.000*Y_S_S1 + 1.000*Y_S_S2 + 1.000*Y_S_t1 + 1.000*Y_S_t2 + 1.000*U_S1_v1 + 1.000*U_S1_v2 + 1.000*U_S2_v1 + 1.000*U_S2_v2 + 1.000*U_v1_t1 + 1.000*U_v2_t2
+      YI coeff = 0.0,  has_YST = True,  edge_total = 6.0
+  Pool after: size=14  best_bound=1.2
+  ** BOUND IMPROVED to 1.2
+
+Step 7: FRACTIONAL_IO  (reward = 0.1500)
+  FRACTIONAL IO: 0.3300 * IO(v1) + 0.6700 * IO(t1)
+  Pool after: size=15  best_bound=1.2
+
+Step 8: APPLY_DECODE  (reward = 6.2857)
+  Pool after: size=16  best_bound=1.0
+  ** BOUND IMPROVED to 1.0
+
+Step 9: FRACTIONAL_IO  (reward = 0.1557)
+  FRACTIONAL IO: 0.6000 * IO(v1) + 0.4000 * IO(t1)
+  Pool after: size=17  best_bound=1.0
+
+Step 10: DECLARE_TERMINAL  (reward = 13.5714)
+  Pool after: size=17  best_bound=1.0
+
+----------------------------------------------------------------------
+TERMINAL INEQUALITY VERIFICATION
+  [proof=INTEGER λ=1.0000 src=none parts=none]  1.000*Y_I_P0 + 2.000*Y_I <= 1.000*U_S1_v1 + 1.000*U_S1_v2 + 1.000*U_S2_v1 + 1.000*U_S2_v2 + 1.000*U_v1_t1 + 1.000*U_v2_t2
+  YI_coeff  = 2.0
+  Edge coefficients:
+    U_S1_v1 : 1.0000
+    U_S1_v2 : 1.0000
+    U_S2_v1 : 1.0000
+    U_S2_v2 : 1.0000
+    U_v1_t1 : 1.0000
+    U_v2_t2 : 1.0000
+  Edge total = 6.0
+
+RATE EXTRACTION
+  h(Y_I) = 2r * log2(b)
+  2.0 * 2r <= 6.0
+  (+ internal session contribution: 2.0000)
+  6.0000 * r <= 6.0
+  r <= 6.0 / 6.0000 = 1.000000
+  r <= 1.000000  ✓
+======================================================================
