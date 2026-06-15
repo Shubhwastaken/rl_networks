@@ -344,6 +344,10 @@ class PartitionBoundEnv:
         self.stored_derived = []
         self._found_terminal = False
         self.combination_log = []
+        self.phase3_used_cross_submod = False
+        self.phase3_used_plain_submod = False
+        self.phase3_used_crypto = False
+        self.phase3_used_decode = False
         # Potential-based shaping: track best bound seen so far this episode.
         # Any improvement triggers a small reward proportional to the gap closed.
         self._phase3_best_bound = float('inf')
@@ -746,6 +750,10 @@ class PartitionBoundEnv:
 
         elif action_type in (ActionType.APPLY_SUBMODULARITY,
                              ActionType.CROSS_SUBMOD):
+            if action_type == ActionType.CROSS_SUBMOD:
+                self.phase3_used_cross_submod = True
+            else:
+                self.phase3_used_plain_submod = True
             idx_i = action.get('idx_i', 0)
             idx_j = action.get('idx_j', 1)
             reward = 0.0
@@ -831,6 +839,7 @@ class PartitionBoundEnv:
             return self._get_state(), reward, False
 
         elif action_type == ActionType.APPLY_CRYPTO:
+            self.phase3_used_crypto = True
             # Apply crypto inequality to every terminal-form inequality in frac_pool
             cut_idx = action.get('cut_idx', 0)
             reward  = -0.1
@@ -865,6 +874,7 @@ class PartitionBoundEnv:
             return self._get_state(), reward, False
 
         elif action_type == ActionType.APPLY_DECODE:
+            self.phase3_used_decode = True
             # Apply decoding substitution to terminal-form inequalities in frac_pool
             si     = action.get('session_idx', 0)
             reward = -0.1
@@ -943,10 +953,7 @@ class PartitionBoundEnv:
             # Bonus for using CROSS_SUBMOD chain — promotes the fractional path
             # over pure crypto/decode. Both paths are valid but CROSS_SUBMOD
             # produces structurally richer inequalities worth encouraging.
-            used_cross = any(
-                e.get('action') == 'CROSS_SUBMOD'
-                for e in (self.combination_log or [])
-            )
+            used_cross = bool(getattr(self, 'phase3_used_cross_submod', False))
             if used_cross:
                 reward = 7.0 + 20.0 * improvement  # higher bonus for cross_submod path
             else:

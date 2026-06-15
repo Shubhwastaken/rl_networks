@@ -86,6 +86,7 @@ ACTION_NAMES = {
     3:"APPLY_PROOF2",4:"STORE_AND_RESET",5:"COMBINE_STORED",
     6:"DECLARE_TERMINAL",7:"SWAP_NODE",8:"MOVE_NODE",
     9:"FINALIZE_PARTITION",10:"FRACTIONAL_IO",11:"CROSS_SUBMOD",
+    20:"APPLY_CRYPTO",21:"APPLY_DECODE",
 }
 
 EARLY_STOP_PATIENCE  = 2000
@@ -96,6 +97,100 @@ def _safe_mean(values):
     """np.mean with inf/nan filtered out; returns 0.0 on empty."""
     finite = [v for v in values if v is not None and v == v and abs(v) < 1e9]
     return float(np.mean(finite)) if finite else 0.0
+
+
+def _mechanism_label(used_cross, used_crypto, used_decode, used_plain, no_terminal):
+    if no_terminal:
+        return "no_terminal"
+    used_fd = used_crypto or used_decode
+    if used_cross and used_fd:
+        return "cross_submod_plus_crypto_decode"
+    if used_cross:
+        return "cross_submod_only"
+    if used_fd:
+        return "crypto_decode_only"
+    if used_plain:
+        return "plain_fractional_or_submod"
+    return "plain_fractional_or_submod"
+
+
+def _load_stage4_novel_bounds_from_log(log_path):
+    """Rebuild graph->best novel tuple from an existing Stage 4 proof log."""
+    if not os.path.exists(log_path):
+        return {}
+    try:
+        with open(log_path) as f:
+            episodes = json.load(f)
+    except Exception:
+        return {}
+
+    restored = {}
+    for ep in episodes:
+        sm = ep.get("summary", {})
+        if not sm.get("is_novel"):
+            continue
+        gn = ep.get("graph_name")
+        b = sm.get("best_bound")
+        if gn is None or b is None:
+            continue
+        trace = sm.get("terminal_ineq") or "N/A"
+        part = [list(p) for p in ep.get("partition", [])]
+        if gn not in restored or float(b) < restored[gn][0]:
+            restored[gn] = (float(b), part, {}, trace)
+    return restored
+
+
+def _write_stage4_status_document(graph_name, graph_tuple, partition, pb, lp_lb,
+                                  stats, out_path):
+    nodes, edges, sessions = graph_tuple
+    attempts = stats.get("attempts", 0)
+    best_bound = stats.get("best_bound", float("inf"))
+    if attempts == 0:
+        status = "NO STAGE 4 ATTEMPT RECORDED"
+    elif stats.get("valid_novel", 0) > 0:
+        status = "NOVEL PROOF LOGGED ELSEWHERE"
+    elif stats.get("terminal_valid", 0) > 0:
+        status = "NON-NOVEL TERMINAL"
+    else:
+        status = "NO TERMINAL INEQUALITY FOUND"
+
+    lines = [
+        "=" * 70,
+        f"STAGE 4 STATUS DOCUMENT: {graph_name}",
+        "=" * 70,
+        "",
+        f"STATUS: {status}",
+        "",
+        "NETWORK",
+        f"  Nodes   : {list(nodes)}",
+        f"  Edges   : {[list(e) for e in edges]}",
+        f"  Sessions: {[list(s) for s in sessions]}",
+        "",
+        "PARTITION",
+    ]
+    for i, p in enumerate(partition or []):
+        lines.append(f"  P{i+1} = {{{', '.join(p)}}}")
+    lines.extend([
+        "",
+        "BOUNDS",
+        f"  Partition bound: {pb:.6f}",
+        f"  LP lower bound : {lp_lb:.6f}",
+        f"  Best observed : {best_bound:.6f}" if best_bound < 1e9 else "  Best observed : none",
+        "",
+        "STAGE 4 COUNTS",
+        f"  Attempts             : {attempts}",
+        f"  Valid novel episodes : {stats.get('valid_novel', 0)}",
+        f"  Terminal episodes    : {stats.get('terminal_valid', 0)}",
+        f"  No-terminal episodes : {stats.get('no_terminal', 0)}",
+        f"  CROSS_SUBMOD used    : {stats.get('used_cross_submod', 0)}",
+        f"  APPLY_CRYPTO used    : {stats.get('used_crypto', 0)}",
+        f"  APPLY_DECODE used    : {stats.get('used_decode', 0)}",
+        "",
+        "This is a status report, not a mathematical proof.",
+        "=" * 70,
+    ])
+    with open(out_path, "w") as f:
+        f.write("\n".join(lines))
 
 
 class EarlyStopper:
@@ -962,7 +1057,16 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
     per_graph  = defaultdict(list)
     novel_bounds = {}   # graph_name -> (bound, partition, weights, trace)
     metrics    = {'rewards':[], 'bounds':[], 'graph_names':[],
-                  'novel_found': [], 'cross_partition_used': []}
+                  'novel_found': [], 'cross_partition_used': [],
+                  'used_crypto': [], 'used_decode': [],
+                  'used_plain_submod': [], 'no_terminal': [],
+                  'mechanism': []}
+    per_graph_stats = defaultdict(lambda: {
+        'attempts': 0, 'valid_novel': 0, 'terminal_valid': 0,
+        'no_terminal': 0, 'used_cross_submod': 0, 'used_crypto': 0,
+        'used_decode': 0, 'used_plain_submod': 0,
+        'best_bound': float('inf'), 'recent_no_terminal': []
+    })
 
     log_interval = 50
     stopper = Stage4EarlyStopper(
@@ -994,25 +1098,65 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         verbose     = True,   # print proof summary to stdout when novel bound found
         only_novel  = True,   # only store full step traces for novel episodes
     )
+    if _resume_ep_s4 > 0 and os.path.exists("stage4_proof_log.json"):
+        try:
+            with open("stage4_proof_log.json") as _f:
+                proof_logger._episodes = json.load(_f)
+            novel_bounds.update(_load_stage4_novel_bounds_from_log("stage4_proof_log.json"))
+            for _gn, (_b, _part, _w, _trace) in novel_bounds.items():
+                per_graph_stats[_gn]['valid_novel'] = max(per_graph_stats[_gn]['valid_novel'], 1)
+                per_graph_stats[_gn]['terminal_valid'] = max(per_graph_stats[_gn]['terminal_valid'], 1)
+                per_graph_stats[_gn]['best_bound'] = min(per_graph_stats[_gn]['best_bound'], _b)
+            print(f"  [resume] Restored {len(novel_bounds)} graph novel bounds from stage4_proof_log.json")
+        except Exception as e:
+            print(f"  [warn] Could not restore Stage 4 proof log state: {e}")
+
+    graph_lookup = {
+        identify_graph(*gt): gt
+        for gt in env.graph_dataset
+    }
+    balanced_cycle = []
+
+    def _next_balanced_graph():
+        nonlocal balanced_cycle
+        if not balanced_cycle:
+            balanced_cycle = list(env.graph_dataset)
+            random.shuffle(balanced_cycle)
+        return balanced_cycle.pop()
+
+    def _priority_for_graph(gn):
+        stats = per_graph_stats[gn]
+        if stats['valid_novel'] == 0:
+            priority = 5.0
+        elif stats['valid_novel'] < 3:
+            priority = 3.0
+        else:
+            priority = 1.0
+        recent = stats['recent_no_terminal'][-50:]
+        if recent and (sum(recent) / len(recent)) > 0.4:
+            priority += 2.0
+        return priority
+
+    def _sample_adaptive_graph():
+        names = [identify_graph(*gt) for gt in env.graph_dataset]
+        weights = [_priority_for_graph(gn) for gn in names]
+        total = sum(weights)
+        probs = [w / total for w in weights]
+        return env.graph_dataset[np.random.choice(len(env.graph_dataset), p=probs)]
 
     for episode in range(_resume_ep_s4, num_episodes):
         if stopper.should_stop(episode):
             print(f"\n  Early stopping at episode {episode}")
             break
 
-        # Biased sampling: graphs without a novel bound yet get 3x weight.
-        # Once a novel bound is found, the graph drops to 1x so the agent
-        # spends most of its budget on unsolved graphs rather than
-        # re-discovering bounds it already has.
-        _graph_weights = [
-            1.0 if identify_graph(*gt) in novel_bounds else 3.0
-            for gt in env.graph_dataset
-        ]
-        _total_w = sum(_graph_weights)
-        _graph_probs = [w / _total_w for w in _graph_weights]
-        graph_tuple = env.graph_dataset[
-            np.random.choice(len(env.graph_dataset), p=_graph_probs)
-        ]
+        # Balanced base coverage plus light adaptive oversampling. This keeps
+        # all 16 graphs represented even if Stage 4 early-stops, while still
+        # spending extra attempts on graphs with few valid novel episodes.
+        graph_tuple = (
+            _sample_adaptive_graph()
+            if random.random() < 0.25
+            else _next_balanced_graph()
+        )
         nodes, edges, sessions = graph_tuple
         graph_name = identify_graph(nodes, edges, sessions)
 
@@ -1087,6 +1231,9 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         action_counts = defaultdict(int)
         total_reward  = 0.0
         used_cross    = False
+        used_plain_submod = False
+        used_crypto = False
+        used_decode = False
 
         while not done:
             valid = env.get_valid_actions()
@@ -1101,6 +1248,12 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
             action_counts[aname] += 1
             if action['type'] == ActionType.CROSS_SUBMOD:
                 used_cross = True
+            elif action['type'] == ActionType.APPLY_SUBMODULARITY:
+                used_plain_submod = True
+            elif action['type'] == ActionType.APPLY_CRYPTO:
+                used_crypto = True
+            elif action['type'] == ActionType.APPLY_DECODE:
+                used_decode = True
 
             # logger.step wraps env.step — logs before/after state, then
             # calls the real env.step unchanged. Returns identical (state, reward, done).
@@ -1122,6 +1275,7 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
             len(sessions), len(edges), env.internal_per_part
         )
         pb = env.partition_bound
+        _no_terminal = best_b == float('inf') or best_b >= 1e9
 
         # Post-episode greedy oracle: apply functional dependence constraints
         # to the best terminal inequality found. This catches improvements
@@ -1189,6 +1343,28 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         _is_novel = (best_b < pb - 1e-8) and (best_b >= _lp_floor_nf - 1e-9)
         metrics['novel_found'].append(1 if _is_novel else 0)
         metrics['cross_partition_used'].append(1 if used_cross else 0)
+        metrics['used_plain_submod'].append(1 if used_plain_submod else 0)
+        metrics['used_crypto'].append(1 if used_crypto else 0)
+        metrics['used_decode'].append(1 if used_decode else 0)
+        metrics['no_terminal'].append(1 if _no_terminal else 0)
+        metrics['mechanism'].append(_mechanism_label(
+            used_cross, used_crypto, used_decode, used_plain_submod, _no_terminal
+        ))
+
+        _pgs = per_graph_stats[graph_name]
+        _pgs['attempts'] += 1
+        _pgs['valid_novel'] += 1 if _is_novel else 0
+        _pgs['terminal_valid'] += 0 if _no_terminal else 1
+        _pgs['no_terminal'] += 1 if _no_terminal else 0
+        _pgs['used_cross_submod'] += 1 if used_cross else 0
+        _pgs['used_plain_submod'] += 1 if used_plain_submod else 0
+        _pgs['used_crypto'] += 1 if used_crypto else 0
+        _pgs['used_decode'] += 1 if used_decode else 0
+        _pgs['recent_no_terminal'].append(1 if _no_terminal else 0)
+        if len(_pgs['recent_no_terminal']) > 100:
+            _pgs['recent_no_terminal'] = _pgs['recent_no_terminal'][-100:]
+        if best_b < _pgs['best_bound']:
+            _pgs['best_bound'] = best_b
 
         # Update composite stopper now that novel_found and cross_used are
         # recorded for this episode.
@@ -1272,20 +1448,36 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
                     if trace != "N/A":
                         print(f"     Trace: {trace[:200]}")
 
-    # Write all logged episodes to JSON and generate per-graph proof documents
+    # Write all logged episodes to JSON and generate per-graph proof/status documents
     proof_logger.flush()
-    if novel_bounds:
-        print("\n  Generating proof documents from action log...")
-        for gn in sorted(novel_bounds.keys()):
-            try:
-                doc_path = f"proof_{gn}.txt"
+    print("\n  Generating proof/status documents for all Stage 4 graphs...")
+    os.makedirs("text_files", exist_ok=True)
+    for gn in sorted(graph_lookup.keys()):
+        nd, ed, ss = graph_lookup[gn]
+        try:
+            doc_path = os.path.join("text_files", f"proof_{gn}_cd.txt")
+            if gn in novel_bounds:
                 generate_proof_document(
                     log_path   = "stage4_proof_log.json",
                     graph_name = gn,
                     out_path   = doc_path,
                 )
-            except Exception as e:
-                print(f"  [warn] Could not generate proof doc for {gn}: {e}")
+            else:
+                part = (_find_optimal_partition(nd, ed, ss)
+                        or (best_partitions.get(gn, (None, {}, None))[0]
+                            if best_partitions and gn in best_partitions else []))
+                _write_stage4_status_document(
+                    graph_name = gn,
+                    graph_tuple = (nd, ed, ss),
+                    partition = part,
+                    pb = _compute_partition_bound(nd, ed, ss),
+                    lp_lb = lp_bounds.get(gn, 0.0),
+                    stats = per_graph_stats[gn],
+                    out_path = doc_path,
+                )
+                print(f"  [status] Stage 4 status document written to {doc_path}")
+        except Exception as e:
+            print(f"  [warn] Could not generate proof/status doc for {gn}: {e}")
 
     # Final summary
     print(f"\n{'='*70}")

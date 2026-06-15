@@ -66,12 +66,15 @@ from fixed_inequality import Inequality, FractionalInequality, EntropyIndex
 # Action type names (mirrors ActionType in fixed_environment.py)
 _ACTION_NAMES = {
     0:  "ASSIGN_NODE",
-    1:  "SWAP_NODE",
-    2:  "MOVE_NODE",
-    3:  "FINALIZE_PARTITION",
+    1:  "ADD_TO_ACCUMULATOR",
+    2:  "APPLY_SUBMODULARITY",
+    3:  "APPLY_PROOF2",
     4:  "STORE_AND_RESET",
     5:  "COMBINE_STORED",
     6:  "DECLARE_TERMINAL",
+    7:  "SWAP_NODE",
+    8:  "MOVE_NODE",
+    9:  "FINALIZE_PARTITION",
     10: "FRACTIONAL_IO",
     11: "CROSS_SUBMOD",
     20: "APPLY_CRYPTO",
@@ -294,9 +297,9 @@ class Stage4ProofLogger:
         pre_acc  = _snap_accumulator(env, index, label="before")
         pre_pool = _snap_pool(env, label="before")
 
-        # ---- special pre-capture for CROSS_SUBMOD ----
+        # ---- special pre-capture for submodularity actions ----
         cross_detail = None
-        if atype in (11, 4):  # CROSS_SUBMOD or APPLY_SUBMODULARITY
+        if atype in (11, 2):  # CROSS_SUBMOD or APPLY_SUBMODULARITY
             idx_i = action.get("idx_i", 0)
             idx_j = action.get("idx_j", 1)
             if (len(env.accumulator) >= 2
@@ -420,6 +423,12 @@ class Stage4ProofLogger:
                                if is_novel else 0.0,
             "total_steps":     len(self._current["steps"]),
             "action_counts":   action_counts,
+            "used_cross_submod": bool(getattr(self._env, "phase3_used_cross_submod", False)),
+            "used_plain_submod": bool(getattr(self._env, "phase3_used_plain_submod", False)),
+            "used_crypto": bool(getattr(self._env, "phase3_used_crypto", False)),
+            "used_decode": bool(getattr(self._env, "phase3_used_decode", False)),
+            "no_terminal": bool(best_b == float("inf") or best_b >= 1e9),
+            "terminal_valid": bool(terminal_detail is not None),
             "terminal_ineq":   terminal_repr,
             "terminal_detail": terminal_detail,
         }
