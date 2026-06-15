@@ -470,11 +470,12 @@ def run_stage1(num_episodes=10000, graph_dataset_size=5):  # Tier 1 only
 
     # Resume from latest periodic checkpoint if available
     _resume_ep = 0
-    if os.path.exists("ckpt_stage1_phase2_latest.pt") and os.path.exists("ckpt_stage1_meta.pt"):
-        _meta = torch.load("ckpt_stage1_meta.pt", weights_only=True)
+    os.makedirs("model_files", exist_ok=True)
+    if os.path.exists("model_files/ckpt_stage1_phase2_latest.pt") and os.path.exists("model_files/ckpt_stage1_meta.pt"):
+        _meta = torch.load("model_files/ckpt_stage1_meta.pt", weights_only=True)
         if _meta.get("coeff_dim", coeff_dim) == coeff_dim:
             phase2_policy.net.load_state_dict(
-                torch.load("ckpt_stage1_phase2_latest.pt", weights_only=True))
+                torch.load("model_files/ckpt_stage1_phase2_latest.pt", weights_only=True))
             _resume_ep = _meta["episode"]
             print(f"  [resume] Stage 1 resuming from episode {_resume_ep}")
         else:
@@ -573,9 +574,9 @@ def run_stage1(num_episodes=10000, graph_dataset_size=5):  # Tier 1 only
             print(f"  {episode+1:>6} | {graph_name:<16} | "
                   f"{avg:>8.4f} | {bst:>8.4f} | {_action_summary(action_counts)}")
             # Periodic checkpoint — survives mid-stage crashes
-            torch.save(phase2_policy.net.state_dict(), "ckpt_stage1_phase2_latest.pt")
+            torch.save(phase2_policy.net.state_dict(), "model_files/ckpt_stage1_phase2_latest.pt")
             torch.save({"episode": episode + 1, "coeff_dim": coeff_dim},
-                       "ckpt_stage1_meta.pt")
+                     "model_files/ckpt_stage1_meta.pt")
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
 
@@ -605,14 +606,15 @@ def run_stage2(phase2_policy, num_episodes=10000, graph_dataset_size=5):
 
     # Resume from latest periodic checkpoint if available
     _resume_ep_s2 = 0
-    if (os.path.exists("ckpt_stage2_phase1_latest.pt") and
-            os.path.exists("ckpt_stage2_phase2_latest.pt") and
-            os.path.exists("ckpt_stage2_meta.pt")):
+    os.makedirs("model_files", exist_ok=True)
+    if (os.path.exists("model_files/ckpt_stage2_phase1_latest.pt") and
+                os.path.exists("model_files/ckpt_stage2_phase2_latest.pt") and
+                os.path.exists("model_files/ckpt_stage2_meta.pt")):
         phase1_policy.net.load_state_dict(
-            torch.load("ckpt_stage2_phase1_latest.pt", weights_only=True))
+                torch.load("model_files/ckpt_stage2_phase1_latest.pt", weights_only=True))
         phase2_policy.net.load_state_dict(
-            torch.load("ckpt_stage2_phase2_latest.pt", weights_only=True))
-        _meta_s2 = torch.load("ckpt_stage2_meta.pt", weights_only=True)
+                torch.load("model_files/ckpt_stage2_phase2_latest.pt", weights_only=True))
+        _meta_s2 = torch.load("model_files/ckpt_stage2_meta.pt", weights_only=True)
         _resume_ep_s2 = _meta_s2["episode"]
         print(f"  [resume] Stage 2 resuming from episode {_resume_ep_s2}")
 
@@ -739,9 +741,9 @@ def run_stage2(phase2_policy, num_episodes=10000, graph_dataset_size=5):
             print(f"  {episode+1:>6} | {graph_name:<16} | "
                   f"{avg:>8.4f} | {avgi:>3.1f} | {_action_summary(p1_action_counts)}")
             # Periodic checkpoint
-            torch.save(phase1_policy.net.state_dict(), "ckpt_stage2_phase1_latest.pt")
-            torch.save(phase2_policy.net.state_dict(), "ckpt_stage2_phase2_latest.pt")
-            torch.save({"episode": episode + 1}, "ckpt_stage2_meta.pt")
+            torch.save(phase1_policy.net.state_dict(), "model_files/ckpt_stage2_phase1_latest.pt")
+            torch.save(phase2_policy.net.state_dict(), "model_files/ckpt_stage2_phase2_latest.pt")
+            torch.save({"episode": episode + 1}, "model_files/ckpt_stage2_meta.pt")
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
 
@@ -810,14 +812,16 @@ def run_stage3(phase1_policy, phase2_policy,
 
     # Resume from latest periodic checkpoint if available
     _resume_ep_s3 = 0
-    if (os.path.exists("ckpt_stage3_phase1_latest.pt") and
-            os.path.exists("ckpt_stage3_phase2_latest.pt") and
-            os.path.exists("ckpt_stage3_meta.pt")):
+    os.makedirs("model_files", exist_ok=True)
+    os.makedirs("config_files", exist_ok=True)
+    if (os.path.exists("model_files/ckpt_stage3_phase1_latest.pt") and
+            os.path.exists("model_files/ckpt_stage3_phase2_latest.pt") and
+            os.path.exists("model_files/ckpt_stage3_meta.pt")):
         phase1_policy.net.load_state_dict(
-            torch.load("ckpt_stage3_phase1_latest.pt", weights_only=True))
+            torch.load("model_files/ckpt_stage3_phase1_latest.pt", weights_only=True))
         phase2_policy.net.load_state_dict(
-            torch.load("ckpt_stage3_phase2_latest.pt", weights_only=True))
-        _meta_s3 = torch.load("ckpt_stage3_meta.pt", weights_only=True)
+            torch.load("model_files/ckpt_stage3_phase2_latest.pt", weights_only=True))
+        _meta_s3 = torch.load("model_files/ckpt_stage3_meta.pt", weights_only=True)
         _resume_ep_s3 = _meta_s3["episode"]
         print(f"  [resume] Stage 3 resuming from episode {_resume_ep_s3}")
 
@@ -829,8 +833,8 @@ def run_stage3(phase1_policy, phase2_policy,
     # Store best (partition, weights) per graph for Phase 4 handoff
     best_partitions: dict = {}
     # Restore best_partitions from latest checkpoint if resuming
-    if _resume_ep_s3 > 0 and os.path.exists("ckpt_stage3_best_partitions_latest.json"):
-        with open("ckpt_stage3_best_partitions_latest.json") as _bf:
+    if _resume_ep_s3 > 0 and os.path.exists("config_files/ckpt_stage3_best_partitions_latest.json"):
+        with open("config_files/ckpt_stage3_best_partitions_latest.json") as _bf:
             import json as _j
             _bp_raw = _j.load(_bf)
         # Restore full tuple including weights and bound
@@ -980,15 +984,15 @@ def run_stage3(phase1_policy, phase2_policy,
             avg = _safe_mean(rewards[-n:])
             print(f"  Ep {episode+1:>6} | {graph_name:<16} | avg={avg:.4f}")
             # Periodic checkpoint
-            torch.save(phase1_policy.net.state_dict(), "ckpt_stage3_phase1_latest.pt")
-            torch.save(phase2_policy.net.state_dict(), "ckpt_stage3_phase2_latest.pt")
+            torch.save(phase1_policy.net.state_dict(), "model_files/ckpt_stage3_phase1_latest.pt")
+            torch.save(phase2_policy.net.state_dict(), "model_files/ckpt_stage3_phase2_latest.pt")
             _bp_serial = {k: {"partition": [list(p) for p in v[0]],
                                   "weights": {str(ek): float(ev) for ek, ev in v[1].items()},
                                   "bound": float(v[2]) if v[2] != float("inf") else None}
                           for k, v in best_partitions.items()}
-            with open("ckpt_stage3_best_partitions_latest.json", "w") as _bf:
+            with open("config_files/ckpt_stage3_best_partitions_latest.json", "w") as _bf:
                 import json as _j; _j.dump(_bp_serial, _bf)
-            torch.save({"episode": episode + 1}, "ckpt_stage3_meta.pt")
+            torch.save({"episode": episode + 1}, "model_files/ckpt_stage3_meta.pt")
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
 
@@ -1051,11 +1055,13 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
 
     # Resume from latest periodic checkpoint if available
     _resume_ep_s4 = 0
-    if (os.path.exists("ckpt_stage4_phase3_latest.pt") and
-            os.path.exists("ckpt_stage4_meta.pt")):
+    os.makedirs("model_files", exist_ok=True)
+    os.makedirs("config_files", exist_ok=True)
+    if (os.path.exists("model_files/ckpt_stage4_phase3_latest.pt") and
+            os.path.exists("model_files/ckpt_stage4_meta.pt")):
         phase3_policy.net.load_state_dict(
-            torch.load("ckpt_stage4_phase3_latest.pt", weights_only=True))
-        _meta_s4 = torch.load("ckpt_stage4_meta.pt", weights_only=True)
+            torch.load("model_files/ckpt_stage4_phase3_latest.pt", weights_only=True))
+        _meta_s4 = torch.load("model_files/ckpt_stage4_meta.pt", weights_only=True)
         _resume_ep_s4 = _meta_s4["episode"]
         print(f"  [resume] Stage 4 resuming from episode {_resume_ep_s4}")
 
@@ -1100,15 +1106,15 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
     # Only novel episodes (bound < PB) get full step traces saved to JSON.
     # No changes to env, policies, or math — pure observation layer.
     proof_logger = Stage4ProofLogger(
-        output_path = "stage4_proof_log.json",
+        output_path = "config_files/stage4_proof_log.json",
         verbose     = True,   # print proof summary to stdout when novel bound found
         only_novel  = True,   # only store full step traces for novel episodes
     )
-    if _resume_ep_s4 > 0 and os.path.exists("stage4_proof_log.json"):
+    if _resume_ep_s4 > 0 and os.path.exists("config_files/stage4_proof_log.json"):
         try:
-            with open("stage4_proof_log.json") as _f:
+            with open("config_files/stage4_proof_log.json") as _f:
                 proof_logger._episodes = json.load(_f)
-            novel_bounds.update(_load_stage4_novel_bounds_from_log("stage4_proof_log.json"))
+            novel_bounds.update(_load_stage4_novel_bounds_from_log("config_files/stage4_proof_log.json"))
             for _gn, (_b, _part, _w, _trace) in novel_bounds.items():
                 per_graph_stats[_gn]['valid_novel'] = max(per_graph_stats[_gn]['valid_novel'], 1)
                 per_graph_stats[_gn]['terminal_valid'] = max(per_graph_stats[_gn]['terminal_valid'], 1)
@@ -1439,8 +1445,8 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
                   f"avg_r={avg_r:.4f} | novel_rate={100*novel_r:.1f}% | "
                   f"cross_used={100*cross_r:.1f}%")
             # Periodic checkpoint
-            torch.save(phase3_policy.net.state_dict(), "ckpt_stage4_phase3_latest.pt")
-            torch.save({"episode": episode + 1}, "ckpt_stage4_meta.pt")
+            torch.save(phase3_policy.net.state_dict(), "model_files/ckpt_stage4_phase3_latest.pt")
+            torch.save({"episode": episode + 1}, "model_files/ckpt_stage4_meta.pt")
 
             if novel_bounds:
                 print(f"  ** NOVEL BOUNDS FOUND **")
