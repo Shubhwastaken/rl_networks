@@ -576,6 +576,8 @@ def run_stage1(num_episodes=10000, graph_dataset_size=5):  # Tier 1 only
             torch.save(phase2_policy.net.state_dict(), "ckpt_stage1_phase2_latest.pt")
             torch.save({"episode": episode + 1, "coeff_dim": coeff_dim},
                        "ckpt_stage1_meta.pt")
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
 
     print(f"\n  Per-graph bounds (Stage 1):")
     for gname in sorted(per_graph.keys()):
@@ -740,6 +742,8 @@ def run_stage2(phase2_policy, num_episodes=10000, graph_dataset_size=5):
             torch.save(phase1_policy.net.state_dict(), "ckpt_stage2_phase1_latest.pt")
             torch.save(phase2_policy.net.state_dict(), "ckpt_stage2_phase2_latest.pt")
             torch.save({"episode": episode + 1}, "ckpt_stage2_meta.pt")
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
 
     print(f"\n  Per-graph Phase 1 (Stage 2):")
     for gname in sorted(per_graph.keys()):
@@ -985,6 +989,8 @@ def run_stage3(phase1_policy, phase2_policy,
             with open("ckpt_stage3_best_partitions_latest.json", "w") as _bf:
                 import json as _j; _j.dump(_bp_serial, _bf)
             torch.save({"episode": episode + 1}, "ckpt_stage3_meta.pt")
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
 
     metrics['best_partitions'] = {
         k: {'partition': v[0], 'weights': v[1], 'bound': v[2]}
@@ -1447,6 +1453,12 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
                           f"(improvement={(pb2-b)/pb2*100:.2f}%)")
                     if trace != "N/A":
                         print(f"     Trace: {trace[:200]}")
+            env.pool = env.pool[:env.num_base]
+            env.accumulator = []
+            env.frac_pool = env.frac_pool.__class__(MAX_DERIVED)
+            env.stored_derived = []
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
 
     # Write all logged episodes to JSON and generate per-graph proof/status documents
     proof_logger.flush()
@@ -1559,6 +1571,9 @@ def train(stage1_episodes=10000, stage2_episodes=10000,
         torch.save({"coeff_dim": coeff_dim}, "ckpt_stage1_coeff_dim.pt")
         print("[checkpoint] Stage 1 saved -> ckpt_stage1_phase2.pt")
 
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
     # ---- Stage 2 ----
     _s2_done = (os.path.exists("ckpt_stage2_phase1.pt") and
                 os.path.exists("ckpt_stage2_phase2.pt"))
@@ -1575,6 +1590,9 @@ def train(stage1_episodes=10000, stage2_episodes=10000,
         torch.save(phase1_policy.net.state_dict(), "ckpt_stage2_phase1.pt")
         torch.save(phase2_policy.net.state_dict(), "ckpt_stage2_phase2.pt")
         print("[checkpoint] Stage 2 saved -> ckpt_stage2_phase1.pt, ckpt_stage2_phase2.pt")
+
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
 
     # ---- Stage 3 ----
     _s3_done = (os.path.exists("ckpt_stage3_phase1.pt") and
@@ -1615,6 +1633,9 @@ def train(stage1_episodes=10000, stage2_episodes=10000,
                             "bound": float(v[2]) if v[2] != float("inf") else None}
                         for k, v in best_partitions.items()}, _f)
         print("[checkpoint] Stage 3 saved -> ckpt_stage3_phase1.pt, ckpt_stage3_phase2.pt, ckpt_stage3_best_partitions.json")
+
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
 
     # ---- Stage 4 ----
     _s4_done = os.path.exists("ckpt_stage4_phase3.pt")
