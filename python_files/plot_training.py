@@ -15,6 +15,7 @@ Plots generated:
 """
 
 import json
+import os
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
@@ -78,7 +79,24 @@ def rolling(data, window=100):
     return np.concatenate([pad, out])
 
 
-def load_metrics(path='training_metrics.json'):
+def load_metrics(path=None):
+    if path is None:
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        # Check next to the script first, then in config_files/
+        candidates = [
+            os.path.join(script_dir, 'training_metrics.json'),
+            os.path.join(script_dir, '..', 'config_files', 'training_metrics.json'),
+            'training_metrics.json',  # cwd fallback
+        ]
+        for candidate in candidates:
+            if os.path.exists(candidate):
+                path = candidate
+                break
+        if path is None or not os.path.exists(path):
+            raise FileNotFoundError(
+                "training_metrics.json not found next to script or in config_files/.\n"
+                f"Searched:\n" + "\n".join(f"  {c}" for c in candidates)
+            )
     with open(path) as f:
         result = json.load(f)
     # Backward compat: old format nested stages under 'train' as str(dict).

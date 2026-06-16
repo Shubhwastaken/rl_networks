@@ -1,0 +1,90 @@
+======================================================================
+PROOF DOCUMENT: hu_2pairs_6N
+Generated from Stage 4 action log — episode 129
+======================================================================
+
+NETWORK
+  Nodes   : ['a', 'b', 'c', 'd', 'e', 'f']
+  Edges   : [['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'e'], ['e', 'f'], ['f', 'a'], ['b', 'f'], ['c', 'e']]
+  Sessions: [['a', 'd'], ['b', 'e']]
+
+PARTITION (from RL Phase 1)
+  P1 = {b, e}
+  P2 = {c, f}
+  P3 = {a, d}
+
+RESULT
+  r <= 1.000000  (partition bound = 2.000000, improvement = 50.00%)
+
+TERMINAL INEQUALITY
+  [proof=FRACTIONAL λ=1.0000 src=['e', 'd'] parts=[0, 2]]  0.500*Y_I <= 1.000*U_d_e
+
+STEP-BY-STEP AGENT PROOF TRACE
+----------------------------------------------------------------------
+
+Step 1: FRACTIONAL_IO  (reward = 0.1500)
+  FRACTIONAL IO: 0.3300 * IO(c) + 0.6700 * IO(e)
+  Pool after: size=10  best_bound=None
+
+Step 2: ADD_TO_ACCUMULATOR  (reward = 0.0000)
+  Pool after: size=10  best_bound=None
+
+Step 3: ADD_TO_ACCUMULATOR  (reward = 0.0000)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['e'] parts=[0]]  0.500*Y_I <= 1.000*Y_S_e + 1.000*U_d_e + 1.000*U_e_f + 1.000*U_c_e
+      YI coeff = 0.5,  has_YST = False,  edge_total = 3.0
+  Pool after: size=10  best_bound=None
+
+Step 4: APPLY_SUBMODULARITY  (reward = 0.1000)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['e'] parts=[0]]  0.500*Y_I <= 1.000*Y_S_e + 1.000*U_d_e + 1.000*U_e_f + 1.000*U_c_e
+      YI coeff = 0.5,  has_YST = False,  edge_total = 3.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['d'] parts=[2]]  0.500*Y_I <= 1.000*Y_S_d + 1.000*U_c_d + 1.000*U_d_e
+      YI coeff = 0.5,  has_YST = False,  edge_total = 2.0
+
+  CROSS-PARTITION SUBMODULARITY APPLICATION
+  Input A (partition_ids=[0]):
+    [proof=FRACTIONAL λ=1.0000 src=['e'] parts=[0]]  0.500*Y_I <= 1.000*Y_S_e + 1.000*U_d_e + 1.000*U_e_f + 1.000*U_c_e
+    YI_coeff = 0.5  |  has_YST = False  |  active_YST = []
+
+  Input B (partition_ids=[2]):
+    [proof=FRACTIONAL λ=1.0000 src=['d'] parts=[2]]  0.500*Y_I <= 1.000*Y_S_d + 1.000*U_c_d + 1.000*U_d_e
+    YI_coeff = 0.5  |  has_YST = False  |  active_YST = []
+
+  Applying h(A) + h(B) >= h(A∪B) + h(A∩B):
+    Sessions covered by A : []
+    Sessions covered by B : []
+    Sessions in union     : []
+    Full session coverage : False
+
+  YST collapse did NOT fire (union does not cover all sessions)
+
+  Union result:
+    0.500*Y_I <= 1.000*Y_S_d + 1.000*Y_S_e + 1.000*U_c_d + 1.000*U_d_e + 1.000*U_e_f + 1.000*U_c_e
+    YI_coeff = 0.5  |  edge_total = 4.0  |  is_terminal = False
+  Pool after: size=12  best_bound=1.0
+  ** BOUND IMPROVED to 1.0
+
+Step 5: ADD_TO_ACCUMULATOR  (reward = 0.0000)
+  Pool after: size=12  best_bound=1.0
+
+Step 6: DECLARE_TERMINAL  (reward = 12.5000)
+  Accumulator before:
+    acc[0]: [proof=INTEGER λ=1.0000 src=none parts=none]  1.000*Y_ST_P0 + 1.000*Y_I_P0 <= 1.000*Y_S_b + 1.000*Y_S_e + 1.000*U_a_b + 1.000*U_b_c + 1.000*U_d_e + 1.000*U_e_f + 1.000*U_b_f + 1.000*U_c_e
+      YI coeff = 0.0,  has_YST = True,  edge_total = 6.0
+  Pool after: size=12  best_bound=1.0
+
+----------------------------------------------------------------------
+TERMINAL INEQUALITY VERIFICATION
+  [proof=FRACTIONAL λ=1.0000 src=['e', 'd'] parts=[0, 2]]  0.500*Y_I <= 1.000*U_d_e
+  YI_coeff  = 0.5
+  Edge coefficients:
+    U_d_e : 1.0000
+  Edge total = 1.0
+
+RATE EXTRACTION
+  h(Y_I) = 2r * log2(b)
+  0.5 * 2r <= 1.0
+  r <= 1.0 / 1.0000 = 1.000000
+  r <= 1.000000  ✓
+======================================================================

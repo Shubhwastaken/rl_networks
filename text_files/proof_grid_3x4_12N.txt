@@ -1,0 +1,613 @@
+======================================================================
+PROOF DOCUMENT: grid_3x4_12N
+Generated from Stage 4 action log — episode 6813
+======================================================================
+
+NETWORK
+  Nodes   : ['r0c0', 'r0c1', 'r0c2', 'r0c3', 'r1c0', 'r1c1', 'r1c2', 'r1c3', 'r2c0', 'r2c1', 'r2c2', 'r2c3']
+  Edges   : [['r0c0', 'r0c1'], ['r0c0', 'r1c0'], ['r0c1', 'r0c2'], ['r0c1', 'r1c1'], ['r0c2', 'r0c3'], ['r0c2', 'r1c2'], ['r0c3', 'r1c3'], ['r1c0', 'r1c1'], ['r1c0', 'r2c0'], ['r1c1', 'r1c2'], ['r1c1', 'r2c1'], ['r1c2', 'r1c3'], ['r1c2', 'r2c2'], ['r1c3', 'r2c3'], ['r2c0', 'r2c1'], ['r2c1', 'r2c2'], ['r2c2', 'r2c3']]
+  Sessions: [['r0c0', 'r2c3'], ['r0c3', 'r2c0'], ['r1c0', 'r1c3']]
+
+PARTITION (from RL Phase 1)
+  P1 = {r0c0, r2c3}
+  P2 = {r0c1, r1c2}
+  P3 = {r0c2, r2c1}
+  P4 = {r0c3, r2c0}
+  P5 = {r1c0, r1c3}
+  P6 = {r1c1}
+  P7 = {r2c2}
+
+RESULT
+  r <= 1.667500  (partition bound = 2.833333, improvement = 41.15%)
+
+TERMINAL INEQUALITY
+  [proof=FRACTIONAL λ=1.0000 src=none parts=none]  6.667*Y_I <= 1.000*U_r0c0_r0c1 + 3.500*U_r0c0_r1c0 + 1.000*U_r0c1_r0c2 + 0.250*U_r0c1_r1c1 + 3.000*U_r0c2_r0c3 + 2.100*U_r0c2_r1c2 + 3.000*U_r0c3_r1c3 + 2.750*U_r1c0_r1c1 + 2.500*U_r1c0_r2c0 + 1.350*U_r1c1_r1c2 + 1.670*U_r1c1_r2c1 + 2.100*U_r1c2_r1c3 + 1.830*U_r1c2_r2c2 + 2.000*U_r1c3_r2c3 + 1.420*U_r2c0_r2c1 + 2.150*U_r2c1_r2c2 + 1.730*U_r2c2_r2c3
+
+STEP-BY-STEP AGENT PROOF TRACE
+----------------------------------------------------------------------
+
+Step 1: FRACTIONAL_IO  (reward = 0.1500)
+  FRACTIONAL IO: 0.6000 * IO(r1c0) + 0.4000 * IO(r2c3)
+  Pool after: size=20  best_bound=None
+
+Step 2: FRACTIONAL_IO  (reward = 0.1500)
+  FRACTIONAL IO: 0.4000 * IO(r1c2) + 0.6000 * IO(r2c3)
+  Pool after: size=21  best_bound=None
+
+Step 3: ADD_TO_ACCUMULATOR  (reward = 0.0000)
+  Pool after: size=21  best_bound=None
+
+Step 4: ADD_TO_ACCUMULATOR  (reward = 0.0000)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+  Pool after: size=21  best_bound=None
+
+Step 5: FRACTIONAL_IO  (reward = 0.1500)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+  FRACTIONAL IO: 0.4000 * IO(r0c3) + 0.6000 * IO(r2c1)
+  Pool after: size=22  best_bound=None
+
+Step 6: FRACTIONAL_IO  (reward = 0.1500)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+  FRACTIONAL IO: 0.6000 * IO(r1c2) + 0.4000 * IO(r2c2)
+  Pool after: size=23  best_bound=None
+
+Step 7: FRACTIONAL_IO  (reward = 0.1500)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+  FRACTIONAL IO: 0.5000 * IO(r0c2) + 0.5000 * IO(r1c2)
+  Pool after: size=24  best_bound=None
+
+Step 8: ADD_TO_ACCUMULATOR  (reward = 0.0000)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+  Pool after: size=24  best_bound=None
+
+Step 9: FRACTIONAL_IO  (reward = 0.1500)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[2]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+  FRACTIONAL IO: 0.7500 * IO(r1c0) + 0.2500 * IO(r2c3)
+  Pool after: size=25  best_bound=None
+
+Step 10: FRACTIONAL_IO  (reward = 0.1500)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[2]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+  FRACTIONAL IO: 0.6700 * IO(r2c1) + 0.3300 * IO(r2c2)
+  Pool after: size=26  best_bound=None
+
+Step 11: FRACTIONAL_IO  (reward = 0.1500)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[2]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+  FRACTIONAL IO: 0.5000 * IO(r1c0) + 0.5000 * IO(r1c2)
+  Pool after: size=27  best_bound=None
+
+Step 12: FRACTIONAL_IO  (reward = 0.1500)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[2]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+  FRACTIONAL IO: 0.4000 * IO(r0c2) + 0.6000 * IO(r2c2)
+  Pool after: size=28  best_bound=None
+
+Step 13: ADD_TO_ACCUMULATOR  (reward = 0.0000)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[2]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+  Pool after: size=28  best_bound=None
+
+Step 14: FRACTIONAL_IO  (reward = 0.1500)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[2]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[3]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+  FRACTIONAL IO: 0.2500 * IO(r1c1) + 0.7500 * IO(r1c3)
+  Pool after: size=29  best_bound=None
+
+Step 15: FRACTIONAL_IO  (reward = 0.1500)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[2]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[3]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+  FRACTIONAL IO: 0.2500 * IO(r1c1) + 0.7500 * IO(r2c1)
+  Pool after: size=30  best_bound=None
+
+Step 16: FRACTIONAL_IO  (reward = 0.1500)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[2]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[3]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+  FRACTIONAL IO: 0.5000 * IO(r2c1) + 0.5000 * IO(r2c2)
+  Pool after: size=30  best_bound=None
+
+Step 17: FRACTIONAL_IO  (reward = 0.1500)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[2]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[3]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+  FRACTIONAL IO: 0.2500 * IO(r0c2) + 0.7500 * IO(r2c0)
+  Pool after: size=30  best_bound=None
+
+Step 18: FRACTIONAL_IO  (reward = 0.1500)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[2]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[3]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+  FRACTIONAL IO: 0.6000 * IO(r2c0) + 0.4000 * IO(r2c3)
+  Pool after: size=30  best_bound=None
+
+Step 19: ADD_TO_ACCUMULATOR  (reward = 0.0000)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[2]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[3]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+  Pool after: size=30  best_bound=None
+
+Step 20: ADD_TO_ACCUMULATOR  (reward = 0.0000)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[2]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[3]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[4]: [proof=FRACTIONAL λ=1.0000 src=['r0c0'] parts=[0]]  0.333*Y_I <= 1.000*Y_S_r0c0 + 1.000*U_r0c0_r0c1 + 1.000*U_r0c0_r1c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+  Pool after: size=30  best_bound=None
+
+Step 21: FRACTIONAL_IO  (reward = 0.1500)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[2]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[3]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[4]: [proof=FRACTIONAL λ=1.0000 src=['r0c0'] parts=[0]]  0.333*Y_I <= 1.000*Y_S_r0c0 + 1.000*U_r0c0_r0c1 + 1.000*U_r0c0_r1c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[5]: [proof=FRACTIONAL λ=0.6000 src=['r1c2', 'r2c2'] parts=[1, 6]]  0 <= 0.600*Y_S_r1c2 + 0.400*Y_S_r2c2 + 0.600*U_r0c2_r1c2 + 0.600*U_r1c1_r1c2 + 0.600*U_r1c2_r1c3 + 1.000*U_r1c2_r2c2 + 0.400*U_r2c1_r2c2 + 0.400*U_r2c2_r2c3
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.6
+  FRACTIONAL IO: 0.6700 * IO(r1c1) + 0.3300 * IO(r2c3)
+  Pool after: size=30  best_bound=None
+
+Step 22: FRACTIONAL_IO  (reward = 0.1500)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[2]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[3]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[4]: [proof=FRACTIONAL λ=1.0000 src=['r0c0'] parts=[0]]  0.333*Y_I <= 1.000*Y_S_r0c0 + 1.000*U_r0c0_r0c1 + 1.000*U_r0c0_r1c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[5]: [proof=FRACTIONAL λ=0.6000 src=['r1c2', 'r2c2'] parts=[1, 6]]  0 <= 0.600*Y_S_r1c2 + 0.400*Y_S_r2c2 + 0.600*U_r0c2_r1c2 + 0.600*U_r1c1_r1c2 + 0.600*U_r1c2_r1c3 + 1.000*U_r1c2_r2c2 + 0.400*U_r2c1_r2c2 + 0.400*U_r2c2_r2c3
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.6
+  FRACTIONAL IO: 0.5000 * IO(r0c1) + 0.5000 * IO(r2c1)
+  Pool after: size=30  best_bound=None
+
+Step 23: ADD_TO_ACCUMULATOR  (reward = 0.0000)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[2]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[3]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[4]: [proof=FRACTIONAL λ=1.0000 src=['r0c0'] parts=[0]]  0.333*Y_I <= 1.000*Y_S_r0c0 + 1.000*U_r0c0_r0c1 + 1.000*U_r0c0_r1c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[5]: [proof=FRACTIONAL λ=0.6000 src=['r1c2', 'r2c2'] parts=[1, 6]]  0 <= 0.600*Y_S_r1c2 + 0.400*Y_S_r2c2 + 0.600*U_r0c2_r1c2 + 0.600*U_r1c1_r1c2 + 0.600*U_r1c2_r1c3 + 1.000*U_r1c2_r2c2 + 0.400*U_r2c1_r2c2 + 0.400*U_r2c2_r2c3
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.6
+  Pool after: size=30  best_bound=None
+
+Step 24: FRACTIONAL_IO  (reward = 0.1500)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[2]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[3]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[4]: [proof=FRACTIONAL λ=1.0000 src=['r0c0'] parts=[0]]  0.333*Y_I <= 1.000*Y_S_r0c0 + 1.000*U_r0c0_r0c1 + 1.000*U_r0c0_r1c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[5]: [proof=FRACTIONAL λ=0.6000 src=['r1c2', 'r2c2'] parts=[1, 6]]  0 <= 0.600*Y_S_r1c2 + 0.400*Y_S_r2c2 + 0.600*U_r0c2_r1c2 + 0.600*U_r1c1_r1c2 + 0.600*U_r1c2_r1c3 + 1.000*U_r1c2_r2c2 + 0.400*U_r2c1_r2c2 + 0.400*U_r2c2_r2c3
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.6
+    acc[6]: [proof=FRACTIONAL λ=0.2500 src=['r1c1', 'r2c1'] parts=[2, 5]]  0 <= 0.250*Y_S_r1c1 + 0.750*Y_S_r2c1 + 0.250*U_r0c1_r1c1 + 0.250*U_r1c0_r1c1 + 0.250*U_r1c1_r1c2 + 1.000*U_r1c1_r2c1 + 0.750*U_r2c0_r2c1 + 0.750*U_r2c1_r2c2
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.25
+  FRACTIONAL IO: 0.2500 * IO(r1c0) + 0.7500 * IO(r2c2)
+  Pool after: size=30  best_bound=None
+
+Step 25: FRACTIONAL_IO  (reward = 0.1500)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[2]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[3]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[4]: [proof=FRACTIONAL λ=1.0000 src=['r0c0'] parts=[0]]  0.333*Y_I <= 1.000*Y_S_r0c0 + 1.000*U_r0c0_r0c1 + 1.000*U_r0c0_r1c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[5]: [proof=FRACTIONAL λ=0.6000 src=['r1c2', 'r2c2'] parts=[1, 6]]  0 <= 0.600*Y_S_r1c2 + 0.400*Y_S_r2c2 + 0.600*U_r0c2_r1c2 + 0.600*U_r1c1_r1c2 + 0.600*U_r1c2_r1c3 + 1.000*U_r1c2_r2c2 + 0.400*U_r2c1_r2c2 + 0.400*U_r2c2_r2c3
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.6
+    acc[6]: [proof=FRACTIONAL λ=0.2500 src=['r1c1', 'r2c1'] parts=[2, 5]]  0 <= 0.250*Y_S_r1c1 + 0.750*Y_S_r2c1 + 0.250*U_r0c1_r1c1 + 0.250*U_r1c0_r1c1 + 0.250*U_r1c1_r1c2 + 1.000*U_r1c1_r2c1 + 0.750*U_r2c0_r2c1 + 0.750*U_r2c1_r2c2
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.25
+  FRACTIONAL IO: 0.5000 * IO(r0c2) + 0.5000 * IO(r2c0)
+  Pool after: size=30  best_bound=None
+
+Step 26: FRACTIONAL_IO  (reward = 0.1500)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[2]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[3]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[4]: [proof=FRACTIONAL λ=1.0000 src=['r0c0'] parts=[0]]  0.333*Y_I <= 1.000*Y_S_r0c0 + 1.000*U_r0c0_r0c1 + 1.000*U_r0c0_r1c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[5]: [proof=FRACTIONAL λ=0.6000 src=['r1c2', 'r2c2'] parts=[1, 6]]  0 <= 0.600*Y_S_r1c2 + 0.400*Y_S_r2c2 + 0.600*U_r0c2_r1c2 + 0.600*U_r1c1_r1c2 + 0.600*U_r1c2_r1c3 + 1.000*U_r1c2_r2c2 + 0.400*U_r2c1_r2c2 + 0.400*U_r2c2_r2c3
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.6
+    acc[6]: [proof=FRACTIONAL λ=0.2500 src=['r1c1', 'r2c1'] parts=[2, 5]]  0 <= 0.250*Y_S_r1c1 + 0.750*Y_S_r2c1 + 0.250*U_r0c1_r1c1 + 0.250*U_r1c0_r1c1 + 0.250*U_r1c1_r1c2 + 1.000*U_r1c1_r2c1 + 0.750*U_r2c0_r2c1 + 0.750*U_r2c1_r2c2
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.25
+  FRACTIONAL IO: 0.7500 * IO(r0c1) + 0.2500 * IO(r2c1)
+  Pool after: size=30  best_bound=None
+
+Step 27: FRACTIONAL_IO  (reward = 0.1500)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[2]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[3]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[4]: [proof=FRACTIONAL λ=1.0000 src=['r0c0'] parts=[0]]  0.333*Y_I <= 1.000*Y_S_r0c0 + 1.000*U_r0c0_r0c1 + 1.000*U_r0c0_r1c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[5]: [proof=FRACTIONAL λ=0.6000 src=['r1c2', 'r2c2'] parts=[1, 6]]  0 <= 0.600*Y_S_r1c2 + 0.400*Y_S_r2c2 + 0.600*U_r0c2_r1c2 + 0.600*U_r1c1_r1c2 + 0.600*U_r1c2_r1c3 + 1.000*U_r1c2_r2c2 + 0.400*U_r2c1_r2c2 + 0.400*U_r2c2_r2c3
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.6
+    acc[6]: [proof=FRACTIONAL λ=0.2500 src=['r1c1', 'r2c1'] parts=[2, 5]]  0 <= 0.250*Y_S_r1c1 + 0.750*Y_S_r2c1 + 0.250*U_r0c1_r1c1 + 0.250*U_r1c0_r1c1 + 0.250*U_r1c1_r1c2 + 1.000*U_r1c1_r2c1 + 0.750*U_r2c0_r2c1 + 0.750*U_r2c1_r2c2
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.25
+  FRACTIONAL IO: 0.7500 * IO(r1c0) + 0.2500 * IO(r1c1)
+  Pool after: size=30  best_bound=None
+
+Step 28: ADD_TO_ACCUMULATOR  (reward = 0.0000)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[2]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[3]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[4]: [proof=FRACTIONAL λ=1.0000 src=['r0c0'] parts=[0]]  0.333*Y_I <= 1.000*Y_S_r0c0 + 1.000*U_r0c0_r0c1 + 1.000*U_r0c0_r1c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[5]: [proof=FRACTIONAL λ=0.6000 src=['r1c2', 'r2c2'] parts=[1, 6]]  0 <= 0.600*Y_S_r1c2 + 0.400*Y_S_r2c2 + 0.600*U_r0c2_r1c2 + 0.600*U_r1c1_r1c2 + 0.600*U_r1c2_r1c3 + 1.000*U_r1c2_r2c2 + 0.400*U_r2c1_r2c2 + 0.400*U_r2c2_r2c3
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.6
+    acc[6]: [proof=FRACTIONAL λ=0.2500 src=['r1c1', 'r2c1'] parts=[2, 5]]  0 <= 0.250*Y_S_r1c1 + 0.750*Y_S_r2c1 + 0.250*U_r0c1_r1c1 + 0.250*U_r1c0_r1c1 + 0.250*U_r1c1_r1c2 + 1.000*U_r1c1_r2c1 + 0.750*U_r2c0_r2c1 + 0.750*U_r2c1_r2c2
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.25
+  Pool after: size=30  best_bound=None
+
+Step 29: FRACTIONAL_IO  (reward = 0.1500)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[2]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[3]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[4]: [proof=FRACTIONAL λ=1.0000 src=['r0c0'] parts=[0]]  0.333*Y_I <= 1.000*Y_S_r0c0 + 1.000*U_r0c0_r0c1 + 1.000*U_r0c0_r1c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[5]: [proof=FRACTIONAL λ=0.6000 src=['r1c2', 'r2c2'] parts=[1, 6]]  0 <= 0.600*Y_S_r1c2 + 0.400*Y_S_r2c2 + 0.600*U_r0c2_r1c2 + 0.600*U_r1c1_r1c2 + 0.600*U_r1c2_r1c3 + 1.000*U_r1c2_r2c2 + 0.400*U_r2c1_r2c2 + 0.400*U_r2c2_r2c3
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.6
+    acc[6]: [proof=FRACTIONAL λ=0.2500 src=['r1c1', 'r2c1'] parts=[2, 5]]  0 <= 0.250*Y_S_r1c1 + 0.750*Y_S_r2c1 + 0.250*U_r0c1_r1c1 + 0.250*U_r1c0_r1c1 + 0.250*U_r1c1_r1c2 + 1.000*U_r1c1_r2c1 + 0.750*U_r2c0_r2c1 + 0.750*U_r2c1_r2c2
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.25
+    acc[7]: [proof=FRACTIONAL λ=1.0000 src=['r2c3'] parts=[0]]  0.333*Y_I <= 1.000*Y_S_r2c3 + 1.000*U_r1c3_r2c3 + 1.000*U_r2c2_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+  FRACTIONAL IO: 0.6700 * IO(r1c0) + 0.3300 * IO(r2c2)
+  Pool after: size=30  best_bound=None
+
+Step 30: ADD_TO_ACCUMULATOR  (reward = 0.0000)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[2]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[3]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[4]: [proof=FRACTIONAL λ=1.0000 src=['r0c0'] parts=[0]]  0.333*Y_I <= 1.000*Y_S_r0c0 + 1.000*U_r0c0_r0c1 + 1.000*U_r0c0_r1c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[5]: [proof=FRACTIONAL λ=0.6000 src=['r1c2', 'r2c2'] parts=[1, 6]]  0 <= 0.600*Y_S_r1c2 + 0.400*Y_S_r2c2 + 0.600*U_r0c2_r1c2 + 0.600*U_r1c1_r1c2 + 0.600*U_r1c2_r1c3 + 1.000*U_r1c2_r2c2 + 0.400*U_r2c1_r2c2 + 0.400*U_r2c2_r2c3
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.6
+    acc[6]: [proof=FRACTIONAL λ=0.2500 src=['r1c1', 'r2c1'] parts=[2, 5]]  0 <= 0.250*Y_S_r1c1 + 0.750*Y_S_r2c1 + 0.250*U_r0c1_r1c1 + 0.250*U_r1c0_r1c1 + 0.250*U_r1c1_r1c2 + 1.000*U_r1c1_r2c1 + 0.750*U_r2c0_r2c1 + 0.750*U_r2c1_r2c2
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.25
+    acc[7]: [proof=FRACTIONAL λ=1.0000 src=['r2c3'] parts=[0]]  0.333*Y_I <= 1.000*Y_S_r2c3 + 1.000*U_r1c3_r2c3 + 1.000*U_r2c2_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+  Pool after: size=30  best_bound=None
+
+Step 31: FRACTIONAL_IO  (reward = 0.1500)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[2]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[3]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[4]: [proof=FRACTIONAL λ=1.0000 src=['r0c0'] parts=[0]]  0.333*Y_I <= 1.000*Y_S_r0c0 + 1.000*U_r0c0_r0c1 + 1.000*U_r0c0_r1c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[5]: [proof=FRACTIONAL λ=0.6000 src=['r1c2', 'r2c2'] parts=[1, 6]]  0 <= 0.600*Y_S_r1c2 + 0.400*Y_S_r2c2 + 0.600*U_r0c2_r1c2 + 0.600*U_r1c1_r1c2 + 0.600*U_r1c2_r1c3 + 1.000*U_r1c2_r2c2 + 0.400*U_r2c1_r2c2 + 0.400*U_r2c2_r2c3
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.6
+    acc[6]: [proof=FRACTIONAL λ=0.2500 src=['r1c1', 'r2c1'] parts=[2, 5]]  0 <= 0.250*Y_S_r1c1 + 0.750*Y_S_r2c1 + 0.250*U_r0c1_r1c1 + 0.250*U_r1c0_r1c1 + 0.250*U_r1c1_r1c2 + 1.000*U_r1c1_r2c1 + 0.750*U_r2c0_r2c1 + 0.750*U_r2c1_r2c2
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.25
+    acc[7]: [proof=FRACTIONAL λ=1.0000 src=['r2c3'] parts=[0]]  0.333*Y_I <= 1.000*Y_S_r2c3 + 1.000*U_r1c3_r2c3 + 1.000*U_r2c2_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[8]: [proof=FRACTIONAL λ=0.5000 src=['r1c0', 'r1c2'] parts=[1, 4]]  0.167*Y_I <= 0.500*Y_S_r1c0 + 0.500*Y_S_r1c2 + 0.500*U_r0c0_r1c0 + 0.500*U_r0c2_r1c2 + 0.500*U_r1c0_r1c1 + 0.500*U_r1c0_r2c0 + 0.500*U_r1c1_r1c2 + 0.500*U_r1c2_r1c3 + 0.500*U_r1c2_r2c2
+      YI coeff = 0.166667,  has_YST = False,  edge_total = 3.5
+  FRACTIONAL IO: 0.6700 * IO(r0c3) + 0.3300 * IO(r1c2)
+  Pool after: size=30  best_bound=None
+
+Step 32: ADD_TO_ACCUMULATOR  (reward = 0.0000)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[2]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[3]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[4]: [proof=FRACTIONAL λ=1.0000 src=['r0c0'] parts=[0]]  0.333*Y_I <= 1.000*Y_S_r0c0 + 1.000*U_r0c0_r0c1 + 1.000*U_r0c0_r1c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[5]: [proof=FRACTIONAL λ=0.6000 src=['r1c2', 'r2c2'] parts=[1, 6]]  0 <= 0.600*Y_S_r1c2 + 0.400*Y_S_r2c2 + 0.600*U_r0c2_r1c2 + 0.600*U_r1c1_r1c2 + 0.600*U_r1c2_r1c3 + 1.000*U_r1c2_r2c2 + 0.400*U_r2c1_r2c2 + 0.400*U_r2c2_r2c3
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.6
+    acc[6]: [proof=FRACTIONAL λ=0.2500 src=['r1c1', 'r2c1'] parts=[2, 5]]  0 <= 0.250*Y_S_r1c1 + 0.750*Y_S_r2c1 + 0.250*U_r0c1_r1c1 + 0.250*U_r1c0_r1c1 + 0.250*U_r1c1_r1c2 + 1.000*U_r1c1_r2c1 + 0.750*U_r2c0_r2c1 + 0.750*U_r2c1_r2c2
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.25
+    acc[7]: [proof=FRACTIONAL λ=1.0000 src=['r2c3'] parts=[0]]  0.333*Y_I <= 1.000*Y_S_r2c3 + 1.000*U_r1c3_r2c3 + 1.000*U_r2c2_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[8]: [proof=FRACTIONAL λ=0.5000 src=['r1c0', 'r1c2'] parts=[1, 4]]  0.167*Y_I <= 0.500*Y_S_r1c0 + 0.500*Y_S_r1c2 + 0.500*U_r0c0_r1c0 + 0.500*U_r0c2_r1c2 + 0.500*U_r1c0_r1c1 + 0.500*U_r1c0_r2c0 + 0.500*U_r1c1_r1c2 + 0.500*U_r1c2_r1c3 + 0.500*U_r1c2_r2c2
+      YI coeff = 0.166667,  has_YST = False,  edge_total = 3.5
+  Pool after: size=30  best_bound=None
+
+Step 33: FRACTIONAL_IO  (reward = 0.1500)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[2]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[3]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[4]: [proof=FRACTIONAL λ=1.0000 src=['r0c0'] parts=[0]]  0.333*Y_I <= 1.000*Y_S_r0c0 + 1.000*U_r0c0_r0c1 + 1.000*U_r0c0_r1c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[5]: [proof=FRACTIONAL λ=0.6000 src=['r1c2', 'r2c2'] parts=[1, 6]]  0 <= 0.600*Y_S_r1c2 + 0.400*Y_S_r2c2 + 0.600*U_r0c2_r1c2 + 0.600*U_r1c1_r1c2 + 0.600*U_r1c2_r1c3 + 1.000*U_r1c2_r2c2 + 0.400*U_r2c1_r2c2 + 0.400*U_r2c2_r2c3
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.6
+    acc[6]: [proof=FRACTIONAL λ=0.2500 src=['r1c1', 'r2c1'] parts=[2, 5]]  0 <= 0.250*Y_S_r1c1 + 0.750*Y_S_r2c1 + 0.250*U_r0c1_r1c1 + 0.250*U_r1c0_r1c1 + 0.250*U_r1c1_r1c2 + 1.000*U_r1c1_r2c1 + 0.750*U_r2c0_r2c1 + 0.750*U_r2c1_r2c2
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.25
+    acc[7]: [proof=FRACTIONAL λ=1.0000 src=['r2c3'] parts=[0]]  0.333*Y_I <= 1.000*Y_S_r2c3 + 1.000*U_r1c3_r2c3 + 1.000*U_r2c2_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[8]: [proof=FRACTIONAL λ=0.5000 src=['r1c0', 'r1c2'] parts=[1, 4]]  0.167*Y_I <= 0.500*Y_S_r1c0 + 0.500*Y_S_r1c2 + 0.500*U_r0c0_r1c0 + 0.500*U_r0c2_r1c2 + 0.500*U_r1c0_r1c1 + 0.500*U_r1c0_r2c0 + 0.500*U_r1c1_r1c2 + 0.500*U_r1c2_r1c3 + 0.500*U_r1c2_r2c2
+      YI coeff = 0.166667,  has_YST = False,  edge_total = 3.5
+    acc[9]: [proof=INTEGER λ=1.0000 src=['r0c2'] parts=[2]]  0 <= 1.000*Y_S_r0c2 + 1.000*U_r0c1_r0c2 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c2_r1c2
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.0
+  FRACTIONAL IO: 0.4000 * IO(r0c1) + 0.6000 * IO(r0c3)
+  Pool after: size=30  best_bound=None
+
+Step 34: ADD_TO_ACCUMULATOR  (reward = 0.0000)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[2]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[3]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[4]: [proof=FRACTIONAL λ=1.0000 src=['r0c0'] parts=[0]]  0.333*Y_I <= 1.000*Y_S_r0c0 + 1.000*U_r0c0_r0c1 + 1.000*U_r0c0_r1c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[5]: [proof=FRACTIONAL λ=0.6000 src=['r1c2', 'r2c2'] parts=[1, 6]]  0 <= 0.600*Y_S_r1c2 + 0.400*Y_S_r2c2 + 0.600*U_r0c2_r1c2 + 0.600*U_r1c1_r1c2 + 0.600*U_r1c2_r1c3 + 1.000*U_r1c2_r2c2 + 0.400*U_r2c1_r2c2 + 0.400*U_r2c2_r2c3
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.6
+    acc[6]: [proof=FRACTIONAL λ=0.2500 src=['r1c1', 'r2c1'] parts=[2, 5]]  0 <= 0.250*Y_S_r1c1 + 0.750*Y_S_r2c1 + 0.250*U_r0c1_r1c1 + 0.250*U_r1c0_r1c1 + 0.250*U_r1c1_r1c2 + 1.000*U_r1c1_r2c1 + 0.750*U_r2c0_r2c1 + 0.750*U_r2c1_r2c2
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.25
+    acc[7]: [proof=FRACTIONAL λ=1.0000 src=['r2c3'] parts=[0]]  0.333*Y_I <= 1.000*Y_S_r2c3 + 1.000*U_r1c3_r2c3 + 1.000*U_r2c2_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[8]: [proof=FRACTIONAL λ=0.5000 src=['r1c0', 'r1c2'] parts=[1, 4]]  0.167*Y_I <= 0.500*Y_S_r1c0 + 0.500*Y_S_r1c2 + 0.500*U_r0c0_r1c0 + 0.500*U_r0c2_r1c2 + 0.500*U_r1c0_r1c1 + 0.500*U_r1c0_r2c0 + 0.500*U_r1c1_r1c2 + 0.500*U_r1c2_r1c3 + 0.500*U_r1c2_r2c2
+      YI coeff = 0.166667,  has_YST = False,  edge_total = 3.5
+    acc[9]: [proof=INTEGER λ=1.0000 src=['r0c2'] parts=[2]]  0 <= 1.000*Y_S_r0c2 + 1.000*U_r0c1_r0c2 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c2_r1c2
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.0
+  Pool after: size=30  best_bound=None
+
+Step 35: ADD_TO_ACCUMULATOR  (reward = 0.0000)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[2]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[3]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[4]: [proof=FRACTIONAL λ=1.0000 src=['r0c0'] parts=[0]]  0.333*Y_I <= 1.000*Y_S_r0c0 + 1.000*U_r0c0_r0c1 + 1.000*U_r0c0_r1c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[5]: [proof=FRACTIONAL λ=0.6000 src=['r1c2', 'r2c2'] parts=[1, 6]]  0 <= 0.600*Y_S_r1c2 + 0.400*Y_S_r2c2 + 0.600*U_r0c2_r1c2 + 0.600*U_r1c1_r1c2 + 0.600*U_r1c2_r1c3 + 1.000*U_r1c2_r2c2 + 0.400*U_r2c1_r2c2 + 0.400*U_r2c2_r2c3
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.6
+    acc[6]: [proof=FRACTIONAL λ=0.2500 src=['r1c1', 'r2c1'] parts=[2, 5]]  0 <= 0.250*Y_S_r1c1 + 0.750*Y_S_r2c1 + 0.250*U_r0c1_r1c1 + 0.250*U_r1c0_r1c1 + 0.250*U_r1c1_r1c2 + 1.000*U_r1c1_r2c1 + 0.750*U_r2c0_r2c1 + 0.750*U_r2c1_r2c2
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.25
+    acc[7]: [proof=FRACTIONAL λ=1.0000 src=['r2c3'] parts=[0]]  0.333*Y_I <= 1.000*Y_S_r2c3 + 1.000*U_r1c3_r2c3 + 1.000*U_r2c2_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[8]: [proof=FRACTIONAL λ=0.5000 src=['r1c0', 'r1c2'] parts=[1, 4]]  0.167*Y_I <= 0.500*Y_S_r1c0 + 0.500*Y_S_r1c2 + 0.500*U_r0c0_r1c0 + 0.500*U_r0c2_r1c2 + 0.500*U_r1c0_r1c1 + 0.500*U_r1c0_r2c0 + 0.500*U_r1c1_r1c2 + 0.500*U_r1c2_r1c3 + 0.500*U_r1c2_r2c2
+      YI coeff = 0.166667,  has_YST = False,  edge_total = 3.5
+    acc[9]: [proof=INTEGER λ=1.0000 src=['r0c2'] parts=[2]]  0 <= 1.000*Y_S_r0c2 + 1.000*U_r0c1_r0c2 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c2_r1c2
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.0
+    acc[10]: [proof=FRACTIONAL λ=0.6700 src=['r2c1', 'r2c2'] parts=[2, 6]]  0 <= 0.670*Y_S_r2c1 + 0.330*Y_S_r2c2 + 0.670*U_r1c1_r2c1 + 0.330*U_r1c2_r2c2 + 0.670*U_r2c0_r2c1 + 1.000*U_r2c1_r2c2 + 0.330*U_r2c2_r2c3
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.0
+  Pool after: size=30  best_bound=None
+
+Step 36: STORE_AND_RESET  (reward = 0.1200)
+  Accumulator before:
+    acc[0]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[1]: [proof=FRACTIONAL λ=1.0000 src=['r1c3'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c3 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c3_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[2]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[3]: [proof=FRACTIONAL λ=1.0000 src=['r1c0'] parts=[4]]  0.333*Y_I <= 1.000*Y_S_r1c0 + 1.000*U_r0c0_r1c0 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 3.0
+    acc[4]: [proof=FRACTIONAL λ=1.0000 src=['r0c0'] parts=[0]]  0.333*Y_I <= 1.000*Y_S_r0c0 + 1.000*U_r0c0_r0c1 + 1.000*U_r0c0_r1c0
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[5]: [proof=FRACTIONAL λ=0.6000 src=['r1c2', 'r2c2'] parts=[1, 6]]  0 <= 0.600*Y_S_r1c2 + 0.400*Y_S_r2c2 + 0.600*U_r0c2_r1c2 + 0.600*U_r1c1_r1c2 + 0.600*U_r1c2_r1c3 + 1.000*U_r1c2_r2c2 + 0.400*U_r2c1_r2c2 + 0.400*U_r2c2_r2c3
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.6
+    acc[6]: [proof=FRACTIONAL λ=0.2500 src=['r1c1', 'r2c1'] parts=[2, 5]]  0 <= 0.250*Y_S_r1c1 + 0.750*Y_S_r2c1 + 0.250*U_r0c1_r1c1 + 0.250*U_r1c0_r1c1 + 0.250*U_r1c1_r1c2 + 1.000*U_r1c1_r2c1 + 0.750*U_r2c0_r2c1 + 0.750*U_r2c1_r2c2
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.25
+    acc[7]: [proof=FRACTIONAL λ=1.0000 src=['r2c3'] parts=[0]]  0.333*Y_I <= 1.000*Y_S_r2c3 + 1.000*U_r1c3_r2c3 + 1.000*U_r2c2_r2c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+    acc[8]: [proof=FRACTIONAL λ=0.5000 src=['r1c0', 'r1c2'] parts=[1, 4]]  0.167*Y_I <= 0.500*Y_S_r1c0 + 0.500*Y_S_r1c2 + 0.500*U_r0c0_r1c0 + 0.500*U_r0c2_r1c2 + 0.500*U_r1c0_r1c1 + 0.500*U_r1c0_r2c0 + 0.500*U_r1c1_r1c2 + 0.500*U_r1c2_r1c3 + 0.500*U_r1c2_r2c2
+      YI coeff = 0.166667,  has_YST = False,  edge_total = 3.5
+    acc[9]: [proof=INTEGER λ=1.0000 src=['r0c2'] parts=[2]]  0 <= 1.000*Y_S_r0c2 + 1.000*U_r0c1_r0c2 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c2_r1c2
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.0
+    acc[10]: [proof=FRACTIONAL λ=0.6700 src=['r2c1', 'r2c2'] parts=[2, 6]]  0 <= 0.670*Y_S_r2c1 + 0.330*Y_S_r2c2 + 0.670*U_r1c1_r2c1 + 0.330*U_r1c2_r2c2 + 0.670*U_r2c0_r2c1 + 1.000*U_r2c1_r2c2 + 0.330*U_r2c2_r2c3
+      YI coeff = 0.0,  has_YST = False,  edge_total = 3.0
+    acc[11]: [proof=FRACTIONAL λ=1.0000 src=['r0c3'] parts=[3]]  0.333*Y_I <= 1.000*Y_S_r0c3 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c3_r1c3
+      YI coeff = 0.333333,  has_YST = False,  edge_total = 2.0
+
+  STORE_AND_RESET — accumulator summed + source terms cancelled:
+    [proof=FRACTIONAL λ=0.8714 src=['r0c3', 'r1c3', 'r1c0', 'r1c0', 'r0c0', 'r1c2', 'r2c2', 'r1c1', 'r2c1', 'r2c3', 'r1c0', 'r1c2', 'r0c2', 'r2c1', 'r2c2', 'r0c3'] parts=[0, 1, 2, 3, 4, 5, 6]]  0.667*Y_I <= 1.000*U_r0c0_r0c1 + 3.500*U_r0c0_r1c0 + 1.000*U_r0c1_r0c2 + 0.250*U_r0c1_r1c1 + 3.000*U_r0c2_r0c3 + 2.100*U_r0c2_r1c2 + 3.000*U_r0c3_r1c3 + 2.750*U_r1c0_r1c1 + 2.500*U_r1c0_r2c0 + 1.350*U_r1c1_r1c2 + 1.670*U_r1c1_r2c1 + 2.100*U_r1c2_r1c3 + 1.830*U_r1c2_r2c2 + 2.000*U_r1c3_r2c3 + 1.420*U_r2c0_r2c1 + 2.150*U_r2c1_r2c2 + 1.730*U_r2c2_r2c3
+    YI_coeff = 0.666667  |  edge_total = 33.35
+  Pool after: size=30  best_bound=16.675
+  ** BOUND IMPROVED to 16.675
+
+Step 37: FRACTIONAL_IO  (reward = 0.1500)
+  FRACTIONAL IO: 0.6000 * IO(r0c0) + 0.4000 * IO(r2c0)
+  Pool after: size=30  best_bound=16.675
+
+Step 38: FRACTIONAL_IO  (reward = 0.1500)
+  FRACTIONAL IO: 0.3300 * IO(r0c3) + 0.6700 * IO(r2c3)
+  Pool after: size=30  best_bound=16.675
+
+Step 39: FRACTIONAL_IO  (reward = 0.1500)
+  FRACTIONAL IO: 0.3300 * IO(r2c2) + 0.6700 * IO(r2c3)
+  Pool after: size=30  best_bound=16.675
+
+Step 40: APPLY_CRYPTO  (reward = 0.2000)
+  Pool after: size=30  best_bound=6.67
+  ** BOUND IMPROVED to 6.67
+
+Step 41: FRACTIONAL_IO  (reward = -2.5000)
+  FRACTIONAL IO: 0.2500 * IO(r0c3) + 0.7500 * IO(r1c0)
+  Pool after: size=30  best_bound=6.67
+
+----------------------------------------------------------------------
+TERMINAL INEQUALITY VERIFICATION
+  [proof=FRACTIONAL λ=1.0000 src=none parts=none]  6.667*Y_I <= 1.000*U_r0c0_r0c1 + 3.500*U_r0c0_r1c0 + 1.000*U_r0c1_r0c2 + 0.250*U_r0c1_r1c1 + 3.000*U_r0c2_r0c3 + 2.100*U_r0c2_r1c2 + 3.000*U_r0c3_r1c3 + 2.750*U_r1c0_r1c1 + 2.500*U_r1c0_r2c0 + 1.350*U_r1c1_r1c2 + 1.670*U_r1c1_r2c1 + 2.100*U_r1c2_r1c3 + 1.830*U_r1c2_r2c2 + 2.000*U_r1c3_r2c3 + 1.420*U_r2c0_r2c1 + 2.150*U_r2c1_r2c2 + 1.730*U_r2c2_r2c3
+  YI_coeff  = 6.666667
+  Edge coefficients:
+    U_r0c0_r0c1 : 1.0000
+    U_r0c0_r1c0 : 3.5000
+    U_r0c1_r0c2 : 1.0000
+    U_r0c1_r1c1 : 0.2500
+    U_r0c2_r0c3 : 3.0000
+    U_r0c2_r1c2 : 2.1000
+    U_r0c3_r1c3 : 3.0000
+    U_r1c0_r1c1 : 2.7500
+    U_r1c0_r2c0 : 2.5000
+    U_r1c1_r1c2 : 1.3500
+    U_r1c1_r2c1 : 1.6700
+    U_r1c2_r1c3 : 2.1000
+    U_r1c2_r2c2 : 1.8300
+    U_r1c3_r2c3 : 2.0000
+    U_r2c0_r2c1 : 1.4200
+    U_r2c1_r2c2 : 2.1500
+    U_r2c2_r2c3 : 1.7300
+  Edge total = 33.35
+
+RATE EXTRACTION
+  h(Y_I) = 3r * log2(b)
+  6.666667 * 3r <= 33.35
+  r <= 33.35 / 20.0000 = 1.667500
+  r <= 1.667500  ✓
+======================================================================

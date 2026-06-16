@@ -2,576 +2,46 @@
   "episodes": [
     {
       "episode": 4600,
-      "graph": "grid_3x4_12N",
-      "p2_bound": 5.666666666666667,
-      "p3_bound": 5.666666666666667,
-      "partition_bound": 2.8333333333333335,
+      "graph": "paper_7N",
+      "p2_bound": 3.3333333333333335,
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
       "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
       "episode": 4601,
-      "graph": "petersen_10N",
-      "p2_bound": 3.75,
-      "p3_bound": 3.75,
-      "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "graph": "okamura_seymour_8N",
+      "p2_bound": 6.0,
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
       "is_novel": false,
       "lp_valid": true
     },
     {
       "episode": 4602,
-      "graph": "paper_7N",
-      "p2_bound": 0.4,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
+      "graph": "grid_9N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
       "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
       "episode": 4603,
-      "graph": "paper_7N",
-      "p2_bound": 3.3333333333333335,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
+      "graph": "kramer_savari_ladder_8N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
       "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
       "episode": 4604,
-      "graph": "hu_2pairs_6N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4605,
-      "graph": "petersen_10N",
-      "p2_bound": 3.75,
-      "p3_bound": 3.75,
-      "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4606,
-      "graph": "paper_7N",
-      "p2_bound": 2.5,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4607,
-      "graph": "petersen_10N",
-      "p2_bound": 3.75,
-      "p3_bound": 3.75,
-      "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4608,
-      "graph": "okamura_seymour_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4609,
-      "graph": "kramer_savari_ladder_8N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4610,
-      "graph": "okamura_seymour_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4611,
-      "graph": "okamura_seymour_8N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4612,
-      "graph": "al_bashabsheh_7N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4613,
-      "graph": "grid_4x4_16N",
-      "p2_bound": 4.8,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4614,
-      "graph": "butterfly_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 3.0,
-      "partition_bound": 1.5,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4615,
-      "graph": "two_k4_10N",
-      "p2_bound": 5.333333333333333,
-      "p3_bound": 5.333333333333333,
-      "partition_bound": 2.6666666666666665,
-      "lp_lower_bound": 0.6666666666666666,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4616,
-      "graph": "al_bashabsheh_7N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4617,
-      "graph": "hu_2pairs_6N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4618,
-      "graph": "petersen_10N",
-      "p2_bound": 3.0,
-      "p3_bound": 3.75,
-      "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4619,
-      "graph": "grid_9N",
-      "p2_bound": 2.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4620,
-      "graph": "grid_4x4_16N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4621,
-      "graph": "petersen_10N",
-      "p2_bound": 3.75,
-      "p3_bound": 3.75,
-      "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4622,
-      "graph": "petersen_10N",
-      "p2_bound": 3.75,
-      "p3_bound": 3.75,
-      "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4623,
-      "graph": "grid_9N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4624,
-      "graph": "diamond_6N",
-      "p2_bound": 3.5,
-      "p3_bound": 9.574850299401199,
-      "partition_bound": 1.75,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4625,
-      "graph": "okamura_seymour_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4626,
-      "graph": "grid_3x4_12N",
-      "p2_bound": 5.666666666666667,
-      "p3_bound": 5.666666666666667,
-      "partition_bound": 2.8333333333333335,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4627,
-      "graph": "grid_4x4_16N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4628,
-      "graph": "two_k4_10N",
-      "p2_bound": 5.333333333333333,
-      "p3_bound": 5.333333333333333,
-      "partition_bound": 2.6666666666666665,
-      "lp_lower_bound": 0.6666666666666666,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4629,
-      "graph": "two_k4_10N",
-      "p2_bound": 5.333333333333333,
-      "p3_bound": 5.333333333333333,
-      "partition_bound": 2.6666666666666665,
-      "lp_lower_bound": 0.6666666666666666,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4630,
-      "graph": "hu_3pairs_6N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 2.6666666666666665,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4631,
-      "graph": "two_k4_10N",
-      "p2_bound": 5.333333333333333,
-      "p3_bound": 5.333333333333333,
-      "partition_bound": 2.6666666666666665,
-      "lp_lower_bound": 0.6666666666666666,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4632,
-      "graph": "grid_9N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4633,
-      "graph": "grid_4x4_16N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4634,
-      "graph": "grid_9N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4635,
-      "graph": "two_k4_10N",
-      "p2_bound": 5.333333333333333,
-      "p3_bound": 5.333333333333333,
-      "partition_bound": 2.6666666666666665,
-      "lp_lower_bound": 0.6666666666666666,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4636,
-      "graph": "star_8N",
-      "p2_bound": 4.5,
-      "p3_bound": 4.5,
-      "partition_bound": 2.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4637,
-      "graph": "butterfly_8N",
-      "p2_bound": 2.4,
-      "p3_bound": 3.0,
-      "partition_bound": 1.5,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4638,
-      "graph": "grid_4x4_16N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4639,
-      "graph": "grid_9N",
-      "p2_bound": 2.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4640,
-      "graph": "kramer_savari_ladder_8N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4641,
-      "graph": "grid_9N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4642,
-      "graph": "grid_3x4_12N",
-      "p2_bound": 5.666666666666667,
-      "p3_bound": 5.666666666666667,
-      "partition_bound": 2.8333333333333335,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4643,
-      "graph": "paper_7N",
-      "p2_bound": 3.3333333333333335,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4644,
-      "graph": "al_bashabsheh_7N",
-      "p2_bound": 2.4,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4645,
-      "graph": "kramer_savari_ladder_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4646,
-      "graph": "grid_9N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4647,
-      "graph": "diamond_6N",
-      "p2_bound": 3.5,
-      "p3_bound": 3.5,
-      "partition_bound": 1.75,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4648,
-      "graph": "hu_3pairs_6N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 2.6666666666666665,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4649,
-      "graph": "grid_9N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4650,
-      "graph": "hu_3pairs_6N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 2.6666666666666665,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4651,
-      "graph": "okamura_seymour_8N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4652,
-      "graph": "butterfly_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 3.0,
-      "partition_bound": 1.5,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4653,
-      "graph": "butterfly_8N",
-      "p2_bound": 2.4,
-      "p3_bound": 3.0,
-      "partition_bound": 1.5,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4654,
-      "graph": "ford_fulkerson_6N",
-      "p2_bound": 10.0,
-      "p3_bound": 10.0,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4655,
-      "graph": "grid_3x4_12N",
-      "p2_bound": 3.4,
-      "p3_bound": 5.666666666666667,
-      "partition_bound": 2.8333333333333335,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4656,
-      "graph": "kramer_savari_ladder_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4657,
       "graph": "okamura_4N",
       "p2_bound": 1.25,
       "p3_bound": 2.5,
@@ -581,47 +51,7 @@
       "lp_valid": true
     },
     {
-      "episode": 4658,
-      "graph": "two_k4_10N",
-      "p2_bound": 5.333333333333333,
-      "p3_bound": 5.333333333333333,
-      "partition_bound": 2.6666666666666665,
-      "lp_lower_bound": 0.6666666666666666,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4659,
-      "graph": "petersen_10N",
-      "p2_bound": 3.75,
-      "p3_bound": 3.75,
-      "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4660,
-      "graph": "grid_4x4_16N",
-      "p2_bound": 4.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4661,
-      "graph": "two_k4_10N",
-      "p2_bound": 5.333333333333333,
-      "p3_bound": 5.333333333333333,
-      "partition_bound": 2.6666666666666665,
-      "lp_lower_bound": 0.6666666666666666,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4662,
+      "episode": 4605,
       "graph": "hu_3pairs_6N",
       "p2_bound": 2.6666666666666665,
       "p3_bound": 2.6666666666666665,
@@ -631,19 +61,19 @@
       "lp_valid": true
     },
     {
-      "episode": 4663,
-      "graph": "diamond_6N",
-      "p2_bound": 3.5,
-      "p3_bound": 1.75,
-      "partition_bound": 1.75,
-      "lp_lower_bound": 1.0,
+      "episode": 4606,
+      "graph": "petersen_10N",
+      "p2_bound": 3.75,
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4664,
-      "graph": "kramer_savari_ladder_8N",
-      "p2_bound": 3.0,
+      "episode": 4607,
+      "graph": "grid_9N",
+      "p2_bound": 4.0,
       "p3_bound": 4.0,
       "partition_bound": 2.0,
       "lp_lower_bound": 1.0,
@@ -651,7 +81,27 @@
       "lp_valid": true
     },
     {
-      "episode": 4665,
+      "episode": 4608,
+      "graph": "kramer_savari_ladder_8N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4609,
+      "graph": "paper_7N",
+      "p2_bound": 1.6666666666666667,
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4610,
       "graph": "star_8N",
       "p2_bound": 4.5,
       "p3_bound": 4.5,
@@ -661,27 +111,7 @@
       "lp_valid": true
     },
     {
-      "episode": 4666,
-      "graph": "al_bashabsheh_7N",
-      "p2_bound": 2.4,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4667,
-      "graph": "ford_fulkerson_6N",
-      "p2_bound": 5.0,
-      "p3_bound": 10.0,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4668,
+      "episode": 4611,
       "graph": "grid_9N",
       "p2_bound": 4.0,
       "p3_bound": 4.0,
@@ -691,117 +121,17 @@
       "lp_valid": true
     },
     {
-      "episode": 4669,
-      "graph": "grid_3x4_12N",
-      "p2_bound": 5.666666666666667,
-      "p3_bound": 5.666666666666667,
-      "partition_bound": 2.8333333333333335,
+      "episode": 4612,
+      "graph": "grid_4x4_16N",
+      "p2_bound": 4.8,
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
       "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4670,
-      "graph": "grid_3x4_12N",
-      "p2_bound": 5.666666666666667,
-      "p3_bound": 5.666666666666667,
-      "partition_bound": 2.8333333333333335,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4671,
-      "graph": "petersen_10N",
-      "p2_bound": 3.75,
-      "p3_bound": 3.75,
-      "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4672,
-      "graph": "paper_7N",
-      "p2_bound": 2.5,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4673,
-      "graph": "petersen_10N",
-      "p2_bound": 3.75,
-      "p3_bound": 3.75,
-      "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4674,
-      "graph": "diamond_6N",
-      "p2_bound": 1.75,
-      "p3_bound": 3.5,
-      "partition_bound": 1.75,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4675,
-      "graph": "hu_2pairs_6N",
-      "p2_bound": 1.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4676,
-      "graph": "al_bashabsheh_7N",
-      "p2_bound": 2.4,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4677,
-      "graph": "paper_7N",
-      "p2_bound": 3.3333333333333335,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4678,
-      "graph": "grid_9N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4679,
-      "graph": "ford_fulkerson_6N",
-      "p2_bound": 5.0,
-      "p3_bound": 10.0,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4680,
+      "episode": 4613,
       "graph": "hu_2pairs_6N",
       "p2_bound": 4.0,
       "p3_bound": 4.0,
@@ -811,7 +141,7 @@
       "lp_valid": true
     },
     {
-      "episode": 4681,
+      "episode": 4614,
       "graph": "diamond_6N",
       "p2_bound": 3.5,
       "p3_bound": 3.5,
@@ -821,27 +151,147 @@
       "lp_valid": true
     },
     {
-      "episode": 4682,
-      "graph": "grid_4x4_16N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
+      "episode": 4615,
+      "graph": "hu_3pairs_6N",
+      "p2_bound": 2.6666666666666665,
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
       "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4683,
-      "graph": "paper_7N",
-      "p2_bound": 2.5,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
+      "episode": 4616,
+      "graph": "diamond_6N",
+      "p2_bound": 3.5,
+      "p3_bound": 3.5,
+      "partition_bound": 1.75,
       "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4684,
+      "episode": 4617,
+      "graph": "hu_3pairs_6N",
+      "p2_bound": 1.3333333333333333,
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4618,
+      "graph": "diamond_6N",
+      "p2_bound": 1.75,
+      "p3_bound": 3.5,
+      "partition_bound": 1.75,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4619,
+      "graph": "petersen_10N",
+      "p2_bound": 1.875,
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4620,
+      "graph": "al_bashabsheh_7N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4621,
+      "graph": "kramer_savari_ladder_8N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4622,
+      "graph": "al_bashabsheh_7N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4623,
+      "graph": "ford_fulkerson_6N",
+      "p2_bound": 10.0,
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4624,
+      "graph": "diamond_6N",
+      "p2_bound": 3.5,
+      "p3_bound": 3.5,
+      "partition_bound": 1.75,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4625,
+      "graph": "diamond_6N",
+      "p2_bound": 1.75,
+      "p3_bound": 3.5,
+      "partition_bound": 1.75,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4626,
+      "graph": "grid_3x4_12N",
+      "p2_bound": 2.8333333333333335,
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4627,
+      "graph": "petersen_10N",
+      "p2_bound": 1.875,
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4628,
+      "graph": "diamond_6N",
+      "p2_bound": 1.75,
+      "p3_bound": 3.5,
+      "partition_bound": 1.75,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4629,
       "graph": "grid_9N",
       "p2_bound": 2.0,
       "p3_bound": 4.0,
@@ -851,7 +301,57 @@
       "lp_valid": true
     },
     {
-      "episode": 4685,
+      "episode": 4630,
+      "graph": "hu_2pairs_6N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4631,
+      "graph": "petersen_10N",
+      "p2_bound": 3.75,
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4632,
+      "graph": "paper_7N",
+      "p2_bound": 1.6666666666666667,
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4633,
+      "graph": "grid_3x4_12N",
+      "p2_bound": 5.666666666666667,
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4634,
+      "graph": "hu_2pairs_6N",
+      "p2_bound": 4.0,
+      "p3_bound": 5.060526315789474,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4635,
       "graph": "grid_9N",
       "p2_bound": 4.0,
       "p3_bound": 4.0,
@@ -861,9 +361,69 @@
       "lp_valid": true
     },
     {
-      "episode": 4686,
-      "graph": "petersen_10N",
+      "episode": 4636,
+      "graph": "hu_3pairs_6N",
+      "p2_bound": 2.6666666666666665,
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4637,
+      "graph": "two_k4_10N",
+      "p2_bound": 5.333333333333333,
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4638,
+      "graph": "grid_9N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4639,
+      "graph": "grid_3x4_12N",
+      "p2_bound": 2.8333333333333335,
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4640,
+      "graph": "butterfly_8N",
       "p2_bound": 3.0,
+      "p3_bound": 3.0,
+      "partition_bound": 1.5,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4641,
+      "graph": "star_8N",
+      "p2_bound": 4.5,
+      "p3_bound": 4.5,
+      "partition_bound": 2.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4642,
+      "graph": "petersen_10N",
+      "p2_bound": 3.75,
       "p3_bound": 3.75,
       "partition_bound": 1.875,
       "lp_lower_bound": 1.25,
@@ -871,7 +431,107 @@
       "lp_valid": true
     },
     {
-      "episode": 4687,
+      "episode": 4643,
+      "graph": "diamond_6N",
+      "p2_bound": 3.5,
+      "p3_bound": 3.5,
+      "partition_bound": 1.75,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4644,
+      "graph": "okamura_seymour_8N",
+      "p2_bound": 6.0,
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4645,
+      "graph": "okamura_4N",
+      "p2_bound": 1.25,
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4646,
+      "graph": "al_bashabsheh_7N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4647,
+      "graph": "paper_7N",
+      "p2_bound": 1.6666666666666667,
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4648,
+      "graph": "al_bashabsheh_7N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4649,
+      "graph": "petersen_10N",
+      "p2_bound": 3.75,
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4650,
+      "graph": "grid_4x4_16N",
+      "p2_bound": 3.0,
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4651,
+      "graph": "diamond_6N",
+      "p2_bound": 1.75,
+      "p3_bound": 3.5,
+      "partition_bound": 1.75,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4652,
+      "graph": "hu_3pairs_6N",
+      "p2_bound": 1.3333333333333333,
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4653,
       "graph": "kramer_savari_ladder_8N",
       "p2_bound": 4.0,
       "p3_bound": 4.0,
@@ -881,17 +541,147 @@
       "lp_valid": true
     },
     {
-      "episode": 4688,
-      "graph": "petersen_10N",
-      "p2_bound": 3.0,
-      "p3_bound": 3.75,
-      "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "episode": 4654,
+      "graph": "paper_7N",
+      "p2_bound": 1.6666666666666667,
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4689,
+      "episode": 4655,
+      "graph": "okamura_seymour_8N",
+      "p2_bound": 3.0,
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4656,
+      "graph": "two_k4_10N",
+      "p2_bound": 5.333333333333333,
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4657,
+      "graph": "star_8N",
+      "p2_bound": 2.25,
+      "p3_bound": 4.5,
+      "partition_bound": 2.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4658,
+      "graph": "diamond_6N",
+      "p2_bound": 1.75,
+      "p3_bound": 3.5,
+      "partition_bound": 1.75,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4659,
+      "graph": "diamond_6N",
+      "p2_bound": 3.5,
+      "p3_bound": 3.5,
+      "partition_bound": 1.75,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4660,
+      "graph": "butterfly_8N",
+      "p2_bound": 3.0,
+      "p3_bound": 3.0,
+      "partition_bound": 1.5,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4661,
+      "graph": "al_bashabsheh_7N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4662,
+      "graph": "butterfly_8N",
+      "p2_bound": 1.7142857142857142,
+      "p3_bound": 3.0,
+      "partition_bound": 1.5,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4663,
+      "graph": "al_bashabsheh_7N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4664,
+      "graph": "butterfly_8N",
+      "p2_bound": 1.7142857142857142,
+      "p3_bound": 3.0,
+      "partition_bound": 1.5,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4665,
+      "graph": "butterfly_8N",
+      "p2_bound": 3.0,
+      "p3_bound": 3.0,
+      "partition_bound": 1.5,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4666,
+      "graph": "ford_fulkerson_6N",
+      "p2_bound": 10.0,
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4667,
+      "graph": "ford_fulkerson_6N",
+      "p2_bound": 10.0,
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4668,
       "graph": "grid_4x4_16N",
       "p2_bound": 6.0,
       "p3_bound": 6.0,
@@ -901,9 +691,219 @@
       "lp_valid": true
     },
     {
-      "episode": 4690,
+      "episode": 4669,
+      "graph": "ford_fulkerson_6N",
+      "p2_bound": 3.3333333333333335,
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4670,
       "graph": "kramer_savari_ladder_8N",
       "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4671,
+      "graph": "okamura_4N",
+      "p2_bound": 1.25,
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4672,
+      "graph": "kramer_savari_ladder_8N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4673,
+      "graph": "paper_7N",
+      "p2_bound": 3.3333333333333335,
+      "p3_bound": 9.04761904761905,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4674,
+      "graph": "two_k4_10N",
+      "p2_bound": 5.333333333333333,
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4675,
+      "graph": "okamura_4N",
+      "p2_bound": 2.5,
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4676,
+      "graph": "okamura_seymour_8N",
+      "p2_bound": 6.0,
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4677,
+      "graph": "grid_9N",
+      "p2_bound": 2.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4678,
+      "graph": "kramer_savari_ladder_8N",
+      "p2_bound": 3.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4679,
+      "graph": "kramer_savari_ladder_8N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4680,
+      "graph": "grid_9N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4681,
+      "graph": "grid_3x4_12N",
+      "p2_bound": 5.666666666666667,
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4682,
+      "graph": "star_8N",
+      "p2_bound": 4.5,
+      "p3_bound": 4.5,
+      "partition_bound": 2.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4683,
+      "graph": "paper_7N",
+      "p2_bound": 3.3333333333333335,
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4684,
+      "graph": "two_k4_10N",
+      "p2_bound": 2.6666666666666665,
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4685,
+      "graph": "grid_9N",
+      "p2_bound": 2.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4686,
+      "graph": "grid_3x4_12N",
+      "p2_bound": 2.8333333333333335,
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4687,
+      "graph": "paper_7N",
+      "p2_bound": 1.6666666666666667,
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4688,
+      "graph": "grid_4x4_16N",
+      "p2_bound": 6.0,
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4689,
+      "graph": "okamura_seymour_8N",
+      "p2_bound": 6.0,
+      "p3_bound": 10.099999999999998,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4690,
+      "graph": "grid_9N",
+      "p2_bound": 2.0,
       "p3_bound": 4.0,
       "partition_bound": 2.0,
       "lp_lower_bound": 1.0,
@@ -922,18 +922,8 @@
     },
     {
       "episode": 4692,
-      "graph": "grid_4x4_16N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4693,
       "graph": "ford_fulkerson_6N",
-      "p2_bound": 5.0,
+      "p2_bound": 10.0,
       "p3_bound": 10.0,
       "partition_bound": 5.0,
       "lp_lower_bound": 2.0,
@@ -941,29 +931,19 @@
       "lp_valid": true
     },
     {
-      "episode": 4694,
-      "graph": "hu_3pairs_6N",
+      "episode": 4693,
+      "graph": "two_k4_10N",
       "p2_bound": 2.6666666666666665,
-      "p3_bound": 2.6666666666666665,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.0,
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4695,
-      "graph": "paper_7N",
-      "p2_bound": 2.5,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4696,
+      "episode": 4694,
       "graph": "diamond_6N",
-      "p2_bound": 0.2,
+      "p2_bound": 3.5,
       "p3_bound": 3.5,
       "partition_bound": 1.75,
       "lp_lower_bound": 1.0,
@@ -971,7 +951,37 @@
       "lp_valid": true
     },
     {
+      "episode": 4695,
+      "graph": "hu_2pairs_6N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4696,
+      "graph": "okamura_4N",
+      "p2_bound": 1.25,
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
       "episode": 4697,
+      "graph": "ford_fulkerson_6N",
+      "p2_bound": 10.0,
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4698,
       "graph": "paper_7N",
       "p2_bound": 3.3333333333333335,
       "p3_bound": 3.3333333333333335,
@@ -981,7 +991,97 @@
       "lp_valid": true
     },
     {
-      "episode": 4698,
+      "episode": 4699,
+      "graph": "two_k4_10N",
+      "p2_bound": 5.333333333333333,
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4700,
+      "graph": "al_bashabsheh_7N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4701,
+      "graph": "hu_3pairs_6N",
+      "p2_bound": 2.6666666666666665,
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4702,
+      "graph": "al_bashabsheh_7N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4703,
+      "graph": "diamond_6N",
+      "p2_bound": 3.5,
+      "p3_bound": 3.5,
+      "partition_bound": 1.75,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4704,
+      "graph": "kramer_savari_ladder_8N",
+      "p2_bound": 4.0,
+      "p3_bound": 1.5,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": true,
+      "lp_valid": true
+    },
+    {
+      "episode": 4705,
+      "graph": "grid_3x4_12N",
+      "p2_bound": 5.666666666666667,
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4706,
+      "graph": "paper_7N",
+      "p2_bound": 3.3333333333333335,
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4707,
+      "graph": "petersen_10N",
+      "p2_bound": 1.875,
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4708,
       "graph": "diamond_6N",
       "p2_bound": 1.75,
       "p3_bound": 3.5,
@@ -991,69 +1091,49 @@
       "lp_valid": true
     },
     {
-      "episode": 4699,
-      "graph": "paper_7N",
-      "p2_bound": 2.5,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
+      "episode": 4709,
+      "graph": "okamura_4N",
+      "p2_bound": 1.25,
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
       "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4700,
-      "graph": "kramer_savari_ladder_8N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
+      "episode": 4710,
+      "graph": "petersen_10N",
+      "p2_bound": 3.75,
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4711,
+      "graph": "star_8N",
+      "p2_bound": 4.5,
+      "p3_bound": 4.5,
+      "partition_bound": 2.25,
       "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4701,
-      "graph": "okamura_seymour_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4702,
-      "graph": "hu_3pairs_6N",
-      "p2_bound": 1.0,
-      "p3_bound": 2.6666666666666665,
-      "partition_bound": 1.3333333333333333,
+      "episode": 4712,
+      "graph": "grid_3x4_12N",
+      "p2_bound": 5.666666666666667,
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
       "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4703,
-      "graph": "grid_4x4_16N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4704,
-      "graph": "paper_7N",
-      "p2_bound": 2.5,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4705,
+      "episode": 4713,
       "graph": "butterfly_8N",
-      "p2_bound": 2.4,
+      "p2_bound": 3.0,
       "p3_bound": 3.0,
       "partition_bound": 1.5,
       "lp_lower_bound": 1.0,
@@ -1061,57 +1141,7 @@
       "lp_valid": true
     },
     {
-      "episode": 4706,
-      "graph": "diamond_6N",
-      "p2_bound": 3.5,
-      "p3_bound": 3.5,
-      "partition_bound": 1.75,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4707,
-      "graph": "hu_2pairs_6N",
-      "p2_bound": 1.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4708,
-      "graph": "grid_3x4_12N",
-      "p2_bound": 5.666666666666667,
-      "p3_bound": 5.666666666666667,
-      "partition_bound": 2.8333333333333335,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4709,
-      "graph": "ford_fulkerson_6N",
-      "p2_bound": 10.0,
-      "p3_bound": 10.0,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4710,
-      "graph": "hu_3pairs_6N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 2.6666666666666665,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4711,
+      "episode": 4714,
       "graph": "hu_2pairs_6N",
       "p2_bound": 4.0,
       "p3_bound": 4.0,
@@ -1121,48 +1151,18 @@
       "lp_valid": true
     },
     {
-      "episode": 4712,
-      "graph": "diamond_6N",
-      "p2_bound": 0.1,
-      "p3_bound": 3.5,
-      "partition_bound": 1.75,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4713,
-      "graph": "grid_9N",
-      "p2_bound": 2.0,
+      "episode": 4715,
+      "graph": "al_bashabsheh_7N",
+      "p2_bound": 4.0,
       "p3_bound": 4.0,
       "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4714,
-      "graph": "grid_3x4_12N",
-      "p2_bound": 5.666666666666667,
-      "p3_bound": 5.666666666666667,
-      "partition_bound": 2.8333333333333335,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4715,
-      "graph": "two_k4_10N",
-      "p2_bound": 5.333333333333333,
-      "p3_bound": 5.333333333333333,
-      "partition_bound": 2.6666666666666665,
-      "lp_lower_bound": 0.6666666666666666,
+      "lp_lower_bound": 1.5,
       "is_novel": false,
       "lp_valid": true
     },
     {
       "episode": 4716,
-      "graph": "hu_2pairs_6N",
+      "graph": "kramer_savari_ladder_8N",
       "p2_bound": 4.0,
       "p3_bound": 4.0,
       "partition_bound": 2.0,
@@ -1172,626 +1172,26 @@
     },
     {
       "episode": 4717,
-      "graph": "grid_3x4_12N",
-      "p2_bound": 3.4,
-      "p3_bound": 5.666666666666667,
-      "partition_bound": 2.8333333333333335,
-      "lp_lower_bound": 1.0,
+      "graph": "two_k4_10N",
+      "p2_bound": 5.333333333333333,
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
       "is_novel": false,
       "lp_valid": true
     },
     {
       "episode": 4718,
-      "graph": "grid_3x4_12N",
-      "p2_bound": 5.666666666666667,
-      "p3_bound": 5.666666666666667,
-      "partition_bound": 2.8333333333333335,
+      "graph": "grid_4x4_16N",
+      "p2_bound": 6.0,
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
       "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
       "episode": 4719,
-      "graph": "hu_2pairs_6N",
-      "p2_bound": 4.0,
-      "p3_bound": 5.666666666666667,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4720,
-      "graph": "star_8N",
-      "p2_bound": 4.5,
-      "p3_bound": 4.5,
-      "partition_bound": 2.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4721,
-      "graph": "grid_4x4_16N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4722,
-      "graph": "two_k4_10N",
-      "p2_bound": 5.333333333333333,
-      "p3_bound": 5.333333333333333,
-      "partition_bound": 2.6666666666666665,
-      "lp_lower_bound": 0.6666666666666666,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4723,
-      "graph": "grid_9N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4724,
-      "graph": "butterfly_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 3.0,
-      "partition_bound": 1.5,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4725,
-      "graph": "okamura_4N",
-      "p2_bound": 2.5,
-      "p3_bound": 2.5,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4726,
-      "graph": "petersen_10N",
-      "p2_bound": 3.75,
-      "p3_bound": 3.75,
-      "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4727,
-      "graph": "okamura_seymour_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4728,
-      "graph": "paper_7N",
-      "p2_bound": 2.5,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4729,
-      "graph": "hu_3pairs_6N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 2.6666666666666665,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4730,
-      "graph": "grid_9N",
-      "p2_bound": 2.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4731,
-      "graph": "hu_2pairs_6N",
-      "p2_bound": 1.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4732,
-      "graph": "al_bashabsheh_7N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4733,
-      "graph": "grid_4x4_16N",
-      "p2_bound": 3.4285714285714284,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4734,
-      "graph": "al_bashabsheh_7N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4735,
-      "graph": "two_k4_10N",
-      "p2_bound": 5.333333333333333,
-      "p3_bound": 5.333333333333333,
-      "partition_bound": 2.6666666666666665,
-      "lp_lower_bound": 0.6666666666666666,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4736,
-      "graph": "star_8N",
-      "p2_bound": 4.5,
-      "p3_bound": 4.5,
-      "partition_bound": 2.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4737,
-      "graph": "ford_fulkerson_6N",
-      "p2_bound": 5.0,
-      "p3_bound": 10.0,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4738,
-      "graph": "al_bashabsheh_7N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4739,
-      "graph": "grid_3x4_12N",
-      "p2_bound": 3.4,
-      "p3_bound": 5.666666666666667,
-      "partition_bound": 2.8333333333333335,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4740,
-      "graph": "ford_fulkerson_6N",
-      "p2_bound": 1.0,
-      "p3_bound": 10.0,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4741,
-      "graph": "okamura_seymour_8N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4742,
-      "graph": "two_k4_10N",
-      "p2_bound": 5.333333333333333,
-      "p3_bound": 5.333333333333333,
-      "partition_bound": 2.6666666666666665,
-      "lp_lower_bound": 0.6666666666666666,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4743,
-      "graph": "two_k4_10N",
-      "p2_bound": 5.333333333333333,
-      "p3_bound": 5.333333333333333,
-      "partition_bound": 2.6666666666666665,
-      "lp_lower_bound": 0.6666666666666666,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4744,
-      "graph": "paper_7N",
-      "p2_bound": 3.3333333333333335,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4745,
-      "graph": "kramer_savari_ladder_8N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4746,
-      "graph": "al_bashabsheh_7N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4747,
-      "graph": "butterfly_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 3.0,
-      "partition_bound": 1.5,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4748,
-      "graph": "grid_3x4_12N",
-      "p2_bound": 5.666666666666667,
-      "p3_bound": 5.666666666666667,
-      "partition_bound": 2.8333333333333335,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4749,
-      "graph": "ford_fulkerson_6N",
-      "p2_bound": 10.0,
-      "p3_bound": 10.0,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4750,
-      "graph": "hu_2pairs_6N",
-      "p2_bound": 1.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4751,
-      "graph": "hu_2pairs_6N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4752,
-      "graph": "two_k4_10N",
-      "p2_bound": 5.333333333333333,
-      "p3_bound": 5.333333333333333,
-      "partition_bound": 2.6666666666666665,
-      "lp_lower_bound": 0.6666666666666666,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4753,
-      "graph": "butterfly_8N",
-      "p2_bound": 2.4,
-      "p3_bound": 3.0,
-      "partition_bound": 1.5,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4754,
-      "graph": "two_k4_10N",
-      "p2_bound": 5.333333333333333,
-      "p3_bound": 5.333333333333333,
-      "partition_bound": 2.6666666666666665,
-      "lp_lower_bound": 0.6666666666666666,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4755,
-      "graph": "petersen_10N",
-      "p2_bound": 3.75,
-      "p3_bound": 3.75,
-      "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4756,
-      "graph": "hu_2pairs_6N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4757,
-      "graph": "grid_9N",
-      "p2_bound": 2.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4758,
-      "graph": "paper_7N",
-      "p2_bound": 3.3333333333333335,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4759,
-      "graph": "okamura_4N",
-      "p2_bound": 2.5,
-      "p3_bound": 2.5,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4760,
-      "graph": "petersen_10N",
-      "p2_bound": 3.75,
-      "p3_bound": 3.75,
-      "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4761,
-      "graph": "okamura_4N",
-      "p2_bound": 1.25,
-      "p3_bound": 2.5,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4762,
-      "graph": "okamura_seymour_8N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4763,
-      "graph": "kramer_savari_ladder_8N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4764,
-      "graph": "grid_3x4_12N",
-      "p2_bound": 5.666666666666667,
-      "p3_bound": 5.666666666666667,
-      "partition_bound": 2.8333333333333335,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4765,
-      "graph": "star_8N",
-      "p2_bound": 4.5,
-      "p3_bound": 4.5,
-      "partition_bound": 2.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4766,
-      "graph": "grid_3x4_12N",
-      "p2_bound": 5.666666666666667,
-      "p3_bound": 5.666666666666667,
-      "partition_bound": 2.8333333333333335,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4767,
-      "graph": "okamura_seymour_8N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4768,
-      "graph": "diamond_6N",
-      "p2_bound": 0.3333333333333333,
-      "p3_bound": 1.0,
-      "partition_bound": 1.75,
-      "lp_lower_bound": 1.0,
-      "is_novel": true,
-      "lp_valid": true
-    },
-    {
-      "episode": 4769,
-      "graph": "paper_7N",
-      "p2_bound": 0.6666666666666666,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4770,
-      "graph": "okamura_4N",
-      "p2_bound": 1.25,
-      "p3_bound": 2.5,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4771,
-      "graph": "butterfly_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 3.0,
-      "partition_bound": 1.5,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4772,
-      "graph": "two_k4_10N",
-      "p2_bound": 5.333333333333333,
-      "p3_bound": 5.333333333333333,
-      "partition_bound": 2.6666666666666665,
-      "lp_lower_bound": 0.6666666666666666,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4773,
-      "graph": "butterfly_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 3.0,
-      "partition_bound": 1.5,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4774,
-      "graph": "paper_7N",
-      "p2_bound": 3.3333333333333335,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4775,
-      "graph": "hu_3pairs_6N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 2.6666666666666665,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4776,
-      "graph": "star_8N",
-      "p2_bound": 4.5,
-      "p3_bound": 4.5,
-      "partition_bound": 2.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4777,
-      "graph": "okamura_4N",
-      "p2_bound": 1.25,
-      "p3_bound": 2.5,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4778,
-      "graph": "grid_9N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4779,
       "graph": "diamond_6N",
       "p2_bound": 3.5,
       "p3_bound": 3.5,
@@ -1801,9 +1201,9 @@
       "lp_valid": true
     },
     {
-      "episode": 4780,
+      "episode": 4720,
       "graph": "ford_fulkerson_6N",
-      "p2_bound": 3.0,
+      "p2_bound": 3.3333333333333335,
       "p3_bound": 10.0,
       "partition_bound": 5.0,
       "lp_lower_bound": 2.0,
@@ -1811,19 +1211,59 @@
       "lp_valid": true
     },
     {
-      "episode": 4781,
-      "graph": "hu_3pairs_6N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 2.6666666666666665,
-      "partition_bound": 1.3333333333333333,
+      "episode": 4721,
+      "graph": "butterfly_8N",
+      "p2_bound": 3.0,
+      "p3_bound": 3.0,
+      "partition_bound": 1.5,
       "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4782,
+      "episode": 4722,
+      "graph": "paper_7N",
+      "p2_bound": 3.3333333333333335,
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4723,
+      "graph": "ford_fulkerson_6N",
+      "p2_bound": 3.3333333333333335,
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4724,
+      "graph": "paper_7N",
+      "p2_bound": 1.6666666666666667,
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4725,
+      "graph": "butterfly_8N",
+      "p2_bound": 3.0,
+      "p3_bound": 3.0,
+      "partition_bound": 1.5,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4726,
       "graph": "okamura_4N",
-      "p2_bound": 0.18181818181818182,
+      "p2_bound": 1.25,
       "p3_bound": 2.5,
       "partition_bound": 1.25,
       "lp_lower_bound": 1.0,
@@ -1831,7 +1271,227 @@
       "lp_valid": true
     },
     {
-      "episode": 4783,
+      "episode": 4727,
+      "graph": "kramer_savari_ladder_8N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4728,
+      "graph": "kramer_savari_ladder_8N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4729,
+      "graph": "al_bashabsheh_7N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4730,
+      "graph": "grid_9N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4731,
+      "graph": "al_bashabsheh_7N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4732,
+      "graph": "hu_2pairs_6N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4733,
+      "graph": "two_k4_10N",
+      "p2_bound": 2.6666666666666665,
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4734,
+      "graph": "diamond_6N",
+      "p2_bound": 3.5,
+      "p3_bound": 3.5,
+      "partition_bound": 1.75,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4735,
+      "graph": "al_bashabsheh_7N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4736,
+      "graph": "ford_fulkerson_6N",
+      "p2_bound": 3.3333333333333335,
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4737,
+      "graph": "petersen_10N",
+      "p2_bound": 3.75,
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4738,
+      "graph": "diamond_6N",
+      "p2_bound": 3.5,
+      "p3_bound": 3.5,
+      "partition_bound": 1.75,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4739,
+      "graph": "grid_4x4_16N",
+      "p2_bound": 6.0,
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4740,
+      "graph": "ford_fulkerson_6N",
+      "p2_bound": 10.0,
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4741,
+      "graph": "paper_7N",
+      "p2_bound": 1.6666666666666667,
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4742,
+      "graph": "okamura_seymour_8N",
+      "p2_bound": 3.0,
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4743,
+      "graph": "hu_3pairs_6N",
+      "p2_bound": 1.3333333333333333,
+      "p3_bound": 4.61993769470405,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4744,
+      "graph": "okamura_4N",
+      "p2_bound": 1.25,
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4745,
+      "graph": "ford_fulkerson_6N",
+      "p2_bound": 10.0,
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4746,
+      "graph": "hu_2pairs_6N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4747,
+      "graph": "grid_3x4_12N",
+      "p2_bound": 2.8333333333333335,
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4748,
+      "graph": "grid_3x4_12N",
+      "p2_bound": 2.8333333333333335,
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4749,
       "graph": "grid_3x4_12N",
       "p2_bound": 5.666666666666667,
       "p3_bound": 5.666666666666667,
@@ -1841,12 +1501,352 @@
       "lp_valid": true
     },
     {
-      "episode": 4784,
+      "episode": 4750,
+      "graph": "two_k4_10N",
+      "p2_bound": 5.333333333333333,
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4751,
+      "graph": "okamura_4N",
+      "p2_bound": 1.25,
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4752,
+      "graph": "grid_9N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4753,
+      "graph": "al_bashabsheh_7N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4754,
+      "graph": "grid_3x4_12N",
+      "p2_bound": 5.666666666666667,
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4755,
+      "graph": "okamura_4N",
+      "p2_bound": 1.25,
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4756,
+      "graph": "kramer_savari_ladder_8N",
+      "p2_bound": 2.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4757,
+      "graph": "al_bashabsheh_7N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4758,
+      "graph": "grid_4x4_16N",
+      "p2_bound": 6.0,
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4759,
+      "graph": "ford_fulkerson_6N",
+      "p2_bound": 10.0,
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4760,
+      "graph": "two_k4_10N",
+      "p2_bound": 5.333333333333333,
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4761,
+      "graph": "two_k4_10N",
+      "p2_bound": 5.333333333333333,
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4762,
+      "graph": "ford_fulkerson_6N",
+      "p2_bound": 3.3333333333333335,
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4763,
       "graph": "hu_2pairs_6N",
       "p2_bound": 4.0,
       "p3_bound": 4.0,
       "partition_bound": 2.0,
       "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4764,
+      "graph": "butterfly_8N",
+      "p2_bound": 1.7142857142857142,
+      "p3_bound": 3.0,
+      "partition_bound": 1.5,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4765,
+      "graph": "diamond_6N",
+      "p2_bound": 3.5,
+      "p3_bound": 3.5,
+      "partition_bound": 1.75,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4766,
+      "graph": "grid_3x4_12N",
+      "p2_bound": 2.8333333333333335,
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4767,
+      "graph": "butterfly_8N",
+      "p2_bound": 3.0,
+      "p3_bound": 3.0,
+      "partition_bound": 1.5,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4768,
+      "graph": "diamond_6N",
+      "p2_bound": 1.75,
+      "p3_bound": 3.5,
+      "partition_bound": 1.75,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4769,
+      "graph": "ford_fulkerson_6N",
+      "p2_bound": 10.0,
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4770,
+      "graph": "petersen_10N",
+      "p2_bound": 1.875,
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4771,
+      "graph": "kramer_savari_ladder_8N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4772,
+      "graph": "kramer_savari_ladder_8N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4773,
+      "graph": "al_bashabsheh_7N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4774,
+      "graph": "hu_2pairs_6N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4775,
+      "graph": "ford_fulkerson_6N",
+      "p2_bound": 3.3333333333333335,
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4776,
+      "graph": "grid_4x4_16N",
+      "p2_bound": 6.0,
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4777,
+      "graph": "okamura_4N",
+      "p2_bound": 2.5,
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4778,
+      "graph": "petersen_10N",
+      "p2_bound": 3.75,
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4779,
+      "graph": "okamura_4N",
+      "p2_bound": 2.5,
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4780,
+      "graph": "okamura_seymour_8N",
+      "p2_bound": 3.0,
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4781,
+      "graph": "two_k4_10N",
+      "p2_bound": 5.333333333333333,
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4782,
+      "graph": "al_bashabsheh_7N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4783,
+      "graph": "hu_2pairs_6N",
+      "p2_bound": 4.0,
+      "p3_bound": 1.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": true,
+      "lp_valid": true
+    },
+    {
+      "episode": 4784,
+      "graph": "ford_fulkerson_6N",
+      "p2_bound": 10.0,
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
       "is_novel": false,
       "lp_valid": true
     },
@@ -1862,18 +1862,18 @@
     },
     {
       "episode": 4786,
-      "graph": "star_8N",
-      "p2_bound": 4.5,
-      "p3_bound": 4.5,
-      "partition_bound": 2.25,
+      "graph": "grid_3x4_12N",
+      "p2_bound": 5.666666666666667,
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
       "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
       "episode": 4787,
-      "graph": "grid_9N",
-      "p2_bound": 2.0,
+      "graph": "hu_2pairs_6N",
+      "p2_bound": 4.0,
       "p3_bound": 4.0,
       "partition_bound": 2.0,
       "lp_lower_bound": 1.0,
@@ -1882,76 +1882,6 @@
     },
     {
       "episode": 4788,
-      "graph": "okamura_seymour_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4789,
-      "graph": "grid_9N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4790,
-      "graph": "petersen_10N",
-      "p2_bound": 3.75,
-      "p3_bound": 3.75,
-      "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4791,
-      "graph": "ford_fulkerson_6N",
-      "p2_bound": 10.0,
-      "p3_bound": 10.0,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4792,
-      "graph": "paper_7N",
-      "p2_bound": 2.5,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4793,
-      "graph": "kramer_savari_ladder_8N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4794,
-      "graph": "grid_4x4_16N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4795,
       "graph": "paper_7N",
       "p2_bound": 3.3333333333333335,
       "p3_bound": 3.3333333333333335,
@@ -1961,27 +1891,7 @@
       "lp_valid": true
     },
     {
-      "episode": 4796,
-      "graph": "diamond_6N",
-      "p2_bound": 1.75,
-      "p3_bound": 3.5,
-      "partition_bound": 1.75,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4797,
-      "graph": "okamura_seymour_8N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4798,
+      "episode": 4789,
       "graph": "okamura_4N",
       "p2_bound": 2.5,
       "p3_bound": 2.5,
@@ -1991,12 +1901,102 @@
       "lp_valid": true
     },
     {
+      "episode": 4790,
+      "graph": "al_bashabsheh_7N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4791,
+      "graph": "al_bashabsheh_7N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4792,
+      "graph": "grid_4x4_16N",
+      "p2_bound": 6.0,
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4793,
+      "graph": "grid_4x4_16N",
+      "p2_bound": 6.0,
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4794,
+      "graph": "al_bashabsheh_7N",
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4795,
+      "graph": "diamond_6N",
+      "p2_bound": 1.75,
+      "p3_bound": 3.5,
+      "partition_bound": 1.75,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4796,
+      "graph": "diamond_6N",
+      "p2_bound": 3.5,
+      "p3_bound": 3.5,
+      "partition_bound": 1.75,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4797,
+      "graph": "diamond_6N",
+      "p2_bound": 1.75,
+      "p3_bound": 3.5,
+      "partition_bound": 1.75,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "episode": 4798,
+      "graph": "grid_3x4_12N",
+      "p2_bound": 5.666666666666667,
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
       "episode": 4799,
-      "graph": "petersen_10N",
-      "p2_bound": 3.0,
-      "p3_bound": 3.75,
-      "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "graph": "grid_4x4_16N",
+      "p2_bound": 6.0,
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     }
@@ -2005,19 +2005,19 @@
     "al_bashabsheh_7N": {
       "partition_bound": 2.0,
       "lp_lower_bound": 1.5,
-      "p2_avg": 3.2204715969989275,
-      "p3_avg": 4.001212677997244,
-      "p3_best": 4.0,
-      "novel_pct": 0.0,
+      "p2_avg": 4.0,
+      "p3_avg": 3.9965130227137955,
+      "p3_best": 1.6225266362252664,
+      "novel_pct": 0.3105590062111801,
       "lp_valid": true,
-      "is_novel": false,
-      "improvement_pct": 0.0
+      "is_novel": true,
+      "improvement_pct": 18.87366818873668
     },
     "butterfly_8N": {
       "partition_bound": 1.5,
       "lp_lower_bound": 1.0,
-      "p2_avg": 2.743966547192354,
-      "p3_avg": 3.0160180758135127,
+      "p2_avg": 2.5609756097560976,
+      "p3_avg": 3.0,
       "p3_best": 3.0,
       "novel_pct": 0.0,
       "lp_valid": true,
@@ -2027,65 +2027,65 @@
     "diamond_6N": {
       "partition_bound": 1.75,
       "lp_lower_bound": 1.0,
-      "p2_avg": 2.094736763808929,
-      "p3_avg": 3.6801929531797515,
-      "p3_best": 1.0,
-      "novel_pct": 1.3745704467353952,
+      "p2_avg": 2.910394265232975,
+      "p3_avg": 3.551472818346472,
+      "p3_best": 1.6354319180087848,
+      "novel_pct": 0.35842293906810035,
       "lp_valid": true,
       "is_novel": true,
-      "improvement_pct": 42.857142857142854
+      "improvement_pct": 6.546747542355151
     },
     "ford_fulkerson_6N": {
       "partition_bound": 5.0,
       "lp_lower_bound": 2.0,
-      "p2_avg": 6.216499442586399,
-      "p3_avg": 9.641201626766174,
-      "p3_best": 2.7,
-      "novel_pct": 0.6688963210702341,
+      "p2_avg": 7.784437434279707,
+      "p3_avg": 9.78428083076232,
+      "p3_best": 2.844277673545966,
+      "novel_pct": 0.9463722397476341,
       "lp_valid": true,
       "is_novel": true,
-      "improvement_pct": 45.99999999999999
+      "improvement_pct": 43.11444652908068
     },
     "grid_3x4_12N": {
       "partition_bound": 2.8333333333333335,
       "lp_lower_bound": 1.0,
-      "p2_avg": 5.183389450056117,
-      "p3_avg": 5.639623750734861,
-      "p3_best": 1.4444444444444444,
-      "novel_pct": 0.6734006734006734,
+      "p2_avg": 4.710416666666666,
+      "p3_avg": 5.659895833333333,
+      "p3_best": 3.5,
+      "novel_pct": 0.0,
       "lp_valid": true,
-      "is_novel": true,
-      "improvement_pct": 49.01960784313726
+      "is_novel": false,
+      "improvement_pct": 0.0
     },
     "grid_4x4_16N": {
       "partition_bound": 3.0,
       "lp_lower_bound": 1.0,
-      "p2_avg": 5.669716242661448,
-      "p3_avg": 6.0,
-      "p3_best": 6.0,
-      "novel_pct": 0.0,
+      "p2_avg": 5.552106885919836,
+      "p3_avg": 5.96529834955565,
+      "p3_best": 1.3529411764705883,
+      "novel_pct": 0.3597122302158273,
       "lp_valid": true,
-      "is_novel": false,
-      "improvement_pct": 0.0
+      "is_novel": true,
+      "improvement_pct": 54.90196078431372
     },
     "grid_9N": {
       "partition_bound": 2.0,
       "lp_lower_bound": 1.0,
-      "p2_avg": 3.237514518002323,
-      "p3_avg": 4.033748256929501,
-      "p3_best": 4.0,
-      "novel_pct": 0.0,
+      "p2_avg": 3.3993610223642174,
+      "p3_avg": 4.010037339528682,
+      "p3_best": 1.826086956521739,
+      "novel_pct": 0.3194888178913738,
       "lp_valid": true,
-      "is_novel": false,
-      "improvement_pct": 0.0
+      "is_novel": true,
+      "improvement_pct": 8.695652173913048
     },
     "hu_2pairs_6N": {
       "partition_bound": 2.0,
       "lp_lower_bound": 1.0,
-      "p2_avg": 3.4237776716037582,
-      "p3_avg": 3.870100723552381,
+      "p2_avg": 4.0,
+      "p3_avg": 3.9445425801900225,
       "p3_best": 1.0,
-      "novel_pct": 2.6755852842809364,
+      "novel_pct": 4.3624161073825505,
       "lp_valid": true,
       "is_novel": true,
       "improvement_pct": 50.0
@@ -2093,53 +2093,53 @@
     "hu_3pairs_6N": {
       "partition_bound": 1.3333333333333333,
       "lp_lower_bound": 1.0,
-      "p2_avg": 2.5533359013867485,
-      "p3_avg": 2.693041433733527,
-      "p3_best": 1.3333333333333333,
-      "novel_pct": 0.0,
+      "p2_avg": 2.174097664543525,
+      "p3_avg": 2.700476696256008,
+      "p3_best": 1.188695652173913,
+      "novel_pct": 0.3184713375796178,
       "lp_valid": true,
-      "is_novel": false,
-      "improvement_pct": 0.0
+      "is_novel": true,
+      "improvement_pct": 10.847826086956525
     },
     "kramer_savari_ladder_8N": {
       "partition_bound": 2.0,
       "lp_lower_bound": 1.0,
-      "p2_avg": 3.7169112508735145,
-      "p3_avg": 3.9585787434892143,
-      "p3_best": 1.0,
-      "novel_pct": 1.2578616352201257,
+      "p2_avg": 3.8068322981366465,
+      "p3_avg": 3.9337489909089753,
+      "p3_best": 1.2,
+      "novel_pct": 1.8633540372670807,
       "lp_valid": true,
       "is_novel": true,
-      "improvement_pct": 50.0
+      "improvement_pct": 40.0
     },
     "okamura_4N": {
       "partition_bound": 1.25,
       "lp_lower_bound": 1.0,
-      "p2_avg": 1.5236140644604572,
-      "p3_avg": 2.381680064351757,
-      "p3_best": 1.0000000000000002,
-      "novel_pct": 0.3436426116838488,
+      "p2_avg": 1.8910472972972974,
+      "p3_avg": 2.4144519881725865,
+      "p3_best": 1.0960526315789474,
+      "novel_pct": 1.0135135135135136,
       "lp_valid": true,
       "is_novel": true,
-      "improvement_pct": 19.999999999999982
+      "improvement_pct": 12.315789473684209
     },
     "okamura_seymour_8N": {
       "partition_bound": 3.0,
       "lp_lower_bound": 1.5,
-      "p2_avg": 4.644039735099338,
-      "p3_avg": 5.985783951332735,
-      "p3_best": 2.136317395727365,
-      "novel_pct": 0.33112582781456956,
+      "p2_avg": 4.927835051546392,
+      "p3_avg": 5.968556701030928,
+      "p3_best": 2.75,
+      "novel_pct": 0.3436426116838488,
       "lp_valid": true,
       "is_novel": true,
-      "improvement_pct": 28.789420142421164
+      "improvement_pct": 8.333333333333334
     },
     "paper_7N": {
       "partition_bound": 1.6666666666666667,
       "lp_lower_bound": 1.0,
-      "p2_avg": 2.8980645161290326,
-      "p3_avg": 3.342671570170316,
-      "p3_best": 1.6666666666666667,
+      "p2_avg": 2.750809061488673,
+      "p3_avg": 3.3518261673601475,
+      "p3_best": 3.3333333333333335,
       "novel_pct": 0.0,
       "lp_valid": true,
       "is_novel": false,
@@ -2148,9 +2148,9 @@
     "petersen_10N": {
       "partition_bound": 1.875,
       "lp_lower_bound": 1.25,
-      "p2_avg": 3.5336538461538463,
-      "p3_avg": 3.746403003930376,
-      "p3_best": 2.627737226277372,
+      "p2_avg": 3.1363636363636362,
+      "p3_avg": 3.7485587583148563,
+      "p3_best": 3.3536585365853666,
       "novel_pct": 0.0,
       "lp_valid": true,
       "is_novel": false,
@@ -2159,24 +2159,24 @@
     "star_8N": {
       "partition_bound": 2.25,
       "lp_lower_bound": 1.0,
-      "p2_avg": 4.408310585380649,
-      "p3_avg": 4.421533300094742,
-      "p3_best": 1.0582010582010581,
-      "novel_pct": 1.910828025477707,
+      "p2_avg": 4.001677852348993,
+      "p3_avg": 4.501292282178421,
+      "p3_best": 1.4,
+      "novel_pct": 1.0067114093959733,
       "lp_valid": true,
       "is_novel": true,
-      "improvement_pct": 52.96884185773075
+      "improvement_pct": 37.777777777777786
     },
     "two_k4_10N": {
       "partition_bound": 2.6666666666666665,
       "lp_lower_bound": 0.6666666666666666,
-      "p2_avg": 5.333333333333333,
-      "p3_avg": 5.356115949940859,
-      "p3_best": 2.4,
-      "novel_pct": 0.33003300330033003,
+      "p2_avg": 4.650059311981019,
+      "p3_avg": 5.347672847888638,
+      "p3_best": 4.139999999999999,
+      "novel_pct": 0.0,
       "lp_valid": true,
-      "is_novel": true,
-      "improvement_pct": 9.999999999999998
+      "is_novel": false,
+      "improvement_pct": 0.0
     }
   },
   "complete": true,

@@ -652,7 +652,7 @@ def generate_proof_document(log_path: str, graph_name: str,
             lines.append(f"    {d['union_result']['repr']}")
             lines.append(f"    YI_coeff = {d['union_result']['yi_coeff']}  |  "
                          f"edge_total = {d['union_result']['edge_total']}  |  "
-                         f"is_terminal = {d['union_result']['is_terminal_form']}")
+                         f"is_terminal = {d.get('is_terminal_form', 'N/A')}")
             if d["union_result"]["yi_pi_coeffs"]:
                 lines.append(f"    YI_Pi terms: {d['union_result']['yi_pi_coeffs']}")
 
