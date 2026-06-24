@@ -47,7 +47,7 @@ np.random.seed(SEED)
 from fixed_environment import PartitionBoundEnv, ActionType, Phase, _compute_partition_bound, MAX_DERIVED
 from partition import generate_random_valid_partition, decode_partition
 from gnn_policy import (
-    GNNPhase1Policy, GNNPhase2Policy, GNNPhase3Policy, LAMBDA_GRID
+    GNNPhase1Policy, GNNPhase2Policy, GNNPhase3Policy, LAMBDA_GRID, DEVICE
 )
 from fixed_base_inequality_generator import internal_per_partition
 from fixed_graph_generation import (
@@ -475,7 +475,7 @@ def run_stage1(num_episodes=10000, graph_dataset_size=5):  # Tier 1 only
         _meta = torch.load("model_files/ckpt_stage1_meta.pt", weights_only=True)
         if _meta.get("coeff_dim", coeff_dim) == coeff_dim:
             phase2_policy.net.load_state_dict(
-                torch.load("model_files/ckpt_stage1_phase2_latest.pt", weights_only=True))
+                torch.load("model_files/ckpt_stage1_phase2_latest.pt", weights_only=True, map_location=DEVICE))
             _resume_ep = _meta["episode"]
             print(f"  [resume] Stage 1 resuming from episode {_resume_ep}")
         else:
@@ -611,9 +611,9 @@ def run_stage2(phase2_policy, num_episodes=10000, graph_dataset_size=5):
                 os.path.exists("model_files/ckpt_stage2_phase2_latest.pt") and
                 os.path.exists("model_files/ckpt_stage2_meta.pt")):
         phase1_policy.net.load_state_dict(
-                torch.load("model_files/ckpt_stage2_phase1_latest.pt", weights_only=True))
+                torch.load("model_files/ckpt_stage2_phase1_latest.pt", weights_only=True, map_location=DEVICE))
         phase2_policy.net.load_state_dict(
-                torch.load("model_files/ckpt_stage2_phase2_latest.pt", weights_only=True))
+                torch.load("model_files/ckpt_stage2_phase2_latest.pt", weights_only=True, map_location=DEVICE))
         _meta_s2 = torch.load("model_files/ckpt_stage2_meta.pt", weights_only=True)
         _resume_ep_s2 = _meta_s2["episode"]
         print(f"  [resume] Stage 2 resuming from episode {_resume_ep_s2}")
@@ -818,9 +818,9 @@ def run_stage3(phase1_policy, phase2_policy,
             os.path.exists("model_files/ckpt_stage3_phase2_latest.pt") and
             os.path.exists("model_files/ckpt_stage3_meta.pt")):
         phase1_policy.net.load_state_dict(
-            torch.load("model_files/ckpt_stage3_phase1_latest.pt", weights_only=True))
+            torch.load("model_files/ckpt_stage3_phase1_latest.pt", weights_only=True, map_location=DEVICE))
         phase2_policy.net.load_state_dict(
-            torch.load("model_files/ckpt_stage3_phase2_latest.pt", weights_only=True))
+            torch.load("model_files/ckpt_stage3_phase2_latest.pt", weights_only=True, map_location=DEVICE))
         _meta_s3 = torch.load("model_files/ckpt_stage3_meta.pt", weights_only=True)
         _resume_ep_s3 = _meta_s3["episode"]
         print(f"  [resume] Stage 3 resuming from episode {_resume_ep_s3}")
@@ -1060,7 +1060,7 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
     if (os.path.exists("model_files/ckpt_stage4_phase3_latest.pt") and
             os.path.exists("model_files/ckpt_stage4_meta.pt")):
         phase3_policy.net.load_state_dict(
-            torch.load("model_files/ckpt_stage4_phase3_latest.pt", weights_only=True))
+            torch.load("model_files/ckpt_stage4_phase3_latest.pt", weights_only=True, map_location=DEVICE))
         _meta_s4 = torch.load("model_files/ckpt_stage4_meta.pt", weights_only=True)
         _resume_ep_s4 = _meta_s4["episode"]
         print(f"  [resume] Stage 4 resuming from episode {_resume_ep_s4}")
@@ -1474,13 +1474,18 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         nd, ed, ss = graph_lookup[gn]
         try:
             doc_path = os.path.join("text_files", f"proof_{gn}_cd.txt")
-            if gn in novel_bounds:
-                generate_proof_document(
-                    log_path   = "stage4_proof_log.json",
+            proof_log_exists = os.path.exists("config_files/stage4_proof_log.json")
+            wrote_proof = False
+            if gn in novel_bounds and proof_log_exists:
+                result = generate_proof_document(
+                    log_path   = "config_files/stage4_proof_log.json",
                     graph_name = gn,
                     out_path   = doc_path,
                 )
-            else:
+                # generate_proof_document returns a "No novel episode" string if
+                # the log has no matching entry — treat that as a fallback case
+                wrote_proof = os.path.exists(doc_path)
+            if not wrote_proof:
                 part = (_find_optimal_partition(nd, ed, ss)
                         or (best_partitions.get(gn, (None, {}, None))[0]
                             if best_partitions and gn in best_partitions else []))
@@ -1495,7 +1500,9 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
                 )
                 print(f"  [status] Stage 4 status document written to {doc_path}")
         except Exception as e:
+            import traceback
             print(f"  [warn] Could not generate proof/status doc for {gn}: {e}")
+            traceback.print_exc()
 
     # Final summary
     print(f"\n{'='*70}")
@@ -1561,55 +1568,71 @@ def train(stage1_episodes=10000, stage2_episodes=10000,
     """
     import json as _json
 
+    # Ensure all output folders exist before any file is written
+    for _d in ("model_files", "config_files", "text_files", "image_files"):
+        os.makedirs(_d, exist_ok=True)
+
+    # Device report — if this says 'cpu', CUDA is not available in this environment
+    print(f"\n{'='*50}")
+    print(f"DEVICE: {DEVICE}")
+    if DEVICE.type == "cuda":
+        print(f"GPU   : {torch.cuda.get_device_name(0)}")
+        print(f"VRAM  : {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB")
+    else:
+        print("WARNING: Running on CPU — training will be slow.")
+        print("  Check that torch was installed with CUDA support:")
+        print("  python -c \"import torch; print(torch.cuda.is_available())\"")
+    print(f"{'='*50}\n")
+
     # ---- Stage 1 ----
-    _s1_done = (os.path.exists("ckpt_stage1_phase2.pt") and
-                os.path.exists("ckpt_stage1_coeff_dim.pt"))
+    _s1_done = (os.path.exists("model_files/ckpt_stage1_phase2.pt") and
+                os.path.exists("model_files/ckpt_stage1_coeff_dim.pt"))
     if _s1_done:
-        coeff_dim = torch.load("ckpt_stage1_coeff_dim.pt", weights_only=True)["coeff_dim"]
+        coeff_dim = torch.load("model_files/ckpt_stage1_coeff_dim.pt", weights_only=True)["coeff_dim"]
         phase2_policy = GNNPhase2Policy(coeff_dim=coeff_dim, total_episodes=stage1_episodes)
         phase2_policy.net.load_state_dict(
-            torch.load("ckpt_stage1_phase2.pt", weights_only=True))
+            torch.load("model_files/ckpt_stage1_phase2.pt", weights_only=True, map_location=DEVICE))
         s1 = {}
         print(f"[skip] Stage 1 already complete (coeff_dim={coeff_dim}), loaded from checkpoint.")
     else:
         phase2_policy, coeff_dim, s1 = run_stage1(stage1_episodes, graph_dataset_size)
-        torch.save(phase2_policy.net.state_dict(), "ckpt_stage1_phase2.pt")
-        torch.save({"coeff_dim": coeff_dim}, "ckpt_stage1_coeff_dim.pt")
-        print("[checkpoint] Stage 1 saved -> ckpt_stage1_phase2.pt")
+        torch.save(phase2_policy.net.state_dict(), "model_files/ckpt_stage1_phase2.pt")
+        torch.save({"coeff_dim": coeff_dim}, "model_files/ckpt_stage1_coeff_dim.pt")
+        print("[checkpoint] Stage 1 saved -> model_files/ckpt_stage1_phase2.pt")
 
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
 
     # ---- Stage 2 ----
-    _s2_done = (os.path.exists("ckpt_stage2_phase1.pt") and
-                os.path.exists("ckpt_stage2_phase2.pt"))
+    _s2_done = (os.path.exists("model_files/ckpt_stage2_phase1.pt") and
+                os.path.exists("model_files/ckpt_stage2_phase2.pt"))
     if _s2_done:
         phase1_policy = GNNPhase1Policy(total_episodes=stage2_episodes)
         phase1_policy.net.load_state_dict(
-            torch.load("ckpt_stage2_phase1.pt", weights_only=True))
+            torch.load("model_files/ckpt_stage2_phase1.pt", weights_only=True, map_location=DEVICE))
         phase2_policy.net.load_state_dict(
-            torch.load("ckpt_stage2_phase2.pt", weights_only=True))
+            torch.load("model_files/ckpt_stage2_phase2.pt", weights_only=True, map_location=DEVICE))
         s2 = {}
         print("[skip] Stage 2 already complete, loaded from checkpoint.")
     else:
         phase1_policy, s2 = run_stage2(phase2_policy, stage2_episodes, graph_dataset_size)
-        torch.save(phase1_policy.net.state_dict(), "ckpt_stage2_phase1.pt")
-        torch.save(phase2_policy.net.state_dict(), "ckpt_stage2_phase2.pt")
-        print("[checkpoint] Stage 2 saved -> ckpt_stage2_phase1.pt, ckpt_stage2_phase2.pt")
+        torch.save(phase1_policy.net.state_dict(), "model_files/ckpt_stage2_phase1.pt")
+        torch.save(phase2_policy.net.state_dict(), "model_files/ckpt_stage2_phase2.pt")
+        print("[checkpoint] Stage 2 saved -> model_files/ckpt_stage2_phase1.pt, model_files/ckpt_stage2_phase2.pt")
 
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
 
     # ---- Stage 3 ----
-    _s3_done = (os.path.exists("ckpt_stage3_phase1.pt") and
-                os.path.exists("ckpt_stage3_phase2.pt") and
-                os.path.exists("ckpt_stage3_best_partitions.json"))
+    _s3_done = (os.path.exists("model_files/ckpt_stage3_phase1.pt") and
+                os.path.exists("model_files/ckpt_stage3_phase2.pt") and
+                os.path.exists("model_files/ckpt_stage3_best_partitions.json"))
     if _s3_done:
         phase1_policy.net.load_state_dict(
-            torch.load("ckpt_stage3_phase1.pt", weights_only=True))
+            torch.load("model_files/ckpt_stage3_phase1.pt", weights_only=True, map_location=DEVICE))
         phase2_policy.net.load_state_dict(
-            torch.load("ckpt_stage3_phase2.pt", weights_only=True))
-        with open("ckpt_stage3_best_partitions.json") as _f:
+            torch.load("model_files/ckpt_stage3_phase2.pt", weights_only=True, map_location=DEVICE))
+        with open("model_files/ckpt_stage3_best_partitions.json") as _f:
             _bp_raw = _json.load(_f)
         def _restore_bp_final(v):
             if isinstance(v, dict):
@@ -1631,24 +1654,24 @@ def train(stage1_episodes=10000, stage2_episodes=10000,
             phase1_policy, phase2_policy, stage3_episodes,
             graph_dataset_size=min(13, graph_dataset_size*3)
         )
-        torch.save(phase1_policy.net.state_dict(), "ckpt_stage3_phase1.pt")
-        torch.save(phase2_policy.net.state_dict(), "ckpt_stage3_phase2.pt")
-        with open("ckpt_stage3_best_partitions.json", "w") as _f:
+        torch.save(phase1_policy.net.state_dict(), "model_files/ckpt_stage3_phase1.pt")
+        torch.save(phase2_policy.net.state_dict(), "model_files/ckpt_stage3_phase2.pt")
+        with open("model_files/ckpt_stage3_best_partitions.json", "w") as _f:
             _json.dump({k: {"partition": [list(p) for p in v[0]],
                             "weights": {str(ek): float(ev) for ek, ev in v[1].items()},
                             "bound": float(v[2]) if v[2] != float("inf") else None}
                         for k, v in best_partitions.items()}, _f)
-        print("[checkpoint] Stage 3 saved -> ckpt_stage3_phase1.pt, ckpt_stage3_phase2.pt, ckpt_stage3_best_partitions.json")
+        print("[checkpoint] Stage 3 saved -> model_files/ckpt_stage3_phase1.pt, model_files/ckpt_stage3_phase2.pt, model_files/ckpt_stage3_best_partitions.json")
 
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
 
     # ---- Stage 4 ----
-    _s4_done = os.path.exists("ckpt_stage4_phase3.pt")
+    _s4_done = os.path.exists("model_files/ckpt_stage4_phase3.pt")
     if _s4_done:
         phase3_policy = GNNPhase3Policy(coeff_dim=coeff_dim, total_episodes=stage4_episodes)
         phase3_policy.net.load_state_dict(
-            torch.load("ckpt_stage4_phase3.pt", weights_only=True))
+            torch.load("model_files/ckpt_stage4_phase3.pt", weights_only=True, map_location=DEVICE))
         s4 = {}
         novel_bounds = {}
         print("[skip] Stage 4 already complete, loaded from checkpoint.")
@@ -1658,8 +1681,8 @@ def train(stage1_episodes=10000, stage2_episodes=10000,
             coeff_dim, stage4_episodes,
             graph_dataset_size=min(16, graph_dataset_size*4)
         )
-        torch.save(phase3_policy.net.state_dict(), "ckpt_stage4_phase3.pt")
-        print("[checkpoint] Stage 4 saved -> ckpt_stage4_phase3.pt")
+        torch.save(phase3_policy.net.state_dict(), "model_files/ckpt_stage4_phase3.pt")
+        print("[checkpoint] Stage 4 saved -> model_files/ckpt_stage4_phase3.pt")
 
     return (phase1_policy, phase2_policy, phase3_policy,
             {'stage1': s1, 'stage2': s2, 'stage3': s3, 'stage4': s4},
@@ -1700,7 +1723,7 @@ def _evaluate_inner(phase1_policy, phase2_policy, phase3_policy,
     results = defaultdict(lambda: {'p2_bounds':[], 'p3_bounds':[], 'novel':0})
 
     # Live eval log — flushed after every episode so Ctrl+C never loses data
-    _eval_log_path = "eval_results.json"
+    _eval_log_path = "config_files/eval_results.json"
     _eval_log = {"episodes": [], "summary": {}, "complete": False}
     def _flush_eval_log():
         with open(_eval_log_path, "w") as _f:
@@ -1894,7 +1917,7 @@ def _evaluate_inner(phase1_policy, phase2_policy, phase3_policy,
     _eval_log["total_episodes"] = num_episodes
     _eval_log["lp_violations"] = eval_violations
     _flush_eval_log()
-    print(f"\n  [eval log] Results saved to eval_results.json")
+    print(f"\n  [eval log] Results saved to config_files/eval_results.json")
 
     return dict(results)
 
@@ -1956,12 +1979,12 @@ if __name__ == "__main__":
         'novel_bounds': _jsonable(novel_bounds),
         'runtime_s': runtime,
     }
-    with open('training_metrics.json', 'w') as f:
+    with open('config_files/training_metrics.json', 'w') as f:
         json.dump(all_metrics, f, indent=2)
-    print("Metrics saved to training_metrics.json")
+    print("Metrics saved to config_files/training_metrics.json")
 
     # Summary file
-    with open('training_summary.txt', 'w') as f:
+    with open('text_files/training_summary.txt', 'w') as f:
         f.write(f"Training completed: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"Runtime: {runtime:.1f}s ({runtime/60:.1f} min)\n\n")
 
@@ -2026,7 +2049,7 @@ if __name__ == "__main__":
         else:
             f.write("No novel bounds found in this run.\n")
 
-    print("Summary saved to training_summary.txt")
+    print("Summary saved to text_files/training_summary.txt")
     # --- Auto-generate plots ---
     print("\n--- Generating plots ---")
     import subprocess, sys

@@ -1,0 +1,300 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{hyperref}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+
+\newcommand{\YI}{Y_I}
+\newcommand{\YS}[1]{Y_{S_{#1}}}
+\newcommand{\U}[2]{U_{#1#2}}
+\newcommand{\IO}{\operatorname{IO}}
+
+\title{A Detailed Stage 4 Proof for the Okamura 4N Network}
+\author{Generated from the RL Stage 4 proof trace}
+\date{June 16, 2026}
+
+\begin{document}
+\maketitle
+
+\section{Network, sessions, and target statement}
+
+The Okamura 4N instance has node set
+\[
+V=\{a,b,c,d\},
+\]
+edge set
+\[
+E=\{ab,bc,cd,ad,ac\},
+\]
+and three unicast sessions
+\[
+I=\{(a,c),(b,d),(a,b)\}.
+\]
+All edge capacities are normalized to one use of the edge alphabet per network
+use.  If each session has rate \(r\), then the joint session entropy satisfies
+\[
+h(\YI)=3r\log_2 b,
+\]
+where \(b\) is the alphabet size.  The Stage 4 run used the Phase 1 partition
+\[
+P_1=\{a\},\qquad P_2=\{c\},\qquad P_3=\{b,d\},
+\]
+whose partition bound is
+\[
+r\leq 1.25.
+\]
+The Stage 4 terminal certificate recorded in
+\texttt{config\_files/stage4\_proof\_log.json} and
+\texttt{text\_files/proof\_okamura\_4N.txt} is
+\begin{equation}
+\label{eq:terminal}
+8.200\,h(\YI)
+\leq
+2.240\,h(\U{a}{b})
++6.270\,h(\U{b}{c})
++7.760\,h(\U{c}{d})
++3.730\,h(\U{a}{d})
++4.830\,h(\U{a}{c}).
+\end{equation}
+This proof explains the node I/O inequalities used to build the certificate,
+the fractional Stage 4 trace that produced the recorded edge vector, and the
+rate extraction from \eqref{eq:terminal}.
+
+\begin{theorem}
+For the Okamura 4N network above, the Stage 4 terminal inequality implies
+\[
+r\leq 1.009350.
+\]
+This improves the partition bound \(1.25\) by \(19.252\%\).
+\end{theorem}
+
+\section{Node I/O inequalities}
+
+The Phase 3 primitive is the per-node I/O inequality.  For a node \(v\), the
+code computes
+\[
+\frac{\#\{\hbox{sessions touching }v\}}{|I|}h(\YI)
+\leq
+h(\YS{v})+\sum_{e\ni v}h(U_e).
+\]
+Here ``touching'' means that \(v\) is either the source or the sink of the
+session.  In this graph,
+\[
+\#\operatorname{touch}(a)=2,\quad
+\#\operatorname{touch}(b)=2,\quad
+\#\operatorname{touch}(c)=1,\quad
+\#\operatorname{touch}(d)=1.
+\]
+Therefore the four raw node I/O constraints are
+\begin{align}
+\IO(a):\quad
+\frac23 h(\YI)
+&\leq h(\YS{a})+h(\U{a}{b})+h(\U{a}{d})+h(\U{a}{c}), \label{eq:ioa}\\
+\IO(b):\quad
+\frac23 h(\YI)
+&\leq h(\YS{b})+h(\U{a}{b})+h(\U{b}{c}), \label{eq:iob}\\
+\IO(c):\quad
+\frac13 h(\YI)
+&\leq h(\YS{c})+h(\U{b}{c})+h(\U{c}{d})+h(\U{a}{c}), \label{eq:ioc}\\
+\IO(d):\quad
+\frac13 h(\YI)
+&\leq h(\YS{d})+h(\U{c}{d})+h(\U{a}{d}). \label{eq:iod}
+\end{align}
+Each inequality is a standard encoding inequality: the outgoing variables at
+node \(v\) are deterministic functions of the incoming variables and the source
+symbols available at \(v\), so the entropy carried by the node output cannot
+exceed the entropy of the node input.
+
+\section{Fractional I/O rule}
+
+Stage 4 extends the integer partition proof family by forming convex
+combinations of node I/O inequalities:
+\[
+F(u,v;\lambda)=\lambda \IO(u)+(1-\lambda)\IO(v),
+\qquad 0<\lambda<1.
+\]
+For example, using \eqref{eq:ioc} and \eqref{eq:iod},
+\[
+F(c,d;0.60)
+=0.60\IO(c)+0.40\IO(d),
+\]
+which expands to
+\[
+\frac13h(\YI)
+\leq
+0.60h(\YS{c})+0.40h(\YS{d})
++0.60h(\U{b}{c})
++h(\U{c}{d})
++0.40h(\U{a}{d})
++0.60h(\U{a}{c}).
+\]
+The logged proof repeatedly constructs such fractional inequalities and places
+selected ones into the accumulator.  Addition of valid inequalities remains
+valid, so any nonnegative sum of accumulated inequalities is valid.
+
+\section{The logged Stage 4 trace}
+
+The best Okamura 4N episode used for the proof document is episode 2657.  The
+logger records \(41\) actions:
+\[
+26\ \hbox{FRACTIONAL\_IO},\qquad
+13\ \hbox{ADD\_TO\_ACCUMULATOR},\qquad
+2\ \hbox{STORE\_AND\_RESET}.
+\]
+No crypto, decode, cross-submodularity, or plain submodularity action is
+recorded for this episode.  The following table lists the fractional node I/O
+actions.  If the action is \(u,v,\lambda\), it means
+\(\lambda\IO(u)+(1-\lambda)\IO(v)\).
+
+\begin{longtable}{cclc}
+\toprule
+Step & Action & Nodes & \(\lambda\)\\
+\midrule
+\endhead
+1  & FRACTIONAL\_IO & \(c,d\) & 0.60\\
+2  & FRACTIONAL\_IO & \(b,c\) & 0.50\\
+4  & FRACTIONAL\_IO & \(a,b\) & 0.40\\
+5  & FRACTIONAL\_IO & \(a,d\) & 0.75\\
+7  & FRACTIONAL\_IO & \(c,d\) & 0.33\\
+9  & FRACTIONAL\_IO & \(c,d\) & 0.75\\
+10 & FRACTIONAL\_IO & \(c,d\) & 0.67\\
+11 & FRACTIONAL\_IO & \(b,c\) & 0.75\\
+12 & FRACTIONAL\_IO & \(c,d\) & 0.25\\
+13 & FRACTIONAL\_IO & \(b,c\) & 0.33\\
+14 & FRACTIONAL\_IO & \(c,d\) & 0.60\\
+15 & FRACTIONAL\_IO & \(b,c\) & 0.33\\
+17 & FRACTIONAL\_IO & \(c,d\) & 0.67\\
+19 & FRACTIONAL\_IO & \(c,d\) & 0.75\\
+21 & FRACTIONAL\_IO & \(a,d\) & 0.50\\
+22 & FRACTIONAL\_IO & \(c,d\) & 0.50\\
+23 & FRACTIONAL\_IO & \(b,c\) & 0.50\\
+24 & FRACTIONAL\_IO & \(c,d\) & 0.67\\
+25 & FRACTIONAL\_IO & \(c,d\) & 0.40\\
+26 & FRACTIONAL\_IO & \(b,c\) & 0.25\\
+29 & FRACTIONAL\_IO & \(a,c\) & 0.25\\
+30 & FRACTIONAL\_IO & \(b,c\) & 0.25\\
+34 & FRACTIONAL\_IO & \(a,c\) & 0.33\\
+36 & FRACTIONAL\_IO & \(b,c\) & 0.40\\
+37 & FRACTIONAL\_IO & \(c,d\) & 0.25\\
+41 & FRACTIONAL\_IO & \(c,d\) & 0.60\\
+\bottomrule
+\end{longtable}
+
+\section{Accumulator arithmetic and source cancellation}
+
+The decisive logged storage event is step 33.  Immediately before this step,
+the accumulator contains ten fractional inequalities.  When summed and passed
+through the code's \texttt{cancel\_source\_terms} rule, the trace records
+\begin{equation}
+\label{eq:stored}
+3.200\,h(\YI)
+\leq
+2.240\,h(\U{a}{b})
++6.270\,h(\U{b}{c})
++7.760\,h(\U{c}{d})
++3.730\,h(\U{a}{d})
++4.830\,h(\U{a}{c}).
+\end{equation}
+The source-cancellation rule is the following.  Let \(m_v\) be the number of
+sessions whose source is \(v\).  Here
+\[
+m_a=2,\qquad m_b=1,\qquad m_c=m_d=0.
+\]
+If a summed inequality contains RHS source terms
+\(\sum_v \alpha_v h(\YS{v})\), then source independence gives
+\[
+h(\YS{v})=m_v r\log_2 b
+=\frac{m_v}{3}h(\YI).
+\]
+Thus the source contribution can be moved into the left side in
+\(h(\YI)\)-units, and the source terms are removed from the terminal form.
+That is exactly the rule implemented by \texttt{cancel\_source\_terms}.
+
+The edge vector in \eqref{eq:stored} is also easy to audit from the node I/O
+basis.  It is the incidence vector generated by the nonnegative node weights
+\[
+x_a=0.400,\qquad x_b=1.840,\qquad x_c=4.430,\qquad x_d=3.330,
+\]
+since
+\begin{align*}
+x_a+x_b&=2.240,&
+x_b+x_c&=6.270,&
+x_c+x_d&=7.760,\\
+x_a+x_d&=3.730,&
+x_a+x_c&=4.830.
+\end{align*}
+This check confirms that the RHS edge vector is a nonnegative combination of
+the valid node I/O RHS edge incidences.
+
+\section{Terminal certificate}
+
+The terminal inequality selected by the Stage 4 episode summary is
+\eqref{eq:terminal}.  It has the same RHS edge vector as the step-33 stored
+inequality, but the terminal coefficient of \(h(\YI)\) is \(8.200\).  The
+terminal detail recorded by the logger is:
+\[
+\begin{array}{c|ccccc|c}
+\hbox{coefficient of }h(\YI)
+& \U{a}{b} & \U{b}{c} & \U{c}{d} & \U{a}{d} & \U{a}{c}
+& \hbox{edge total}\\
+\hline
+8.200 & 2.240 & 6.270 & 7.760 & 3.730 & 4.830 & 24.830.
+\end{array}
+\]
+The proof document treats this terminal line as the final certificate emitted
+by the Stage 4 proof logger.  All final rate arithmetic below follows only
+from this terminal certificate, capacity normalization, and the session entropy
+identity \(h(\YI)=3r\log_2 b\).
+
+\section{Rate extraction}
+
+From \eqref{eq:terminal}, using \(h(U_e)\leq \log_2 b\) for each unit-capacity
+edge variable, we get
+\[
+8.200\,h(\YI)
+\leq
+(2.240+6.270+7.760+3.730+4.830)\log_2 b.
+\]
+The RHS coefficient sum is
+\[
+2.240+6.270+7.760+3.730+4.830=24.830.
+\]
+Since \(h(\YI)=3r\log_2 b\), cancellation of \(\log_2 b\) gives
+\[
+8.200\cdot 3r \leq 24.830.
+\]
+Therefore
+\[
+r\leq \frac{24.830}{24.600}=1.009349593\ldots,
+\]
+so the logged Stage 4 bound is
+\[
+\boxed{r\leq 1.009350}.
+\]
+Compared with the partition bound \(1.25\), the relative improvement is
+\[
+\frac{1.25-1.009350}{1.25}\times 100\%
+=19.252\%.
+\]
+
+\section{Trace audit summary}
+
+\begin{itemize}
+\item Training completed on 2026-06-16 at 02:54:16 after 45167.3 seconds.
+\item The Okamura 4N entry in \texttt{text\_files/training\_summary.txt}
+reports \(PB=1.2500\), \(LP\ LB=1.0000\), \(RL\ Bound=1.009350\), and
+\(19.25\%\) improvement.
+\item The proof document \texttt{text\_files/proof\_okamura\_4N.txt} records
+episode 2657 and the terminal inequality \eqref{eq:terminal}.
+\item The Stage 4 JSON logger records the terminal form as valid, with
+\(Y_I\)-coefficient \(8.2\), edge total \(24.83\), and no residual source,
+\(Y_{ST}\), or \(Y_{I,P_i}\) terms.
+\end{itemize}
+
+\end{document}

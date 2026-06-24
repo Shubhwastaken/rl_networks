@@ -400,6 +400,42 @@ def _build_registry():
         [("s1","t1"),("s2","t2"),("s1","t2")],
         source="Kramer & Savari 2006")
 
+    # =========================================================================
+    # ADDITIONAL BENCHMARK GRAPHS
+    # =========================================================================
+
+    # --- Okamura network paper variant — 5 nodes, 4 sessions ---
+    # Diamond with center relay v5. Four cyclic sessions all crossing through v5.
+    # Sessions: s1(v2->v5), s2(v5->v4), s3(v4->v2), s4(v1->v3).
+    # v2 and v4 each carry both a source and sink from different sessions.
+    _register("okamura_network_paper_5N",
+        ["v1", "v2", "v3", "v4", "v5"],
+        [("v1","v2"),("v2","v3"),("v3","v4"),("v4","v1"),("v1","v5"),("v5","v3")],
+        [("v2","v5"),("v5","v4"),("v4","v2"),("v1","v3")],
+        source="Okamura network paper variant")
+
+    # --- Hu's three-session network — 6 nodes, 3 sessions, 8 edges ---
+    # Three crossing sessions over a 6-node graph.
+    # Sessions: s1(v6->v5), s2(v1->v3), s3(v2->v4).
+    _register("hu_three_session_6N",
+        ["v1", "v2", "v3", "v4", "v5", "v6"],
+        [("v1","v2"),("v1","v6"),("v1","v4"),("v2","v3"),
+         ("v2","v5"),("v3","v6"),("v3","v4"),("v4","v5")],
+        [("v6","v5"),("v1","v3"),("v2","v4")],
+        source="Hu three-session")
+
+    # --- Yin et al network — 7 nodes, 3 sessions, 10 edges ---
+    # Two-row topology: top row v1,v2,v3; bottom row v4,v5,v6,v7.
+    # Cross edge v3-v4 and long edge v4-v7 create non-trivial interference.
+    # Sessions: s1(v1->v6), s2(v2->v7), s3(v5->v3). v4 is a pure relay.
+    _register("yin_et_al_7N",
+        ["v1", "v2", "v3", "v4", "v5", "v6", "v7"],
+        [("v1","v2"),("v1","v4"),("v2","v3"),("v2","v5"),
+         ("v3","v4"),("v3","v6"),("v4","v5"),("v4","v7"),
+         ("v5","v6"),("v6","v7")],
+        [("v1","v6"),("v2","v7"),("v5","v3")],
+        source="Yin et al.")
+
 
 def get_graph_info(graph_id: int) -> GraphInfo:
     _build_registry(); return GRAPH_REGISTRY[graph_id % len(GRAPH_REGISTRY)]
