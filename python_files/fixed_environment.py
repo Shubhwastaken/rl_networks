@@ -191,6 +191,7 @@ class PartitionBoundEnv:
         self._found_terminal      = False
         self._found_yi_collapse   = False
         self._proof2_used         = False
+        self._prev_partition_bound = None   # for partition-bound reward in Phase 1
 
         # Functional dependence action catalogue (built in _start_phase2)
         self.func_dep_actions: Optional[FuncDepActions] = None
@@ -1022,8 +1023,53 @@ class PartitionBoundEnv:
         reward -= 0.5   # timeout penalty
         return state, reward, True
 
+    def _current_partition_bound(self):
+        """
+        Compute partition bound for the current partial/complete assignment.
+        bound = |cut_edges| / (|sessions| + |internal_sessions|)
+        where cut_edges are edges whose endpoints are in different groups,
+        and internal_sessions are sessions where both endpoints share a group.
+        Unassigned nodes (-1) are treated as singletons for this computation.
+        Returns float('inf') if no sessions exist.
+        """
+        if not self.sessions:
+            return float('inf')
+        # build current groups from assignment
+        groups = {}
+        for nd, gid in self.assignment.items():
+            g = gid if gid != -1 else f"_solo_{nd}"
+            groups.setdefault(g, set()).add(nd)
+        part_of = {}
+        for gid, members in groups.items():
+            for nd in members:
+                part_of[nd] = gid
+        # count cut edges and internal sessions
+        cut = sum(1 for u, v in self.edges
+                  if part_of.get(u) != part_of.get(v))
+        internal = sum(
+            1 for s, t in self.sessions
+            if part_of.get(s) is not None
+            and part_of.get(s) == part_of.get(t)
+        )
+        denom = len(self.sessions) + internal
+        return cut / denom if denom > 0 else float('inf')
+
     def _internal_reward(self, cur_internal):
-        return 1.0 * (cur_internal - self.prev_internal_count)
+        """
+        Reward = improvement in partition bound after this assignment step.
+        Positive when the bound decreases (better partition found).
+        Falls back to internal-count delta if bound is infinite (early steps).
+        """
+        new_bound = self._current_partition_bound()
+        if self._prev_partition_bound is None or self._prev_partition_bound == float('inf'):
+            # Early steps: not enough assigned nodes to compute a meaningful bound.
+            # Fall back to internal-count signal so the agent gets some gradient.
+            reward = 0.5 * (cur_internal - self.prev_internal_count)
+        else:
+            # Improvement = reduction in bound value (lower bound = better partition)
+            reward = (self._prev_partition_bound - new_bound) * len(self.sessions)
+        self._prev_partition_bound = new_bound
+        return reward
 
     def _check_assignment_valid(self) -> bool:
         for u, v in self.edges:

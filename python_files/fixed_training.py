@@ -626,38 +626,38 @@ def run_stage2(phase2_policy, num_episodes=10000, graph_dataset_size=5):
 
     log_interval = 500
 
-    # Issue 1 fix: replace global windowed-reward EarlyStopper with a
-    # per-graph opt_rate stopper.  The old stopper used a global average
-    # reward window — diamond/star converge fast and dominate it, masking
-    # paper_7N's 74% plateau and causing premature stopping at ep 9954.
-    # New rule: stop only when EVERY graph has >=85% opt_rate over its
-    # last 500 episodes AND min_episodes has elapsed.
-    _OPT_THRESHOLD   = 0.85
-    _OPT_WINDOW      = 500
-    _S2_MIN_EPISODES = 8000
+    # Stopper: per-graph reward plateau — stops when every graph's
+    # average reward stops improving. Does NOT use opt_int/brute-force
+    # answer — Phase 1 converges purely from the RL signal.
+    _S2_PLATEAU_WINDOW  = 500   # episodes per graph
+    _S2_PLATEAU_DELTA   = 0.005 # min improvement to count as progress
+    _S2_MIN_EPISODES    = 8000
 
-    class _PerGraphOptStopper:
-        def __init__(self, threshold, window, min_eps):
-            self.threshold = threshold
-            self.window    = window
-            self.min_eps   = min_eps
-            self._history  = defaultdict(list)
+    class _PerGraphPlateauStopper:
+        def __init__(self, window, delta, min_eps):
+            self.window   = window
+            self.delta    = delta
+            self.min_eps  = min_eps
+            self._rewards = defaultdict(list)
 
-        def update(self, graph_name, is_optimal):
-            self._history[graph_name].append(1 if is_optimal else 0)
+        def update(self, graph_name, reward):
+            self._rewards[graph_name].append(reward)
 
         def should_stop(self, episode, all_graph_names):
             if episode < self.min_eps:
                 return False
             for gn in all_graph_names:
-                hist = self._history[gn]
-                if len(hist) < self.window:
+                hist = self._rewards[gn]
+                if len(hist) < self.window * 2:
                     return False
-                if np.mean(hist[-self.window:]) < self.threshold:
+                # compare last window vs previous window
+                prev = np.mean(hist[-self.window*2:-self.window])
+                curr = np.mean(hist[-self.window:])
+                if curr - prev > self.delta:   # still improving
                     return False
             return True
 
-    stopper = _PerGraphOptStopper(_OPT_THRESHOLD, _OPT_WINDOW, _S2_MIN_EPISODES)
+    stopper = _PerGraphPlateauStopper(_S2_PLATEAU_WINDOW, _S2_PLATEAU_DELTA, _S2_MIN_EPISODES)
     all_graph_names_seen: set = set()
 
     print(f"\n  {'Ep':>6} | {'Graph':<16} | {'AvgRew':>8} | {'Int':>3} | P1 Actions")
@@ -671,8 +671,6 @@ def run_stage2(phase2_policy, num_episodes=10000, graph_dataset_size=5):
         env.reset()
         nodes, edges, sessions = env.nodes, env.edges, env.sessions
         graph_name = identify_graph(nodes, edges, sessions)
-        opt_bound, opt_int = get_optimal_for_graph(nodes, edges, sessions)
-
         temperature = max(1.0, 2.5 - 2.5 * episode / max(num_episodes, 1))
         p1_traj    = []
         state      = env._get_state()
@@ -699,7 +697,11 @@ def run_stage2(phase2_policy, num_episodes=10000, graph_dataset_size=5):
         int_count    = sum(ipp)
         internals.append(int_count)
         per_graph[graph_name]['int'].append(int_count)
-        if int_count >= opt_int:
+        # track whether RL partition bound matches brute-force optimum
+        _rl_pb = len(edges) / max(len(sessions) + int_count, 1)
+        _bf_pb, _ = get_optimal_for_graph(nodes, edges, sessions)
+        _is_optimal = (_rl_pb <= _bf_pb + 1e-6)
+        if _is_optimal:
             per_graph[graph_name]['optimal_found'] += 1
 
         # Retrieve weights from Phase 1 (set during FINALIZE action)
@@ -723,16 +725,16 @@ def run_stage2(phase2_policy, num_episodes=10000, graph_dataset_size=5):
         phase1_policy.update(p1_traj, total_reward)
         rewards.append(total_reward)
         all_graph_names_seen.add(graph_name)
-        stopper.update(graph_name, int_count >= opt_int)
+        stopper.update(graph_name, total_reward)
 
         metrics['rewards'].append(total_reward)
         metrics['internals'].append(int_count)
         metrics['graph_names'].append(graph_name)
-        metrics['optimal_int_found'].append(1 if int_count >= opt_int else 0)
+        metrics['optimal_int_found'].append(1 if _is_optimal else 0)
         metrics['partition_weights'].append(partition_weights)
 
-        if int_count >= opt_int and (episode + 1) % log_interval == 0:
-            print(f"  >> Ep {episode+1} {graph_name}: OPTIMAL int={int_count}")
+        if _is_optimal and (episode + 1) % log_interval == 0:
+            print(f"  >> Ep {episode+1} {graph_name}: RL matched optimal PB={_rl_pb:.4f}")
 
         if (episode + 1) % log_interval == 0:
             n    = log_interval
@@ -751,8 +753,13 @@ def run_stage2(phase2_policy, num_episodes=10000, graph_dataset_size=5):
     for gname in sorted(per_graph.keys()):
         stats = per_graph[gname]
         total = len(stats['int'])
+        bf_bound, _ = get_optimal_for_graph(*next(
+            (n,e,s) for n,e,s in env.graph_dataset
+            if identify_graph(n,e,s) == gname
+        ))
         print(f"    {gname:<16}: avg_int={np.mean(stats['int']):.2f} "
-              f"opt_rate={100*stats['optimal_found']/max(total,1):.1f}%")
+              f"opt_rate={100*stats['optimal_found']/max(total,1):.1f}% "
+              f"(bf_bound={bf_bound:.4f})")
     print("\nStage 2 complete.\n")
     return phase1_policy, metrics
 
@@ -1179,22 +1186,58 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
             partition = _greedy_session_partition(nodes, edges, sessions)
             p_weights = {}
 
-        # Fix D (part 1): Use the globally optimal partition for this graph,
-        # not the best one Stage 3 happened to find.  Stage 3 partitions can
-        # be sub-optimal (e.g. paper_7N: Stage 3 finds PB=2.0, true PB=1.667)
-        # which means env.partition_bound is set too high.  The agent then gets
-        # reward=1.0 for matching the inflated baseline, the stopper stabilises
-        # at that plateau, and exploration stalls.  Passing the globally optimal
-        # partition forces the agent to compete against the true PB.
+        # Compute the true optimal partition bound via brute force.
+        # This is always used as env.partition_bound (the target Stage 4 must beat)
+        # so the reward signal is always calibrated against the true optimum.
         opt_global_bound = _compute_partition_bound(nodes, edges, sessions)
 
-        # Resolve the globally optimal partition by brute-force enumeration
-        # (same logic as _compute_partition_bound but also returns the winner).
-        opt_partition = _find_optimal_partition(nodes, edges, sessions)
-        if opt_partition is not None:
-            partition = opt_partition
-            p_weights = best_partitions.get(graph_name, (None, {}, None))[1]
-        # else: fall back to Stage 3 / greedy partition already set above
+        # Partition selection: prefer the RL-discovered partition from Stage 3.
+        # RL is given the opportunity to contribute — if its partition achieves
+        # the same bound as brute force (within 1e-6), we use it. This is the
+        # research contribution: RL found an optimal partition without exhaustive search.
+        # If RL's partition is suboptimal, fall back to brute force so Stage 4
+        # always starts from an optimal partition and correctness is guaranteed.
+        rl_partition_bound = None
+        if graph_name in best_partitions:
+            _rl_part, _, _ = best_partitions[graph_name]
+            # Evaluate the RL partition's bound directly
+            def _eval_partition(part, nodes, edges, sessions):
+                adj_local = {n: set() for n in nodes}
+                for u, v in edges:
+                    adj_local[u].add(v); adj_local[v].add(u)
+                for Pk in part:
+                    pk_set = set(Pk)
+                    if any(adj_local[nd] & (pk_set - {nd}) for nd in Pk):
+                        return float('inf')
+                internal = sum(1 for Pk in part
+                               for s, t in sessions
+                               if s in set(Pk) and t in set(Pk))
+                denom = len(sessions) + internal
+                cut = sum(1 for u, v in edges
+                          if not any(u in set(Pk) and v in set(Pk) for Pk in part))
+                return cut / denom if denom > 0 else float('inf')
+            rl_partition_bound = _eval_partition(_rl_part, nodes, edges, sessions)
+
+        # Decision: use RL partition if it matches optimal bound, else brute force
+        if rl_partition_bound is not None and rl_partition_bound <= opt_global_bound + 1e-6:
+            # RL found an optimal (or equivalent) partition — use it
+            partition = best_partitions[graph_name][0]
+            p_weights = best_partitions[graph_name][1]
+            _partition_source = "RL"
+        else:
+            # RL partition is suboptimal or missing — fall back to brute force
+            opt_partition = _find_optimal_partition(nodes, edges, sessions)
+            if opt_partition is not None:
+                partition = opt_partition
+                p_weights = best_partitions.get(graph_name, (None, {}, None))[1]
+            _partition_source = "brute_force"
+            if rl_partition_bound is not None:
+                print(f"  [partition] {graph_name}: RL bound={rl_partition_bound:.4f} "
+                      f"> opt={opt_global_bound:.4f} — using brute force fallback")
+
+        if episode == 0 or (episode + 1) % 500 == 0:
+            print(f"  [partition] {graph_name}: source={_partition_source}, "
+                  f"bound={opt_global_bound:.4f}")
 
         # Set up env for Phase 3 directly
         env.nodes    = nodes
@@ -1797,21 +1840,37 @@ def _evaluate_inner(phase1_policy, phase2_policy, phase3_policy,
         # Phase 3 rollout — use the same partition/weights as Phase 1/2 above
         env.partition         = [list(g) for g in partition]
         env.partition_weights = partition_weights or {}
+        # Fix 1: set partition_bound to the true optimum, same as Stage 4 training.
+        # env.reset() uses greedy coloring which can be worse than the true PB,
+        # causing frac_pool.best_bound() to compare against the wrong baseline.
+        env.partition_bound   = pb
+        # Fix 2: set LP lower bound so the floor guard inside _extract_phase3_bound
+        # actually fires. Without this it defaults to 0.0 (guard disabled).
+        env._lp_lower_bound   = lp_bounds.get(graph_name, 0.0)
         env._start_phase2()
         env._start_phase3(preseed=False)
         env.internal_per_part = env.internal_per_part or []
 
         state2 = env._get_state()
-        state2['nodes']    = nodes; state2['edges'] = edges
-        state2['sessions'] = sessions; state2['partition'] = partition
+        # Fix 3+5: inject all fields training injects, including partition_weights
+        # and nodes — policy reads these; missing fields silently degrade quality.
+        state2['nodes']             = nodes
+        state2['edges']             = edges
+        state2['sessions']          = sessions
+        state2['partition']         = partition
+        state2['partition_weights'] = partition_weights or {}
 
         while env.current_phase == Phase.PHASE3:
             valid = env.get_valid_actions()
             if not valid: break
-            action = phase3_policy.select_action(state2, valid)
+            action = phase3_policy.select_action(state2, valid, greedy=True)
             state2, _, done = env.step(action)
-            state2['nodes'] = nodes; state2['edges'] = edges
-            state2['sessions'] = sessions; state2['partition'] = partition
+            # Keep all injected fields fresh after each step
+            state2['nodes']             = nodes
+            state2['edges']             = edges
+            state2['sessions']          = sessions
+            state2['partition']         = partition
+            state2['partition_weights'] = partition_weights or {}
             if done: break
 
         p3_bound = env.frac_pool.best_bound(

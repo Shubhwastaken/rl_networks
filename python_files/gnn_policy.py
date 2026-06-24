@@ -937,7 +937,7 @@ class GNNPhase3Policy:
             self.optimizer, T_max=max(self.total_episodes, 1), eta_min=1e-5
         )
 
-    def select_action(self, state, valid_actions):
+    def select_action(self, state, valid_actions, greedy=False):
         if not valid_actions:
             return {'type': ActionType.DECLARE_TERMINAL}
 
@@ -968,7 +968,7 @@ class GNNPhase3Policy:
 
         type_probs = F.softmax(type_logits + type_mask, dim=-1)
         type_dist  = safe_categorical(type_probs)
-        k_t        = type_dist.sample()
+        k_t        = (type_dist.probs.argmax() if greedy else type_dist.sample())
         atype      = PHASE3_ACTION_TYPES[k_t.item()]
         lp_type    = type_dist.log_prob(k_t)
         entropy    = type_dist.entropy()
@@ -989,7 +989,7 @@ class GNNPhase3Policy:
                     if nd in node_map: u_mask[node_map[nd]] = 0.0
                 u_probs = F.softmax(node_scores + u_mask, dim=-1)
                 u_dist  = safe_categorical(u_probs)
-                u_idx_t = u_dist.sample()
+                u_idx_t = (u_dist.probs.argmax() if greedy else u_dist.sample())
                 u_node  = nodes_list[u_idx_t.item()]
                 lp_u    = u_dist.log_prob(u_idx_t)
 
@@ -1002,14 +1002,14 @@ class GNNPhase3Policy:
                     if nd in node_map: v_mask[node_map[nd]] = 0.0
                 v_probs = F.softmax(node_scores + v_mask, dim=-1)
                 v_dist  = safe_categorical(v_probs)
-                v_idx_t = v_dist.sample()
+                v_idx_t = (v_dist.probs.argmax() if greedy else v_dist.sample())
                 v_node  = nodes_list[v_idx_t.item()]
                 lp_v    = v_dist.log_prob(v_idx_t)
 
                 lam_logits = self.net.lambda_head(h_comb)
                 lam_probs  = F.softmax(lam_logits, dim=-1)
                 lam_dist   = safe_categorical(lam_probs)
-                lam_idx_t  = lam_dist.sample()
+                lam_idx_t  = (lam_dist.probs.argmax() if greedy else lam_dist.sample())
                 lam        = LAMBDA_GRID[lam_idx_t.item()]
                 lp_lam     = lam_dist.log_prob(lam_idx_t)
 
@@ -1035,7 +1035,7 @@ class GNNPhase3Policy:
                     for i in valid_mapped: mask[i] = 0.0
                     probs  = F.softmax(scores + mask, dim=-1)
                     dist   = safe_categorical(probs)
-                    idx_t  = dist.sample()
+                    idx_t  = (dist.probs.argmax() if greedy else dist.sample())
                     action['idx_i'] = idx_t.item()
                     lp_extra = dist.log_prob(idx_t)
                 else:
@@ -1062,7 +1062,7 @@ class GNNPhase3Policy:
                         cut_mask[ci] = 0.0
                 cut_probs = F.softmax(cut_logits + cut_mask, dim=-1)
                 cut_dist  = safe_categorical(cut_probs)
-                cut_idx_t = cut_dist.sample()
+                cut_idx_t = (cut_dist.probs.argmax() if greedy else cut_dist.sample())
                 action['cut_idx']   = cut_idx_t.item()
                 action['sep_count'] = next(
                     (a.get('sep_count', 0) for a in crypto_acts
@@ -1085,7 +1085,7 @@ class GNNPhase3Policy:
                         sess_mask[si] = 0.0
                 sess_probs = F.softmax(sess_logits + sess_mask, dim=-1)
                 sess_dist  = safe_categorical(sess_probs)
-                sess_idx_t = sess_dist.sample()
+                sess_idx_t = (sess_dist.probs.argmax() if greedy else sess_dist.sample())
                 action['session_idx'] = sess_idx_t.item()
                 lp_extra = sess_dist.log_prob(sess_idx_t)
             else:
