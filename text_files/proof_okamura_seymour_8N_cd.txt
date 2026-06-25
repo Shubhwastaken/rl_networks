@@ -1,0 +1,29 @@
+======================================================================
+STAGE 4 STATUS DOCUMENT: okamura_seymour_8N
+======================================================================
+
+STATUS: NON-NOVEL TERMINAL
+
+NETWORK
+  Nodes   : ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+  Edges   : [['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'e'], ['e', 'f'], ['f', 'g'], ['g', 'h'], ['h', 'a'], ['a', 'e'], ['b', 'f'], ['c', 'g'], ['d', 'h']]
+  Sessions: [['a', 'e'], ['b', 'f'], ['c', 'g'], ['d', 'h']]
+
+PARTITION
+
+BOUNDS
+  Partition bound: 3.000000
+  LP lower bound : 1.500000
+  Best observed : 3.000000
+
+STAGE 4 COUNTS
+  Attempts             : 3127
+  Valid novel episodes : 0
+  Terminal episodes    : 11
+  No-terminal episodes : 3116
+  CROSS_SUBMOD used    : 783
+  APPLY_CRYPTO used    : 1
+  APPLY_DECODE used    : 3
+
+This is a status report, not a mathematical proof.
+======================================================================

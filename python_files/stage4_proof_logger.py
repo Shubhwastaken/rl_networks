@@ -715,7 +715,7 @@ def generate_proof_document(log_path: str, graph_name: str,
 
     doc = "\n".join(lines)
     if out_path:
-        with open(out_path, "w") as f:
+        with open(out_path, "w", encoding="utf-8") as f:
             f.write(doc)
         print(f"[Stage4ProofLogger] Proof document written to {out_path}")
     return doc

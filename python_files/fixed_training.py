@@ -189,7 +189,7 @@ def _write_stage4_status_document(graph_name, graph_tuple, partition, pb, lp_lb,
         "This is a status report, not a mathematical proof.",
         "=" * 70,
     ])
-    with open(out_path, "w") as f:
+    with open(out_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
 
@@ -1028,7 +1028,8 @@ def run_stage3(phase1_policy, phase2_policy,
 # -----------------------------------------------------------------------
 
 def run_stage4(phase1_policy, phase2_policy, best_partitions,
-               coeff_dim, num_episodes=10000, graph_dataset_size=12):  # All tiers
+               coeff_dim, num_episodes=10000, graph_dataset_size=12,
+               finetune_graphs=None):  # finetune_graphs: restrict sampling to named graphs
     """
     Phase 3 training. Uses best partitions from Stage 3 as fixed starting
     points, so the policy can focus entirely on fractional IO discovery.
@@ -1088,12 +1089,23 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
     })
 
     log_interval = 50
+    # When finetuning, use a fresh stopper with higher patience since we are
+    # targeting hard graphs. The old stopper state from the previous run
+    # would fire immediately if resumed, giving zero new episodes.
+    _is_finetune = finetune_graphs is not None
     stopper = Stage4EarlyStopper(
-        patience           = 5000,
-        min_episodes       = 4000,
+        patience           = 8000 if _is_finetune else 5000,
+        min_episodes       = 2000 if _is_finetune else 4000,
         window             = 500,
-        novel_zero_patience= 3000,
+        novel_zero_patience= 5000 if _is_finetune else 3000,
     )
+    # On finetune, the stopper starts fresh but resumes from a non-zero episode.
+    # The hard-floor check fires when episode - _last_novel_episode >= novel_zero_patience.
+    # With _last_novel_episode=-1 and resume at ep 5700, this fires immediately (5700 > 5000).
+    # Fix: set _last_novel_episode to _resume_ep_s4 so the patience counts from resume.
+    if _is_finetune and _resume_ep_s4 > 0:
+        stopper._last_novel_episode = _resume_ep_s4
+        stopper.best_episode = _resume_ep_s4
 
     # Pre-compute LP lower bounds for all graphs in this stage
     lp_bounds = {}
@@ -1134,6 +1146,20 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         identify_graph(*gt): gt
         for gt in env.graph_dataset
     }
+    # If finetune_graphs is set, restrict dataset to only those graphs.
+    # All 10k episodes go to the new graphs — original 16 already solved.
+    if finetune_graphs is not None:
+        _finetune_dataset = [
+            gt for gt in env.graph_dataset
+            if identify_graph(*gt) in finetune_graphs
+        ]
+        if not _finetune_dataset:
+            print(f"  [warn] finetune_graphs not found in dataset — using all graphs")
+            _finetune_dataset = list(env.graph_dataset)
+        env.graph_dataset = _finetune_dataset
+        print(f"  [finetune] Sampling restricted to: "
+              f"{[identify_graph(*gt) for gt in env.graph_dataset]}")
+
     balanced_cycle = []
 
     def _next_balanced_graph():
@@ -1231,7 +1257,7 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
                 partition = opt_partition
                 p_weights = best_partitions.get(graph_name, (None, {}, None))[1]
             _partition_source = "brute_force"
-            if rl_partition_bound is not None:
+            if rl_partition_bound is not None and (episode == 0 or (episode + 1) % 500 == 0):
                 print(f"  [partition] {graph_name}: RL bound={rl_partition_bound:.4f} "
                       f"> opt={opt_global_bound:.4f} — using brute force fallback")
 
@@ -1494,12 +1520,14 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
             if novel_bounds:
                 print(f"  ** NOVEL BOUNDS FOUND **")
                 for gn, (b, part, w, trace) in sorted(novel_bounds.items()):
-                    pb2 = _compute_partition_bound(
-                        *next((nd,ed,ss) for nd,ed,ss in env.graph_dataset
-                              if identify_graph(nd,ed,ss)==gn)
-                    )
-                    print(f"     {gn}: {b:.6f} < PB={pb2:.6f} "
-                          f"(improvement={(pb2-b)/pb2*100:.2f}%)")
+                    try:
+                        pb2 = _compute_partition_bound(
+                            *graph_lookup[gn]
+                        )
+                    except (KeyError, StopIteration):
+                        pb2 = float('inf')
+                    impr = f"{(pb2-b)/pb2*100:.2f}%" if pb2 < 1e9 else "n/a"
+                    print(f"     {gn}: {b:.6f} < PB={pb2:.6f} (improvement={impr})")
                     if trace != "N/A":
                         print(f"     Trace: {trace[:200]}")
             env.pool = env.pool[:env.num_base]
@@ -1554,10 +1582,11 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
     if novel_bounds:
         for gn, (b, part, w, trace) in sorted(novel_bounds.items()):
             try:
-                nd, ed, ss = next((nd,ed,ss) for nd,ed,ss in env.graph_dataset
-                                   if identify_graph(nd,ed,ss)==gn)
+                # Use graph_lookup (full 19-graph dict) not env.graph_dataset
+                # which may be restricted to finetune graphs only
+                nd, ed, ss = graph_lookup[gn]
                 pb2 = _compute_partition_bound(nd, ed, ss)
-            except StopIteration:
+            except (KeyError, StopIteration):
                 pb2 = float('inf')
             print(f"\n  Graph: {gn}")
             print(f"  Novel bound: r <= {b:.6f}")
@@ -1722,7 +1751,7 @@ def train(stage1_episodes=10000, stage2_episodes=10000,
         phase3_policy, s4, novel_bounds = run_stage4(
             phase1_policy, phase2_policy, best_partitions,
             coeff_dim, stage4_episodes,
-            graph_dataset_size=min(16, graph_dataset_size*4)
+            graph_dataset_size=min(19, graph_dataset_size*4)
         )
         torch.save(phase3_policy.net.state_dict(), "model_files/ckpt_stage4_phase3.pt")
         print("[checkpoint] Stage 4 saved -> model_files/ckpt_stage4_phase3.pt")
@@ -1837,16 +1866,18 @@ def _evaluate_inner(phase1_policy, phase2_policy, phase3_policy,
         p2_bound = abs(env._best_pool_bound() or pb * 2)
         results[graph_name]['p2_bounds'].append(p2_bound)
 
-        # Phase 3 rollout — use the same partition/weights as Phase 1/2 above
+        # Phase 3 rollout — set ALL required env fields before _start_phase2.
+        # _start_phase2 uses self.nodes/edges/sessions/index to build node IOs
+        # and compute internal_per_part. Without setting these, it uses stale
+        # values from the previous episode's env.reset() (a different graph).
+        env.nodes             = list(nodes)
+        env.edges             = list(edges)
+        env.sessions          = list(sessions)
         env.partition         = [list(g) for g in partition]
         env.partition_weights = partition_weights or {}
-        # Fix 1: set partition_bound to the true optimum, same as Stage 4 training.
-        # env.reset() uses greedy coloring which can be worse than the true PB,
-        # causing frac_pool.best_bound() to compare against the wrong baseline.
         env.partition_bound   = pb
-        # Fix 2: set LP lower bound so the floor guard inside _extract_phase3_bound
-        # actually fires. Without this it defaults to 0.0 (guard disabled).
         env._lp_lower_bound   = lp_bounds.get(graph_name, 0.0)
+        env.index             = None   # force rebuild for this graph
         env._start_phase2()
         env._start_phase3(preseed=False)
         env.internal_per_part = env.internal_per_part or []
@@ -1982,6 +2013,88 @@ def _evaluate_inner(phase1_policy, phase2_policy, phase3_policy,
 
 
 if __name__ == "__main__":
+    import sys
+    if "--finetune-stage4" in sys.argv:
+        # Fine-tune Stage 4 on all 19 graphs using existing checkpoint.
+        # Resumes from ckpt_stage4_phase3.pt and trains for fewer episodes.
+        # Use this when new graphs were added after an initial full run.
+        import json as _json
+        from collections import defaultdict
+
+        # Ensure output folders exist
+        for _d in ("model_files", "config_files", "text_files", "image_files"):
+            os.makedirs(_d, exist_ok=True)
+
+        print("\n=== Stage 4 fine-tune on 19 graphs ===")
+        print(f"DEVICE: {DEVICE}")
+
+        # Load existing Stage 3 artifacts
+        coeff_dim_data = torch.load("model_files/ckpt_stage1_coeff_dim.pt",
+                                    weights_only=True, map_location=DEVICE)
+        coeff_dim = coeff_dim_data["coeff_dim"]
+
+        phase1_policy = GNNPhase1Policy()
+        phase1_policy.net.load_state_dict(
+            torch.load("model_files/ckpt_stage3_phase1.pt",
+                       weights_only=True, map_location=DEVICE))
+
+        phase2_policy = GNNPhase2Policy(coeff_dim=coeff_dim)
+        phase2_policy.net.load_state_dict(
+            torch.load("model_files/ckpt_stage3_phase2.pt",
+                       weights_only=True, map_location=DEVICE))
+
+        with open("model_files/ckpt_stage3_best_partitions.json") as _f:
+            _bp_raw = _json.load(_f)
+        best_partitions = {
+            k: ([tuple(p) for p in v["partition"]], v["weights"], v["bound"])
+            for k, v in _bp_raw.items()
+        }
+
+        # _resume_ep_s4 inside run_stage4 reads the meta checkpoint and gets
+        # the episode count from the completed run (e.g. 30000).
+        # num_episodes must be _resume + extra, not just the extra count.
+        _s4_meta_path = "model_files/ckpt_stage4_meta.pt"
+        _s4_done_eps  = 0
+        if os.path.exists(_s4_meta_path):
+            _s4_done_eps = torch.load(_s4_meta_path, weights_only=True,
+                                      map_location=DEVICE).get("episode", 0)
+        _finetune_extra = 10000
+        _finetune_total = _s4_done_eps + _finetune_extra
+        print(f"  Resuming from episode {_s4_done_eps}, "
+              f"running {_finetune_extra} extra → total {_finetune_total}")
+
+        # Target only graphs that failed to find novel bounds this run.
+        # okamura_network_paper_5N excluded — gap=0, mathematically impossible.
+        _FINETUNE_GRAPHS = [
+            "butterfly_8N",
+            "grid_4x4_16N",
+            "okamura_seymour_8N",
+        ]
+
+        phase3_policy, s4, novel_bounds = run_stage4(
+            phase1_policy, phase2_policy, best_partitions,
+            coeff_dim,
+            num_episodes=_finetune_total,
+            graph_dataset_size=19,
+            finetune_graphs=_FINETUNE_GRAPHS,
+        )
+
+        torch.save(phase3_policy.net.state_dict(),
+                   "model_files/ckpt_stage4_phase3.pt")
+        print("[checkpoint] Fine-tune saved -> model_files/ckpt_stage4_phase3.pt")
+
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+        eval_results = evaluate(
+            phase1_policy, phase2_policy, phase3_policy,
+            best_partitions=best_partitions,
+            num_episodes=4800, graph_dataset_size=19
+        )
+        print("Fine-tune + eval complete.")
+        sys.exit(0)
+
+
     t0 = time.time()
     (phase1_policy, phase2_policy, phase3_policy,
      train_metrics, novel_bounds, best_partitions) = train(
@@ -2000,7 +2113,7 @@ if __name__ == "__main__":
     eval_results = evaluate(
         phase1_policy, phase2_policy, phase3_policy,
         best_partitions=best_partitions,
-        num_episodes=4800, graph_dataset_size=16
+        num_episodes=4800, graph_dataset_size=19
     )
 
     runtime = time.time() - t0
@@ -2043,7 +2156,7 @@ if __name__ == "__main__":
     print("Metrics saved to config_files/training_metrics.json")
 
     # Summary file
-    with open('text_files/training_summary.txt', 'w') as f:
+    with open('text_files/training_summary.txt', 'w', encoding='utf-8') as f:
         f.write(f"Training completed: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"Runtime: {runtime:.1f}s ({runtime/60:.1f} min)\n\n")
 
@@ -2077,6 +2190,13 @@ if __name__ == "__main__":
                     status = "NOVEL"
                 else:
                     status = "NO IMPROV"
+            elif abs(pb - lp) < 1e-6:
+                # PB already equals LP lower bound — routing capacity achieved.
+                # No novel bound is mathematically possible; this is a
+                # verification result, not a failure.
+                rl_b   = pb
+                improv = 0.0
+                status = "TIGHT (PB=LP)"
             else:
                 rl_b   = pb   # no improvement found
                 improv = 0.0
