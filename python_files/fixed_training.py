@@ -1745,8 +1745,14 @@ def train(stage1_episodes=10000, stage2_episodes=10000,
         phase3_policy.net.load_state_dict(
             torch.load("model_files/ckpt_stage4_phase3.pt", weights_only=True, map_location=DEVICE))
         s4 = {}
-        novel_bounds = {}
-        print("[skip] Stage 4 already complete, loaded from checkpoint.")
+        # Restore novel_bounds from proof log so training_summary.txt is correct
+        # when all stages are skipped and only eval + summary are run.
+        novel_bounds = _load_stage4_novel_bounds_from_log("config_files/stage4_proof_log.json")
+        if novel_bounds:
+            print(f"[skip] Stage 4 already complete, loaded from checkpoint. "
+                  f"Restored {len(novel_bounds)} novel bounds from proof log.")
+        else:
+            print("[skip] Stage 4 already complete, loaded from checkpoint.")
     else:
         phase3_policy, s4, novel_bounds = run_stage4(
             phase1_policy, phase2_policy, best_partitions,
@@ -1878,6 +1884,14 @@ def _evaluate_inner(phase1_policy, phase2_policy, phase3_policy,
         env.partition_bound   = pb
         env._lp_lower_bound   = lp_bounds.get(graph_name, 0.0)
         env.index             = None   # force rebuild for this graph
+        # Build adjacency and edge_set — required by check_valid_terminal_form
+        # for the cross-partition edge check. Without these, best_bound always
+        # returns inf and novel rate is always 0%.
+        env.adjacency = {n: set() for n in nodes}
+        env.edge_set  = set()
+        for _u, _v in edges:
+            env.adjacency[_u].add(_v); env.adjacency[_v].add(_u)
+            env.edge_set.add((_u, _v)); env.edge_set.add((_v, _u))
         env._start_phase2()
         env._start_phase3(preseed=False)
         env.internal_per_part = env.internal_per_part or []
