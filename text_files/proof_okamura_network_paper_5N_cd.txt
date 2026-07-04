@@ -19,13 +19,13 @@ BOUNDS
   Best observed : 0.750000
 
 STAGE 4 COUNTS
-  Attempts             : 331
+  Attempts             : 537
   Valid novel episodes : 0
-  Terminal episodes    : 14
-  No-terminal episodes : 317
-  CROSS_SUBMOD used    : 91
-  APPLY_CRYPTO used    : 312
-  APPLY_DECODE used    : 253
+  Terminal episodes    : 18
+  No-terminal episodes : 519
+  CROSS_SUBMOD used    : 186
+  APPLY_CRYPTO used    : 492
+  APPLY_DECODE used    : 402
 
 This is a status report, not a mathematical proof.
 ======================================================================

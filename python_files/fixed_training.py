@@ -250,6 +250,7 @@ class Stage4EarlyStopper:
                  min_episodes      : int   = 4000,
                  window            : int   = 500,
                  novel_zero_patience: int  = 3000,
+                 composite_lock_floor: int = 1500,
                  w1: float = 0.6,
                  w2: float = 0.3,
                  w3: float = 0.1):
@@ -257,6 +258,16 @@ class Stage4EarlyStopper:
         self.min_episodes       = min_episodes
         self.window             = window
         self.novel_zero_patience= novel_zero_patience
+        # Composite score isn't allowed to lock in a "best" until this many
+        # episodes have passed. Without this, a single early lucky spike
+        # (noise, not skill -- pb_score/novel_rate are near-random at low
+        # episode counts) sets best_composite, and the agent then has only
+        # `patience` episodes to beat a target set by chance rather than
+        # learned behavior. This was very likely what happened on the run
+        # that stopped at episode ~5825: best_episode probably landed
+        # around episode ~800, and nothing in the next 5000 episodes beat
+        # a fluke.
+        self.composite_lock_floor = composite_lock_floor
         self.w1, self.w2, self.w3 = w1, w2, w3
 
         self.best_composite     = float('-inf')
@@ -297,7 +308,7 @@ class Stage4EarlyStopper:
                          + self.w2 * novel_rate
                          + self.w3 * cross_rate)
 
-            if composite > self.best_composite + 1e-5:
+            if episode >= self.composite_lock_floor and composite > self.best_composite + 1e-5:
                 self.best_composite = composite
                 self.best_episode   = episode
 
@@ -1106,7 +1117,8 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         'attempts': 0, 'valid_novel': 0, 'terminal_valid': 0,
         'no_terminal': 0, 'used_cross_submod': 0, 'used_crypto': 0,
         'used_decode': 0, 'used_plain_submod': 0,
-        'best_bound': float('inf'), 'recent_no_terminal': []
+        'best_bound': float('inf'), 'recent_no_terminal': [],
+        '_last_sampled_ep': -1,
     })
 
     log_interval = 50
@@ -1192,15 +1204,22 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
 
     def _priority_for_graph(gn):
         stats = per_graph_stats[gn]
+        # Steepened from the original 5.0/3.0/1.0. At 5.0, the intended
+        # oversampling of zero-novel graphs was invisible in practice --
+        # actual attempt counts across all 19 graphs came out to 278-331,
+        # a ~15% spread, nowhere near what a real 5x boost should produce.
+        # 20.0 makes the boost large enough to actually show up in the
+        # attempt-count distribution instead of being lost in the noise
+        # of averaging against 18 other graphs' weights.
         if stats['valid_novel'] == 0:
-            priority = 5.0
+            priority = 20.0
         elif stats['valid_novel'] < 3:
-            priority = 3.0
+            priority = 6.0
         else:
             priority = 1.0
         recent = stats['recent_no_terminal'][-50:]
         if recent and (sum(recent) / len(recent)) > 0.4:
-            priority += 2.0
+            priority += 4.0
         return priority
 
     def _sample_adaptive_graph():
@@ -1210,21 +1229,74 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         probs = [w / total for w in weights]
         return env.graph_dataset[np.random.choice(len(env.graph_dataset), p=probs)]
 
+    # Hard floor: any graph that has gone this many episodes with zero
+    # novel finds gets force-routed to the front of the queue, bypassing
+    # the coin flip below. Capped to at most 1-in-6 episodes overall --
+    # simulated this against a synthetic run first: WITHOUT the cap, once
+    # only one graph remains eligible, "pick the most overdue eligible
+    # graph" degenerates into "pick this one every single episode" (it's
+    # the only candidate, so it's trivially always "most overdue"). That
+    # produced 73% of an entire 5825-episode budget going to one graph in
+    # simulation -- the exact catastrophic-forgetting failure mode this
+    # whole design was supposed to avoid. The 1-in-6 cap limits how much
+    # of the total budget this mechanism can ever claim, regardless of
+    # how many graphs are eligible.
+    _STUCK_FLOOR_EPISODES  = 150
+    _STUCK_OVERRIDE_EVERY  = 6
+
+    def _most_overdue_stuck_graph():
+        """Return the zero-novel graph most overdue for attention, or None."""
+        candidates = [
+            gn for gn in (identify_graph(*gt) for gt in env.graph_dataset)
+            if per_graph_stats[gn]['valid_novel'] == 0
+            and per_graph_stats[gn]['attempts'] >= _STUCK_FLOOR_EPISODES
+        ]
+        if not candidates:
+            return None
+        # Prioritize whichever stuck graph has gone longest since it was
+        # last actually sampled, not just attempt count -- otherwise one
+        # stuck graph can dominate every forced slot while others starve.
+        last_seen = {gn: per_graph_stats[gn].get('_last_sampled_ep', -1)
+                     for gn in candidates}
+        chosen = min(candidates, key=lambda gn: last_seen[gn])
+        for gt in env.graph_dataset:
+            if identify_graph(*gt) == chosen:
+                return gt
+        return None
+
     for episode in range(_resume_ep_s4, num_episodes):
         if stopper.should_stop(episode):
             print(f"\n  Early stopping at episode {episode}")
             break
 
-        # Balanced base coverage plus light adaptive oversampling. This keeps
-        # all 16 graphs represented even if Stage 4 early-stops, while still
-        # spending extra attempts on graphs with few valid novel episodes.
+        # Selection order, highest priority first:
+        #   1. Any zero-novel graph stuck past _STUCK_FLOOR_EPISODES gets
+        #      force-routed here, bypassing probability entirely. This is
+        #      the fix for the sampling-imbalance bug: a pure probability
+        #      boost (below) can still leave a struggling graph under-
+        #      served by chance across a few thousand episodes -- this
+        #      floor makes that impossible for the worst cases.
+        #   2. Otherwise, adaptive-weighted sampling most of the time
+        #      (raised from 25% to 65% -- at 25% the intended oversampling
+        #      was diluted into a ~15% spread across graphs, not enough to
+        #      show up against a graph that's just structurally harder).
+        #   3. Otherwise, flat round-robin, to guarantee every graph still
+        #      gets baseline coverage and the network doesn't drift toward
+        #      only the currently-weighted graphs (catastrophic forgetting
+        #      risk if the adaptive fraction dominated completely).
         graph_tuple = (
-            _sample_adaptive_graph()
-            if random.random() < 0.25
-            else _next_balanced_graph()
+            _most_overdue_stuck_graph() if episode % _STUCK_OVERRIDE_EVERY == 0
+            else None
         )
+        if graph_tuple is None:
+            graph_tuple = (
+                _sample_adaptive_graph()
+                if random.random() < 0.65
+                else _next_balanced_graph()
+            )
         nodes, edges, sessions = graph_tuple
         graph_name = identify_graph(nodes, edges, sessions)
+        per_graph_stats[graph_name]['_last_sampled_ep'] = episode
 
         # Use best partition from Stage 3 if available, else greedy
         if graph_name in best_partitions:
@@ -1434,7 +1506,25 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         # Close the episode log — records summary and (for novel episodes)
         # the terminal inequality detail. Called after LP clamp so the
         # logged best_b is always the valid, final value.
+        #
+        # BLIND SPOT FIX: only_novel=True normally means a graph with zero
+        # novel finds has ZERO logged traces anywhere -- not even a summary
+        # (end_episode discards self._current entirely before appending).
+        # For a graph currently stuck at zero novel finds, force-keep this
+        # episode's full trace every ~25 attempts, so there is at least
+        # some record of what the policy is actually doing on graphs that
+        # never succeed. Cheap: only fires for graphs with valid_novel==0,
+        # which is a small minority once training is working.
+        _stats_before = per_graph_stats[graph_name]
+        _force_keep = (
+            _stats_before['valid_novel'] == 0
+            and _stats_before['attempts'] % 25 == 0
+        )
+        if _force_keep:
+            proof_logger.only_novel = False
         proof_logger.end_episode(best_b, pb)
+        if _force_keep:
+            proof_logger.only_novel = True
 
         # Flush every 200 episodes — protects against crash at end of training.
         # Only novel episodes have step traces in memory so this is cheap.
@@ -1984,7 +2074,19 @@ def _run_eval_episode(env, graph_tuple, phase1_policy, phase2_policy,
     p3_bound = env.frac_pool.best_bound(
         len(sessions), len(edges), env.internal_per_part
     )
-    if p3_bound == float('inf'): p3_bound = pb * 2
+    # NO fabricated fallback. If the episode never assembled a valid
+    # terminal-form inequality, p3_bound stays None -- a real missing
+    # result, not a number that looks like data. Downstream code MUST
+    # treat None as "no result", never format/average/plot it as a bound.
+    # This is a distinct failure mode from an LP-violating result below.
+    no_valid_terminal = (p3_bound == float('inf'))
+
+    if no_valid_terminal:
+        env.pool = []
+        env.frac_pool = env.frac_pool.__class__(MAX_DERIVED)
+        env.accumulator = []
+        env.stored_derived = []
+        return p2_bound, None, False, False, pb, graph_name, True
 
     lp_floor = lp_bounds.get(graph_name, 0.0)
     lp_valid = p3_bound >= lp_floor - 1e-6
@@ -1999,7 +2101,7 @@ def _run_eval_episode(env, graph_tuple, phase1_policy, phase2_policy,
     env.accumulator = []
     env.stored_derived = []
 
-    return p2_bound, p3_bound, is_novel, lp_valid, pb, graph_name
+    return p2_bound, p3_bound, is_novel, lp_valid, pb, graph_name, False
 
 
 def _is_oom_error(e: Exception) -> bool:
@@ -2058,8 +2160,10 @@ def _evaluate_inner(phase1_policy, phase2_policy, phase3_policy,
     env = PartitionBoundEnv(graph_dataset_size=graph_dataset_size, stage=4)
     results = defaultdict(lambda: {
         'p2_bounds': [], 'greedy_p3_bound': None, 'greedy_is_novel': False,
-        'greedy_lp_valid': True, 'stochastic_novel_count': 0,
+        'greedy_lp_valid': True, 'greedy_no_valid_terminal': False,
+        'stochastic_novel_count': 0,
         'stochastic_total': 0, 'stochastic_p3_bounds': [],
+        'stochastic_no_terminal_count': 0,
     })
 
     _eval_log_path = "config_files/eval_results.json"
@@ -2098,13 +2202,28 @@ def _evaluate_inner(phase1_policy, phase2_policy, phase3_policy,
         if _prior.get("stochastic_episodes_per_graph") == stochastic_episodes \
                 and _prior.get("greedy_trials") == greedy_trials:
             for gname, s in _prior.get("summary", {}).items():
-                results[gname]['greedy_p3_bound'] = s['greedy_best_bound']
+                results[gname]['greedy_p3_bound'] = s['greedy_best_bound']  # may be None
                 results[gname]['greedy_is_novel'] = s['greedy_is_novel']
                 results[gname]['greedy_lp_valid'] = s['greedy_lp_valid']
-                results[gname]['stochastic_total'] = s['stochastic_episodes']
-                results[gname]['stochastic_novel_count'] = int(
-                    round(s['stochastic_success_pct'] / 100.0 * s['stochastic_episodes'])
+                results[gname]['greedy_no_valid_terminal'] = s.get(
+                    'greedy_no_valid_terminal', s['greedy_best_bound'] is None
                 )
+                results[gname]['stochastic_total'] = s['stochastic_episodes']
+                results[gname]['stochastic_no_terminal_count'] = s.get(
+                    'stochastic_no_terminal_count', 0
+                )
+                # stochastic_success_pct is None when every stochastic
+                # episode for this graph failed to reach a terminal form --
+                # do not divide by it or treat it as 0.0% (0.0% implies
+                # "tried and found nothing novel", which is a different,
+                # better outcome than "never produced anything to judge").
+                pct = s.get('stochastic_success_pct')
+                if pct is not None and s['stochastic_episodes'] > 0:
+                    results[gname]['stochastic_novel_count'] = int(
+                        round(pct / 100.0 * s['stochastic_episodes'])
+                    )
+                else:
+                    results[gname]['stochastic_novel_count'] = 0
                 _already_done.add(gname)
             if _already_done:
                 was_complete = _prior.get("complete", False)
@@ -2168,17 +2287,26 @@ def _evaluate_inner(phase1_policy, phase2_policy, phase3_policy,
             continue
 
         # --- greedy_trials rollouts, best kept ---
+        # best_p3b/best_record only ever hold REAL bounds. no_terminal_count
+        # tracks trials that never assembled a valid terminal form, tallied
+        # separately from OOM skips and from successful trials.
         best_p3b = None
         best_record = None
+        oom_skips = 0
+        no_terminal_count = 0
         for _ in range(greedy_trials):
             result = _safe_run_episode(
                 env, graph_tuple, phase1_policy, phase2_policy, phase3_policy,
                 best_partitions, lp_bounds, greedy=True
             )
             if result is None:
+                oom_skips += 1
                 continue
-            p2b, p3b, is_novel, lp_valid, pb, _ = result
+            p2b, p3b, is_novel, lp_valid, pb, _, no_terminal = result
             results[gname]['p2_bounds'].append(p2b)
+            if no_terminal:
+                no_terminal_count += 1
+                continue
             if best_p3b is None or p3b < best_p3b:
                 best_p3b = p3b
                 best_record = (p2b, p3b, is_novel, lp_valid, pb)
@@ -2186,25 +2314,48 @@ def _evaluate_inner(phase1_policy, phase2_policy, phase3_policy,
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
 
-        if best_record is None:
+        if oom_skips == greedy_trials:
             print(f"  !! All {greedy_trials} greedy trials OOM'd for {gname} "
                   f"-- skipping entirely, check VRAM headroom.")
             continue
-        p2b, p3b, is_novel, lp_valid, pb = best_record
-        results[gname]['greedy_p3_bound'] = p3b
-        results[gname]['greedy_is_novel'] = is_novel
-        results[gname]['greedy_lp_valid'] = lp_valid
-        _eval_log["episodes"].append({
-            "mode": "greedy_best_of_trials", "graph": gname,
-            "greedy_trials": greedy_trials,
-            "p2_bound": float(p2b), "p3_bound": float(p3b),
-            "partition_bound": float(pb),
-            "lp_lower_bound": float(lp_bounds.get(gname, 0.0)),
-            "is_novel": bool(is_novel), "lp_valid": bool(lp_valid),
-        })
+
+        if best_record is None:
+            # Every non-OOM trial ran but NONE produced a valid terminal
+            # inequality. This is a real, distinct outcome from a bound --
+            # do not synthesize a number. Record it explicitly.
+            print(f"  !! {no_terminal_count}/{greedy_trials - oom_skips} greedy "
+                  f"trials for {gname} never reached a valid terminal form "
+                  f"(policy likely stuck on a repeated non-terminal action).")
+            results[gname]['greedy_p3_bound'] = None
+            results[gname]['greedy_is_novel'] = False
+            results[gname]['greedy_lp_valid'] = False
+            results[gname]['greedy_no_valid_terminal'] = True
+            _eval_log["episodes"].append({
+                "mode": "greedy_best_of_trials", "graph": gname,
+                "greedy_trials": greedy_trials,
+                "p3_bound": None, "no_valid_terminal": True,
+                "partition_bound": float(pb),
+                "lp_lower_bound": float(lp_bounds.get(gname, 0.0)),
+                "is_novel": False, "lp_valid": False,
+            })
+        else:
+            p2b, p3b, is_novel, lp_valid, pb = best_record
+            results[gname]['greedy_p3_bound'] = p3b
+            results[gname]['greedy_is_novel'] = is_novel
+            results[gname]['greedy_lp_valid'] = lp_valid
+            results[gname]['greedy_no_valid_terminal'] = False
+            _eval_log["episodes"].append({
+                "mode": "greedy_best_of_trials", "graph": gname,
+                "greedy_trials": greedy_trials,
+                "p2_bound": float(p2b), "p3_bound": float(p3b),
+                "partition_bound": float(pb),
+                "lp_lower_bound": float(lp_bounds.get(gname, 0.0)),
+                "is_novel": bool(is_novel), "lp_valid": bool(lp_valid),
+            })
 
         # --- stochastic_episodes rollouts ---
         oom_count = 0
+        no_terminal_stoch_count = 0
         for _ in range(stochastic_episodes):
             result = _safe_run_episode(
                 env, graph_tuple, phase1_policy, phase2_policy, phase3_policy,
@@ -2213,7 +2364,21 @@ def _evaluate_inner(phase1_policy, phase2_policy, phase3_policy,
             if result is None:
                 oom_count += 1
                 continue
-            _, p3b_s, is_novel_s, lp_valid_s, pb_s, _ = result
+            _, p3b_s, is_novel_s, lp_valid_s, pb_s, _, no_terminal_s = result
+            if no_terminal_s:
+                no_terminal_stoch_count += 1
+                _eval_log["episodes"].append({
+                    "mode": "stochastic", "graph": gname,
+                    "p3_bound": None, "no_valid_terminal": True,
+                    "partition_bound": float(pb_s),
+                    "lp_lower_bound": float(lp_bounds.get(gname, 0.0)),
+                    "is_novel": False, "lp_valid": False,
+                })
+                continue
+            # 'stochastic_total' denotes episodes that produced a real,
+            # evaluable bound -- NOT total episodes attempted. Success rate
+            # is therefore success / (episodes that could have succeeded),
+            # not diluted or inflated by no-terminal episodes.
             results[gname]['stochastic_total'] += 1
             results[gname]['stochastic_p3_bounds'].append(p3b_s)
             if is_novel_s and lp_valid_s:
@@ -2226,10 +2391,14 @@ def _evaluate_inner(phase1_policy, phase2_policy, phase3_policy,
             })
             if len(_eval_log["episodes"]) > 400:
                 _eval_log["episodes"] = _eval_log["episodes"][-400:]
+        results[gname]['stochastic_no_terminal_count'] = no_terminal_stoch_count
         if oom_count:
             print(f"  !! {oom_count}/{stochastic_episodes} stochastic episodes "
                   f"OOM'd for {gname} -- success rate computed over the "
                   f"{stochastic_episodes - oom_count} that completed.")
+        if no_terminal_stoch_count:
+            print(f"  !! {no_terminal_stoch_count}/{stochastic_episodes} stochastic "
+                  f"episodes for {gname} never reached a valid terminal form.")
         gc.collect()
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
@@ -2240,26 +2409,62 @@ def _evaluate_inner(phase1_policy, phase2_policy, phase3_policy,
         r = results[gname]
         pb2 = _compute_partition_bound(*graph_tuple)
         lp_lb = lp_bounds.get(gname, 0.0)
-        stoch_total = max(r['stochastic_total'], 1)
-        stoch_pct = 100.0 * r['stochastic_novel_count'] / stoch_total
+        # stochastic_total now only counts episodes that produced a real
+        # bound (no_terminal episodes are excluded, not silently folded in).
+        # If ALL stochastic episodes failed to terminate, report that
+        # explicitly instead of dividing by a fabricated denominator of 1
+        # and printing a 0.0% that looks like "tried and failed" when it
+        # actually means "never produced anything to judge".
+        stoch_attempted = r['stochastic_total'] + r['stochastic_no_terminal_count']
+        if r['stochastic_total'] > 0:
+            stoch_pct = 100.0 * r['stochastic_novel_count'] / r['stochastic_total']
+            stoch_pct_str = f"{stoch_pct:>14.1f}%"
+        else:
+            stoch_pct_str = "  NO_TERMINAL "
         stoch_lp_violations = sum(
             1 for b in r['stochastic_p3_bounds'] if b < lp_lb - 1e-6
         )
-        stoch_lp_ok = stoch_lp_violations == 0
-        if not r['greedy_lp_valid'] or not stoch_lp_ok:
+        stoch_lp_ok = (stoch_lp_violations == 0)
+        # A no-valid-terminal result is NOT an LP violation -- it's an
+        # absence of any result to check. Only count real sub-LP bounds
+        # as violations, so the final message means what it says.
+        if (not r['greedy_no_valid_terminal'] and not r['greedy_lp_valid']) \
+                or (not stoch_lp_ok):
             eval_violations += 1
         flag = " *** NOVEL (greedy) ***" if r['greedy_is_novel'] else ""
-        print(f"  {gname:<16} {pb2:>8.4f} {lp_lb:>8.4f} {r['greedy_p3_bound']:>12.4f} "
-              f"{'  OK' if r['greedy_lp_valid'] else 'FAIL':>10} {stoch_pct:>15.1f}% "
+        greedy_bound_str = (
+            f"{r['greedy_p3_bound']:>12.4f}" if r['greedy_p3_bound'] is not None
+            else f"{'NO_TERMINAL':>12}"
+        )
+        greedy_ok_str = (
+            "  OK" if (r['greedy_lp_valid'] and not r['greedy_no_valid_terminal'])
+            else "FAIL"
+        )
+        print(f"  {gname:<16} {pb2:>8.4f} {lp_lb:>8.4f} {greedy_bound_str} "
+              f"{greedy_ok_str:>10} {stoch_pct_str} "
               f"{'  OK' if stoch_lp_ok else 'FAIL':>13}{flag}")
         summary[gname] = {
             "partition_bound": float(pb2),
             "lp_lower_bound": float(lp_lb),
-            "greedy_best_bound": float(r['greedy_p3_bound']),
+            "greedy_best_bound": (
+                float(r['greedy_p3_bound']) if r['greedy_p3_bound'] is not None else None
+            ),
+            "greedy_no_valid_terminal": bool(r['greedy_no_valid_terminal']),
             "greedy_is_novel": bool(r['greedy_is_novel']),
             "greedy_lp_valid": bool(r['greedy_lp_valid']),
-            "stochastic_success_pct": float(stoch_pct),
-            "stochastic_episodes": int(stoch_total),
+            "stochastic_attempted": int(stoch_attempted),
+            "stochastic_no_terminal_count": int(r['stochastic_no_terminal_count']),
+            "stochastic_success_pct": (
+                float(100.0 * r['stochastic_novel_count'] / r['stochastic_total'])
+                if r['stochastic_total'] > 0 else None
+            ),
+            # NOTE: "stochastic_episodes" here means episodes that produced a
+            # real bound, i.e. r['stochastic_total'] -- NOT the number
+            # attempted. Use "stochastic_attempted" above for the raw count,
+            # including no-terminal episodes. Keeping both prevents the
+            # resume logic (which reads this field) from silently treating
+            # no-terminal episodes as successes or vice versa.
+            "stochastic_episodes": int(r['stochastic_total']),
             "stochastic_lp_valid": bool(stoch_lp_ok),
             "improvement_pct": float(100.0 * (pb2 - r['greedy_p3_bound']) / pb2)
                                 if r['greedy_is_novel'] else 0.0,

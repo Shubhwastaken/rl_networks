@@ -353,6 +353,13 @@ class PartitionBoundEnv:
         # Potential-based shaping: track best bound seen so far this episode.
         # Any improvement triggers a small reward proportional to the gap closed.
         self._phase3_best_bound = float('inf')
+        # Tracks consecutive FRACTIONAL_IO calls with no genuinely new pool
+        # content. FRACTIONAL_IO's reward floor was 0.02 (never negative)
+        # while DECLARE_TERMINAL is heavily negative when nothing is ready
+        # -- a rational policy-gradient agent will loop the free action
+        # forever rather than risk the chain. This counter lets step()
+        # decay that reward toward negative the longer the loop continues.
+        self._consecutive_fio = 0
 
     # -----------------------------------------------------------------------
     # step()
@@ -720,6 +727,8 @@ class PartitionBoundEnv:
             return self._force_terminal_p3()
 
         if action_type == ActionType.FRACTIONAL_IO:
+            if not hasattr(self, '_consecutive_fio'):
+                self._consecutive_fio = 0
             # Form λ·IO(u) + (1-λ)·IO(v)
             node_u = action.get('node_u')
             node_v = action.get('node_v')
@@ -742,17 +751,37 @@ class PartitionBoundEnv:
                 )
                 if is_novel_cross:
                     reward = 0.15   # meaningful signal; cross-partition + novel
+                    self._consecutive_fio = 0  # genuinely new content -- not looping
                 elif fi.is_cross_partition():
                     reward = 0.05   # cross-partition but already in pool
+                    self._consecutive_fio += 1
                 else:
                     reward = 0.02   # same-partition (low value)
+                    self._consecutive_fio += 1
                 self.frac_pool.add(fi)
                 reward += self._pool_improvement_bonus()
             else:
                 reward = -0.1
+                self._consecutive_fio += 1
+            # Decay toward negative the longer FRACTIONAL_IO repeats without
+            # producing new content. Below this floor, looping was strictly
+            # safe (reward >= 0.02 every step); above it, looping is a net
+            # loss, so an optimizing agent has to actually leave this action
+            # to do better. Threshold chosen so 2-3 exploratory FRACTIONAL_IO
+            # calls per episode are still free -- only genuine looping is
+            # punished.
+            _FIO_FREE_CALLS = 3
+            _FIO_DECAY_PER_STEP = 0.08
+            if self._consecutive_fio > _FIO_FREE_CALLS:
+                reward -= _FIO_DECAY_PER_STEP * (self._consecutive_fio - _FIO_FREE_CALLS)
             return self._get_state(), reward, False
 
-        elif action_type == ActionType.ADD_TO_ACCUMULATOR:
+        # Any action other than FRACTIONAL_IO breaks the loop -- reset the
+        # counter so exploring other chain steps isn't penalized by past
+        # FRACTIONAL_IO use.
+        self._consecutive_fio = 0
+
+        if action_type == ActionType.ADD_TO_ACCUMULATOR:
             idx = action.get('idx_i', 0)
             if idx < len(self.frac_pool):
                 self.accumulator.append(self.frac_pool[idx].copy())

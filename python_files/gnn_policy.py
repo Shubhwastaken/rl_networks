@@ -829,6 +829,15 @@ class Phase3Net(nn.Module):
         self.pool_ptr_q = nn.Linear(128, token_dim)
         self.pool_ptr_k = nn.Linear(token_dim, token_dim)
 
+        # Pair scorer for APPLY_SUBMODULARITY / CROSS_SUBMOD candidate
+        # selection. Scores compatibility between two accumulator entries
+        # via a bilinear form over their pool-style token embeddings, so
+        # the policy can learn to prefer "mixed" (Y_ST + Y_I) pairs over
+        # same-type/same-partition pairs instead of always taking whatever
+        # came first in accumulator order.
+        self.pair_score_q = nn.Linear(token_dim, token_dim)
+        self.pair_score_k = nn.Linear(token_dim, token_dim)
+
         # Cut scorer for APPLY_CRYPTO
         self.cut_scorer = nn.Sequential(
             nn.Linear(128, 64), nn.ReLU(),
@@ -1047,8 +1056,43 @@ class GNNPhase3Policy:
             pairs = [(a['idx_i'], a['idx_j']) for a in valid_actions
                      if int(a['type']) == int(atype)]
             if pairs:
-                action['idx_i'] = pairs[0][0]
-                action['idx_j'] = pairs[0][1]
+                acc_coeffs = state.get('accumulator_coeffs', None)
+                k_acc = state.get('accumulator_size', 0) or 0
+                # accumulator_coeffs only holds the last min(10, k_acc)
+                # entries (see fixed_environment._get_state). Map full-
+                # accumulator indices (used by valid_actions) into that
+                # truncated window; drop any pair that falls outside it.
+                offset = max(0, k_acc - 10)
+                usable_pairs = [
+                    (i, j) for (i, j) in pairs
+                    if (i - offset) >= 0 and (j - offset) >= 0
+                ]
+                if acc_coeffs is not None and len(usable_pairs) > 0:
+                    ac = self._pad_pool(
+                        torch.tensor(acc_coeffs, dtype=torch.float32).to(DEVICE)
+                    )
+                    h_acc_tokens, _ = self.net.encode_pool(ac)
+                    q = self.net.pair_score_q(h_acc_tokens)
+                    k = self.net.pair_score_k(h_acc_tokens)
+                    scale = self.net.token_dim ** 0.5
+                    pair_logits = torch.stack([
+                        (q[i - offset] * k[j - offset]).sum() / scale
+                        for (i, j) in usable_pairs
+                    ])
+                    pair_probs = F.softmax(pair_logits, dim=-1)
+                    pair_dist  = safe_categorical(pair_probs)
+                    p_idx_t    = (pair_dist.probs.argmax() if greedy
+                                  else pair_dist.sample())
+                    chosen     = usable_pairs[p_idx_t.item()]
+                    action['idx_i'], action['idx_j'] = chosen
+                    lp_extra = pair_dist.log_prob(p_idx_t)
+                else:
+                    # No usable learned candidates -- e.g. every offered
+                    # pair falls outside the truncated accumulator window.
+                    # Should be rare (accumulator rarely exceeds 10 items
+                    # before STORE_AND_RESET); fall back rather than crash.
+                    action['idx_i'] = pairs[0][0]
+                    action['idx_j'] = pairs[0][1]
 
         elif atype == ActionType.APPLY_CRYPTO:
             crypto_acts = [a for a in valid_actions
