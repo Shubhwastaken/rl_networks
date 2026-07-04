@@ -31,6 +31,7 @@ Linkage mechanism:
 """
 
 import os
+import gc
 import random
 import numpy as np
 import torch
@@ -404,7 +405,19 @@ def _find_optimal_partition(nodes, edges, sessions):
         return cut / denom if denom > 0 else float('inf')
 
     best_val  = len(edges) / max(len(sessions), 1)
-    best_part = None
+    # FIX: was `best_part = None`, which this function would then return
+    # whenever no partition strictly beats the trivial bound (val < best_val).
+    # That is NOT an edge case -- it is the correct, expected outcome for any
+    # graph where every session is already a direct edge (e.g. okamura_seymour_8N),
+    # since the independent-set constraint then forbids ANY partition from ever
+    # capturing an internal session, making the trivial bound optimal by
+    # construction. The caller (run_stage4) does `if opt_partition is not None:
+    # partition = opt_partition`, so a None return here silently left `partition`
+    # holding whatever value it had from the PREVIOUS graph in the training loop --
+    # a real, live data-corruption bug, not a hypothetical one. Defaulting to the
+    # singleton partition guarantees a valid, correct (if unimproved) partition is
+    # always returned.
+    best_part = [[v] for v in nodes]
 
     G = nx.Graph(); G.add_nodes_from(nodes); G.add_edges_from(edges)
     for strat in ['largest_first', 'smallest_last', 'DSATUR']:
@@ -1080,7 +1093,15 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
                   'novel_found': [], 'cross_partition_used': [],
                   'used_crypto': [], 'used_decode': [],
                   'used_plain_submod': [], 'no_terminal': [],
-                  'mechanism': []}
+                  'mechanism': [],
+                  # NEW: separates what the policy's own logged actions
+                  # achieved from what the post-episode oracle added on top.
+                  # Without this, "novel_found" conflates the two and there
+                  # was no way to tell, after the fact, how much of any
+                  # given episode's result came from the trained policy
+                  # versus this deterministic post-processing step.
+                  'pre_oracle_bound': [], 'oracle_fired': [],
+                  'oracle_improvement': [], 'partition_bound_per_ep': []}
     per_graph_stats = defaultdict(lambda: {
         'attempts': 0, 'valid_novel': 0, 'terminal_valid': 0,
         'no_terminal': 0, 'used_cross_submod': 0, 'used_crypto': 0,
@@ -1358,6 +1379,12 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         pb = env.partition_bound
         _no_terminal = best_b == float('inf') or best_b >= 1e9
 
+        # NEW: snapshot the bound BEFORE the oracle runs. This is what the
+        # policy's own logged actions achieved on their own, with nothing
+        # added afterward.
+        _pre_oracle_b = best_b
+        _oracle_fired = False
+
         # Post-episode greedy oracle: apply functional dependence constraints
         # to the best terminal inequality found. This catches improvements
         # that the RL agent hasn't learned to make yet, giving a denser
@@ -1383,6 +1410,7 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
                 )
                 if fd_bound < best_b - 1e-8 and fd_bound >= _lp_floor - 1e-9:
                     best_b = fd_bound
+                    _oracle_fired = True
                     # Add the oracle-improved inequality to the pool so the
                     # trace search below can locate and record it correctly.
                     env.frac_pool.add(fd_ineq)
@@ -1431,6 +1459,19 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         metrics['mechanism'].append(_mechanism_label(
             used_cross, used_crypto, used_decode, used_plain_submod, _no_terminal
         ))
+        # NEW: log what the policy achieved on its own vs. what the oracle
+        # added. _pre_oracle_b is clamped the same way best_b is above, for
+        # a fair apples-to-apples comparison (otherwise an LP-invalid
+        # pre-oracle reading could look artificially good).
+        _pre_oracle_clamped = _pre_oracle_b
+        if _pre_oracle_clamped < _lp_floor_nf - 1e-9 or _pre_oracle_clamped >= 1e9:
+            _pre_oracle_clamped = pb
+        metrics['pre_oracle_bound'].append(_pre_oracle_clamped)
+        metrics['oracle_fired'].append(1 if _oracle_fired else 0)
+        metrics['oracle_improvement'].append(
+            float(_pre_oracle_clamped - best_b) if _oracle_fired else 0.0
+        )
+        metrics['partition_bound_per_ep'].append(float(pb))
 
         _pgs = per_graph_stats[graph_name]
         _pgs['attempts'] += 1
@@ -1621,6 +1662,38 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
     metrics['lp_bounds'] = lp_bounds
     metrics['lp_violations'] = len(lp_violations)
 
+    # Policy-vs-oracle breakdown, per graph. This is the number that answers
+    # "did the exposure fix actually work" -- not the final bound, which the
+    # oracle can produce on its own regardless of what the policy learned.
+    print(f"\n{'='*70}")
+    print("POLICY vs. ORACLE CONTRIBUTION — STAGE 4")
+    print(f"{'='*70}")
+    print(f"  {'Graph':<24} {'Episodes':>9} {'Oracle fired %':>15} "
+          f"{'Policy beat PB alone %':>23}")
+    print(f"  {'-'*76}")
+    _by_graph = defaultdict(lambda: {'n': 0, 'oracle_fired': 0, 'policy_beat_pb': 0})
+    for i, gname in enumerate(metrics['graph_names']):
+        pre_b   = metrics['pre_oracle_bound'][i]
+        fired   = metrics['oracle_fired'][i]
+        pb_ep   = metrics['partition_bound_per_ep'][i]
+        _by_graph[gname]['n'] += 1
+        _by_graph[gname]['oracle_fired'] += fired
+        if pre_b < pb_ep - 1e-8:
+            _by_graph[gname]['policy_beat_pb'] += 1
+    for gname in sorted(_by_graph.keys()):
+        stats = _by_graph[gname]
+        n = max(stats['n'], 1)
+        oracle_pct = 100.0 * stats['oracle_fired'] / n
+        policy_pct = 100.0 * stats['policy_beat_pb'] / n
+        print(f"  {gname:<24} {stats['n']:>9} {oracle_pct:>14.1f}% {policy_pct:>22.1f}%")
+    print(f"\n  'Policy beat PB alone' = fraction of episodes where the bound\n"
+          f"  BEFORE the oracle ran was already below the partition bound --\n"
+          f"  i.e. the trained policy did it without any post-processing help.\n"
+          f"  'Oracle fired' = fraction of episodes where the post-episode\n"
+          f"  oracle improved the bound beyond what the policy's logged\n"
+          f"  actions achieved. A graph can show high numbers on both if the\n"
+          f"  policy gets partway and the oracle tightens further on top.")
+
     return phase3_policy, metrics, novel_bounds
 
 
@@ -1769,261 +1842,453 @@ def train(stage1_episodes=10000, stage2_episodes=10000,
 
 def evaluate(phase1_policy, phase2_policy, phase3_policy,
              best_partitions=None,
-             num_episodes=500, graph_dataset_size=5):
+             graph_dataset_size=5,
+             stochastic_episodes=30,
+             greedy_trials=8,
+             num_episodes=None):
     """Evaluation across all phases.
 
-    Issue 3 fix: accept best_partitions from Stage 3 and use them directly
-    instead of re-running Phase 1 from scratch.  The old code ran a fresh
-    Phase 1 rollout per episode, which (a) used a different partition than
-    Stage 4 training did, and (b) started Phase 3 with a cold empty pool and
-    no warm-start, causing P3 avg > 4.0 on harder graphs.  Using the stored
-    best partition matches exactly what Stage 4 training does.
+    REDESIGNED: the old version ran `num_episodes` total episodes, randomly
+    sampling a graph each time, and always used greedy=True action
+    selection. That combination is broken: greedy + a fixed stored
+    partition per graph makes the ENTIRE Phase 3 rollout deterministic --
+    same graph, same partition, same policy, same argmax choices every
+    single time. Running the same graph 250+ times (as num_episodes=4800
+    over 19 graphs implied) produced 250+ identical copies of one outcome,
+    not 250 independent samples. "novel_pct" computed from that is
+    meaningless -- it can only ever read exactly 0% or exactly 100% per
+    graph, and increasing num_episodes cannot change that; it only repeats
+    identical work.
 
-    OOM fixes:
-      1. torch.no_grad() wraps all policy inference -- no gradient tape built.
-      2. env.pool / frac_pool / accumulator / stored_derived explicitly cleared
-         after each episode so inequality objects don't accumulate.
-      3. _eval_log['episodes'] trimmed to last 200 entries in memory; full
-         history is on disk via per-episode flush so no data is lost.
-      4. torch.cuda.empty_cache() every 100 episodes releases fragmented CUDA
-         allocations before they coalesce into an OOM.
+    This version separates two different questions that were being
+    conflated into one broken metric:
+
+      1. "What's the single best bound this policy can produce?"
+         -> answered by ONE greedy (deterministic) rollout per graph.
+            Running it more than once is pure waste.
+
+      2. "How reliably does the policy find a good bound on its own --
+         is it consistent, or does it only work when it gets lucky?"
+         -> answered by `stochastic_episodes` independent STOCHASTIC
+            (greedy=False) rollouts per graph, with the fraction that
+            reach novel status reported as a genuine success rate.
+
+    Both numbers are reported per graph. `stochastic_episodes` defaults to
+    30 -- large enough to distinguish "never happens" from "happens most
+    of the time" without excessive compute; raise it if you need tighter
+    confidence on a specific graph's success rate.
+
+    `num_episodes` is accepted for backward compatibility with old call
+    sites but is otherwise ignored -- it doesn't map cleanly onto the new
+    two-pass structure. Pass `stochastic_episodes` instead.
     """
     with torch.no_grad():
         return _evaluate_inner(phase1_policy, phase2_policy, phase3_policy,
-                               best_partitions, num_episodes, graph_dataset_size)
+                               best_partitions, graph_dataset_size,
+                               stochastic_episodes, greedy_trials)
+
+
+def _run_eval_episode(env, graph_tuple, phase1_policy, phase2_policy,
+                       phase3_policy, best_partitions, lp_bounds, greedy):
+    """Run one full Phase1/2/3 eval rollout on graph_tuple.
+
+    Returns (p2_bound, p3_bound, is_novel, lp_valid, pb, graph_name).
+    Factored out of the old inline loop body so it can be called once in
+    greedy mode and `stochastic_episodes` times in stochastic mode per
+    graph, instead of being duplicated.
+    """
+    nodes, edges, sessions = graph_tuple
+    graph_name = identify_graph(nodes, edges, sessions)
+    pb = _compute_partition_bound(nodes, edges, sessions)
+
+    if best_partitions and graph_name in best_partitions:
+        partition = best_partitions[graph_name][0]
+        partition_weights = best_partitions[graph_name][1]
+        state = env.reset(fixed_graph=graph_tuple, fixed_partition=partition)
+        env.partition_weights = partition_weights or {}
+        state['edges'] = edges; state['sessions'] = sessions
+        state['nodes'] = nodes; state['partition'] = partition
+        while env.current_phase == Phase.PHASE2:
+            valid = env.get_valid_actions()
+            if not valid: break
+            # NOTE: GNNPhase2Policy.select_action has no greedy mode -- it is
+            # always stochastic. This means even the "greedy" (Phase 3) pass
+            # below is not fully deterministic end-to-end: Phase 2's proof
+            # construction under the fixed partition varies episode to
+            # episode. Flagging this rather than pretending the greedy pass
+            # is perfectly reproducible -- it mostly is, for the Phase 3
+            # decisions that matter here, but not completely.
+            action = phase2_policy.select_action(state, valid)
+            state, _, done = env.step(action)
+            state['edges'] = edges; state['sessions'] = sessions
+            if done: break
+    else:
+        state = env.reset(fixed_graph=graph_tuple)
+        state['edges'] = edges; state['sessions'] = sessions
+        while env.current_phase == Phase.PHASE1:
+            valid = env.get_valid_actions()
+            if not valid: break
+            action = phase1_policy.select_action(state, valid)
+            state, _, done = env.step(action)
+            state['edges'] = edges; state['sessions'] = sessions
+        partition = [list(g) for g in env.partition] if env.partition else []
+        partition_weights = env.partition_weights or {}
+        state['nodes'] = nodes; state['sessions'] = sessions
+        state['partition'] = partition
+        while env.current_phase == Phase.PHASE2:
+            valid = env.get_valid_actions()
+            if not valid: break
+            action = phase2_policy.select_action(state, valid)
+            state, _, done = env.step(action)
+            state['edges'] = edges; state['sessions'] = sessions
+            if done: break
+
+    p2_bound = abs(env._best_pool_bound() or pb * 2)
+
+    env.nodes             = list(nodes)
+    env.edges             = list(edges)
+    env.sessions          = list(sessions)
+    env.partition         = [list(g) for g in partition]
+    env.partition_weights = partition_weights or {}
+    env.partition_bound   = pb
+    env._lp_lower_bound   = lp_bounds.get(graph_name, 0.0)
+    env.index             = None
+    env.adjacency = {n: set() for n in nodes}
+    env.edge_set  = set()
+    for _u, _v in edges:
+        env.adjacency[_u].add(_v); env.adjacency[_v].add(_u)
+        env.edge_set.add((_u, _v)); env.edge_set.add((_v, _u))
+    env._start_phase2()
+    env._start_phase3(preseed=False)
+    env.internal_per_part = env.internal_per_part or []
+
+    state2 = env._get_state()
+    state2['nodes']             = nodes
+    state2['edges']             = edges
+    state2['sessions']          = sessions
+    state2['partition']         = partition
+    state2['partition_weights'] = partition_weights or {}
+
+    while env.current_phase == Phase.PHASE3:
+        valid = env.get_valid_actions()
+        if not valid: break
+        action = phase3_policy.select_action(state2, valid, greedy=greedy)
+        state2, _, done = env.step(action)
+        state2['nodes']             = nodes
+        state2['edges']             = edges
+        state2['sessions']          = sessions
+        state2['partition']         = partition
+        state2['partition_weights'] = partition_weights or {}
+        if done: break
+
+    p3_bound = env.frac_pool.best_bound(
+        len(sessions), len(edges), env.internal_per_part
+    )
+    if p3_bound == float('inf'): p3_bound = pb * 2
+
+    lp_floor = lp_bounds.get(graph_name, 0.0)
+    lp_valid = p3_bound >= lp_floor - 1e-6
+    if not lp_valid:
+        p3_bound = pb  # clamp invalid sub-LP results to PB, don't report them as novel
+
+    is_novel = p3_bound < pb - 1e-8
+
+    # Release per-episode pool/accumulator state so objects don't accumulate.
+    env.pool = []
+    env.frac_pool = env.frac_pool.__class__(MAX_DERIVED)
+    env.accumulator = []
+    env.stored_derived = []
+
+    return p2_bound, p3_bound, is_novel, lp_valid, pb, graph_name
+
+
+def _is_oom_error(e: Exception) -> bool:
+    """True if this exception is a CUDA/CPU out-of-memory error."""
+    msg = str(e).lower()
+    return (isinstance(e, torch.cuda.OutOfMemoryError)
+            or ("out of memory" in msg)
+            or ("cuda error" in msg and "memory" in msg))
+
+
+def _safe_run_episode(env, graph_tuple, phase1_policy, phase2_policy,
+                       phase3_policy, best_partitions, lp_bounds, greedy):
+    """Wraps _run_eval_episode with OOM recovery.
+
+    On an out-of-memory error: clears CUDA cache and Python garbage, waits
+    briefly, and retries ONCE. If it fails again, logs a warning and
+    returns None instead of crashing the whole eval run -- an 8-hour
+    overnight run should not die because one episode on one graph hit a
+    transient memory spike.
+
+    Returns the same tuple _run_eval_episode does, or None if both
+    attempts failed.
+    """
+    for attempt in range(2):
+        try:
+            return _run_eval_episode(
+                env, graph_tuple, phase1_policy, phase2_policy, phase3_policy,
+                best_partitions, lp_bounds, greedy=greedy
+            )
+        except Exception as e:
+            if not _is_oom_error(e):
+                raise  # not an OOM -- a real bug, don't hide it, let it surface
+            gname = identify_graph(*graph_tuple)
+            print(f"  !! OOM on {gname} (greedy={greedy}), attempt {attempt+1}/2 "
+                  f"-- clearing memory and {'retrying' if attempt == 0 else 'skipping'}")
+            del e
+            env.pool = []
+            env.frac_pool = env.frac_pool.__class__(MAX_DERIVED)
+            env.accumulator = []
+            env.stored_derived = []
+            gc.collect()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            time.sleep(2)
+    print(f"  !! Skipping this episode after repeated OOM -- not counted "
+          f"toward results, but the run continues.")
+    return None
 
 
 def _evaluate_inner(phase1_policy, phase2_policy, phase3_policy,
                     best_partitions=None,
-                    num_episodes=500, graph_dataset_size=5):
+                    graph_dataset_size=5,
+                    stochastic_episodes=30,
+                    greedy_trials=8):
     """Inner implementation of evaluate() — called inside torch.no_grad()."""
     env = PartitionBoundEnv(graph_dataset_size=graph_dataset_size, stage=4)
-    results = defaultdict(lambda: {'p2_bounds':[], 'p3_bounds':[], 'novel':0})
+    results = defaultdict(lambda: {
+        'p2_bounds': [], 'greedy_p3_bound': None, 'greedy_is_novel': False,
+        'greedy_lp_valid': True, 'stochastic_novel_count': 0,
+        'stochastic_total': 0, 'stochastic_p3_bounds': [],
+    })
 
-    # Live eval log — flushed after every episode so Ctrl+C never loses data
     _eval_log_path = "config_files/eval_results.json"
     _eval_log = {"episodes": [], "summary": {}, "complete": False}
     def _flush_eval_log():
         with open(_eval_log_path, "w") as _f:
             json.dump(_eval_log, _f, indent=2)
 
-    # Pre-compute LP lower bounds for evaluation
     lp_bounds = {}
     for nodes_g, edges_g, sessions_g in env.graph_dataset:
         gn = identify_graph(nodes_g, edges_g, sessions_g)
         if gn not in lp_bounds:
             lp_bounds[gn] = compute_lp_lower_bound(nodes_g, edges_g, sessions_g)
+    # ------------------------------------------------------------------
+    # Resume support: if config_files/eval_results.json already has
+    # results from a previous (possibly crashed) run, skip re-computing
+    # graphs that already finished. An 8-hour overnight run crashing at
+    # graph 15 of 19 should mean redoing 4 graphs, not 19.
+    #
+    # MUST run before anything below writes to _eval_log_path -- reading
+    # the prior file AFTER a flush has already overwritten it with a
+    # fresh, empty log defeats the entire point.
+    # ------------------------------------------------------------------
+    _already_done = set()
+    try:
+        with open(_eval_log_path) as _f:
+            _prior = json.load(_f)
+        # NOTE: deliberately NOT requiring _prior.get("complete") here.
+        # Per-graph summaries are written immediately after each graph
+        # finishes (see below), with "complete" only flipping to True at
+        # the very end. Requiring "complete" would mean a genuine mid-run
+        # crash -- the exact scenario this is meant to protect against --
+        # produces a log this code refuses to resume from. Matching
+        # settings is still required, so a run with different
+        # stochastic_episodes/greedy_trials won't be silently reused.
+        if _prior.get("stochastic_episodes_per_graph") == stochastic_episodes \
+                and _prior.get("greedy_trials") == greedy_trials:
+            for gname, s in _prior.get("summary", {}).items():
+                results[gname]['greedy_p3_bound'] = s['greedy_best_bound']
+                results[gname]['greedy_is_novel'] = s['greedy_is_novel']
+                results[gname]['greedy_lp_valid'] = s['greedy_lp_valid']
+                results[gname]['stochastic_total'] = s['stochastic_episodes']
+                results[gname]['stochastic_novel_count'] = int(
+                    round(s['stochastic_success_pct'] / 100.0 * s['stochastic_episodes'])
+                )
+                _already_done.add(gname)
+            if _already_done:
+                was_complete = _prior.get("complete", False)
+                print(f"  [resume] {len(_already_done)} graphs found in a prior "
+                      f"{'complete' if was_complete else 'INCOMPLETE (crashed?)'} "
+                      f"run with matching settings -- skipping them.")
+    except (FileNotFoundError, KeyError, json.JSONDecodeError):
+        pass  # no valid prior run to resume from -- start clean
+
+    # Seed the fresh log's summary with whatever we're resuming, so a
+    # crash immediately after this point still has the resumed graphs on
+    # disk rather than losing them again.
+    if _already_done:
+        for gname in _already_done:
+            _eval_log.setdefault("summary", {})[gname] = _prior["summary"][gname]
+
     _eval_log["lp_bounds"] = lp_bounds
     _flush_eval_log()
 
-    for episode in range(num_episodes):
-        graph_tuple = random.choice(env.graph_dataset)
-        nodes, edges, sessions = graph_tuple
-        graph_name = identify_graph(nodes, edges, sessions)
-        pb = _compute_partition_bound(nodes, edges, sessions)
+    # ------------------------------------------------------------------
+    # One combined pass per graph: greedy_trials rollouts (best kept) then
+    # stochastic_episodes rollouts, summary written immediately after each
+    # graph finishes.
+    #
+    # RESTRUCTURED: this used to be two separate full loops over all 19
+    # graphs (all greedy passes, then all stochastic passes), with the
+    # summary only ever built once at the very end from the in-memory
+    # `results` dict. That meant a crash anywhere during Pass 2 lost BOTH
+    # the entire stochastic pass in progress AND the fact that Pass 1 had
+    # already finished for every graph -- there was nothing on disk
+    # structured enough to resume from. Doing both passes per graph, and
+    # writing that graph's summary to disk immediately after, means a
+    # crash at graph 15 of 19 costs you graph 15 (partially) plus 4
+    # ungraded graphs, not all 19.
+    #
+    # CORRECTION on greedy: this used to run ONE rollout per graph on the
+    # assumption that greedy Phase 3 + a fixed stored partition makes the
+    # whole rollout deterministic. That's wrong -- GNNPhase2Policy has no
+    # greedy mode, it always samples, and Phase 2 runs before Phase 3 and
+    # builds what Phase 3 works with. A single "greedy" run is really "one
+    # random Phase 2 draw, then deterministic Phase 3 given that draw."
+    # Running several trials and keeping the best result accounts for that.
+    # ------------------------------------------------------------------
+    print(f"\n{'='*90}")
+    print("EVALUATION SUMMARY")
+    print(f"{'='*90}")
+    print(f"  {'Graph':<16} {'PB':>8} {'LP LB':>8} {'Greedy best':>12} "
+          f"{'Greedy OK':>10} {'Stoch. success%':>16} {'Stoch. LP OK':>13}")
+    print(f"  {'-'*88}")
+    eval_violations = 0
+    summary = dict(_eval_log.get("summary", {}))  # keep any resumed entries
 
-        # ----------------------------------------------------------------
-        # Phase 1+2: use stored best_partition when available (Issue 3 fix).
-        # Fall back to a live Phase 1 rollout only for graphs not seen in
-        # Stage 3 (e.g. if graph_dataset_size > Stage 3's dataset size).
-        # ----------------------------------------------------------------
-        if best_partitions and graph_name in best_partitions:
-            # Use the partition Stage 3 already optimised — same as Stage 4.
-            partition       = best_partitions[graph_name][0]
-            partition_weights = best_partitions[graph_name][1]
-            # P2 bound: set env up and compute via Phase 2 with known partition.
-            # Use fixed_partition= so reset() calls _start_phase2() internally
-            # and sets current_phase = PHASE2.  The old manual field-setting
-            # forgot _start_phase2(), leaving current_phase = PHASE1 and the
-            # while-loop below never firing → pool empty → pb*2 fallback.
-            state = env.reset(fixed_graph=graph_tuple, fixed_partition=partition)
-            env.partition_weights = partition_weights or {}
-            state['edges'] = edges; state['sessions'] = sessions
-            state['nodes'] = nodes; state['partition'] = partition
-            while env.current_phase == Phase.PHASE2:
-                valid = env.get_valid_actions()
-                if not valid: break
-                action = phase2_policy.select_action(state, valid)
-                state, _, done = env.step(action)
-                state['edges'] = edges; state['sessions'] = sessions
-                if done: break
-        else:
-            # Fallback: run Phase 1 live (graph not in best_partitions)
-            state = env.reset(fixed_graph=graph_tuple)
-            state['edges'] = edges; state['sessions'] = sessions
-            while env.current_phase == Phase.PHASE1:
-                valid = env.get_valid_actions()
-                if not valid: break
-                action = phase1_policy.select_action(state, valid)
-                state, _, done = env.step(action)
-                state['edges'] = edges; state['sessions'] = sessions
-            partition = [list(g) for g in env.partition] if env.partition else []
-            partition_weights = env.partition_weights or {}
-            state['nodes'] = nodes; state['sessions'] = sessions
-            state['partition'] = partition
-            while env.current_phase == Phase.PHASE2:
-                valid = env.get_valid_actions()
-                if not valid: break
-                action = phase2_policy.select_action(state, valid)
-                state, _, done = env.step(action)
-                state['edges'] = edges; state['sessions'] = sessions
-                if done: break
+    for graph_tuple in env.graph_dataset:
+        gname = identify_graph(*graph_tuple)
+        if gname in _already_done:
+            r = results[gname]
+            pb2 = _compute_partition_bound(*graph_tuple)
+            lp_lb = lp_bounds.get(gname, 0.0)
+            print(f"  {gname:<16} {pb2:>8.4f} {lp_lb:>8.4f} "
+                  f"{'(resumed from prior run)':>44}")
+            continue
 
-        p2_bound = abs(env._best_pool_bound() or pb * 2)
-        results[graph_name]['p2_bounds'].append(p2_bound)
-
-        # Phase 3 rollout — set ALL required env fields before _start_phase2.
-        # _start_phase2 uses self.nodes/edges/sessions/index to build node IOs
-        # and compute internal_per_part. Without setting these, it uses stale
-        # values from the previous episode's env.reset() (a different graph).
-        env.nodes             = list(nodes)
-        env.edges             = list(edges)
-        env.sessions          = list(sessions)
-        env.partition         = [list(g) for g in partition]
-        env.partition_weights = partition_weights or {}
-        env.partition_bound   = pb
-        env._lp_lower_bound   = lp_bounds.get(graph_name, 0.0)
-        env.index             = None   # force rebuild for this graph
-        # Build adjacency and edge_set — required by check_valid_terminal_form
-        # for the cross-partition edge check. Without these, best_bound always
-        # returns inf and novel rate is always 0%.
-        env.adjacency = {n: set() for n in nodes}
-        env.edge_set  = set()
-        for _u, _v in edges:
-            env.adjacency[_u].add(_v); env.adjacency[_v].add(_u)
-            env.edge_set.add((_u, _v)); env.edge_set.add((_v, _u))
-        env._start_phase2()
-        env._start_phase3(preseed=False)
-        env.internal_per_part = env.internal_per_part or []
-
-        state2 = env._get_state()
-        # Fix 3+5: inject all fields training injects, including partition_weights
-        # and nodes — policy reads these; missing fields silently degrade quality.
-        state2['nodes']             = nodes
-        state2['edges']             = edges
-        state2['sessions']          = sessions
-        state2['partition']         = partition
-        state2['partition_weights'] = partition_weights or {}
-
-        while env.current_phase == Phase.PHASE3:
-            valid = env.get_valid_actions()
-            if not valid: break
-            action = phase3_policy.select_action(state2, valid, greedy=True)
-            state2, _, done = env.step(action)
-            # Keep all injected fields fresh after each step
-            state2['nodes']             = nodes
-            state2['edges']             = edges
-            state2['sessions']          = sessions
-            state2['partition']         = partition
-            state2['partition_weights'] = partition_weights or {}
-            if done: break
-
-        p3_bound = env.frac_pool.best_bound(
-            len(sessions), len(edges), env.internal_per_part
-        )
-        if p3_bound == float('inf'): p3_bound = pb * 2
-        # Fix 2: apply LP floor in eval — degenerate single-edge bounds
-        # can slip below LP; clamp them to PB so they don't pollute
-        # the novel% and P3best columns.
-        _eval_lp_floor = lp_bounds.get(graph_name, 0.0)
-        if p3_bound < _eval_lp_floor - 1e-6:
-            p3_bound = pb
-        results[graph_name]['p3_bounds'].append(p3_bound)
-        is_novel = p3_bound < pb - 1e-8
-        if is_novel:
-            results[graph_name]['novel'] += 1
-
-        # Write episode to live log and flush immediately
-        _eval_log["episodes"].append({
-            "episode":    episode,
-            "graph":      graph_name,
-            "p2_bound":   float(p2_bound),
-            "p3_bound":   float(p3_bound),
-            "partition_bound": float(pb),
-            "lp_lower_bound":  float(lp_bounds.get(graph_name, 0.0)),
-            "is_novel":   bool(is_novel),
-            "lp_valid":   bool(p3_bound >= lp_bounds.get(graph_name, 0.0) - 1e-6),
-        })
-        _flush_eval_log()
-
-        # OOM fix 2: trim in-memory episode list to last 200 entries.
-        # Full history is already on disk — this just prevents the list
-        # growing to 4800 dicts in RAM.
-        if len(_eval_log["episodes"]) > 200:
-            _eval_log["episodes"] = _eval_log["episodes"][-200:]
-
-        # OOM fix 3: explicitly release pool/accumulator objects from this
-        # episode. Without this, inequality objects accumulate across all
-        # episodes because Python's GC doesn't release them fast enough.
-        env.pool = []
-        env.frac_pool = env.frac_pool.__class__(MAX_DERIVED)
-        env.accumulator = []
-        env.stored_derived = []
-
-        # OOM fix 4: release fragmented CUDA memory every 100 episodes.
-        if episode % 100 == 0 and torch.cuda.is_available():
+        # --- greedy_trials rollouts, best kept ---
+        best_p3b = None
+        best_record = None
+        for _ in range(greedy_trials):
+            result = _safe_run_episode(
+                env, graph_tuple, phase1_policy, phase2_policy, phase3_policy,
+                best_partitions, lp_bounds, greedy=True
+            )
+            if result is None:
+                continue
+            p2b, p3b, is_novel, lp_valid, pb, _ = result
+            results[gname]['p2_bounds'].append(p2b)
+            if best_p3b is None or p3b < best_p3b:
+                best_p3b = p3b
+                best_record = (p2b, p3b, is_novel, lp_valid, pb)
+        gc.collect()
+        if torch.cuda.is_available():
             torch.cuda.empty_cache()
 
-    print(f"\n{'='*70}")
-    print("EVALUATION SUMMARY")
-    print(f"{'='*70}")
-    print(f"  {'Graph':<16} {'PB':>8} {'LP LB':>8} {'P2 avg':>8} {'P3 avg':>8} "
-          f"{'P3 best':>8} {'Novel%':>8} {'LP OK':>6}")
-    print(f"  {'-'*78}")
-    eval_violations = 0
-    for gname in sorted(results.keys()):
-        r   = results[gname]
-        pb2 = _compute_partition_bound(
-            *next(t for t in env.graph_dataset if identify_graph(*t) == gname)
-        )
-        lp_lb = lp_bounds.get(gname, 0.0)
-        p2a = np.mean(r['p2_bounds'])
-        p3a = np.mean(r['p3_bounds'])
-        p3b = min(r['p3_bounds'])
-        nv  = 100 * r['novel'] / max(len(r['p3_bounds']), 1)
-        flag = " *** NOVEL ***" if p3b < pb2 - 1e-8 else ""
-        lp_ok = p3b >= lp_lb - 1e-6
-        if not lp_ok:
-            eval_violations += 1
-            flag += " !! INVALID"
-        print(f"  {gname:<16} {pb2:>8.4f} {lp_lb:>8.4f} {p2a:>8.4f} {p3a:>8.4f} "
-              f"{p3b:>8.4f} {nv:>7.1f}% {'  OK' if lp_ok else 'FAIL':>6}{flag}")
-    if eval_violations:
-        print(f"\n  !! {eval_violations} graphs have bounds below LP lower bound — INVALID")
-    else:
-        print(f"\n  LP validation: ALL evaluation bounds are valid. Approach is sound.")
+        if best_record is None:
+            print(f"  !! All {greedy_trials} greedy trials OOM'd for {gname} "
+                  f"-- skipping entirely, check VRAM headroom.")
+            continue
+        p2b, p3b, is_novel, lp_valid, pb = best_record
+        results[gname]['greedy_p3_bound'] = p3b
+        results[gname]['greedy_is_novel'] = is_novel
+        results[gname]['greedy_lp_valid'] = lp_valid
+        _eval_log["episodes"].append({
+            "mode": "greedy_best_of_trials", "graph": gname,
+            "greedy_trials": greedy_trials,
+            "p2_bound": float(p2b), "p3_bound": float(p3b),
+            "partition_bound": float(pb),
+            "lp_lower_bound": float(lp_bounds.get(gname, 0.0)),
+            "is_novel": bool(is_novel), "lp_valid": bool(lp_valid),
+        })
 
-    # Write final summary to eval log
-    summary = {}
-    for gname in sorted(results.keys()):
-        r   = results[gname]
-        pb2 = _compute_partition_bound(
-            *next(t for t in env.graph_dataset if identify_graph(*t) == gname)
-        )
+        # --- stochastic_episodes rollouts ---
+        oom_count = 0
+        for _ in range(stochastic_episodes):
+            result = _safe_run_episode(
+                env, graph_tuple, phase1_policy, phase2_policy, phase3_policy,
+                best_partitions, lp_bounds, greedy=False
+            )
+            if result is None:
+                oom_count += 1
+                continue
+            _, p3b_s, is_novel_s, lp_valid_s, pb_s, _ = result
+            results[gname]['stochastic_total'] += 1
+            results[gname]['stochastic_p3_bounds'].append(p3b_s)
+            if is_novel_s and lp_valid_s:
+                results[gname]['stochastic_novel_count'] += 1
+            _eval_log["episodes"].append({
+                "mode": "stochastic", "graph": gname,
+                "p3_bound": float(p3b_s), "partition_bound": float(pb_s),
+                "lp_lower_bound": float(lp_bounds.get(gname, 0.0)),
+                "is_novel": bool(is_novel_s), "lp_valid": bool(lp_valid_s),
+            })
+            if len(_eval_log["episodes"]) > 400:
+                _eval_log["episodes"] = _eval_log["episodes"][-400:]
+        if oom_count:
+            print(f"  !! {oom_count}/{stochastic_episodes} stochastic episodes "
+                  f"OOM'd for {gname} -- success rate computed over the "
+                  f"{stochastic_episodes - oom_count} that completed.")
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+        # --- write this graph's summary immediately -- this is what makes
+        # resume actually work after a real crash, not just after a clean
+        # full completion ---
+        r = results[gname]
+        pb2 = _compute_partition_bound(*graph_tuple)
         lp_lb = lp_bounds.get(gname, 0.0)
-        p2a = float(np.mean(r['p2_bounds']))
-        p3a = float(np.mean(r['p3_bounds']))
-        p3b = float(min(r['p3_bounds']))
-        nv  = 100.0 * r['novel'] / max(len(r['p3_bounds']), 1)
+        stoch_total = max(r['stochastic_total'], 1)
+        stoch_pct = 100.0 * r['stochastic_novel_count'] / stoch_total
+        stoch_lp_violations = sum(
+            1 for b in r['stochastic_p3_bounds'] if b < lp_lb - 1e-6
+        )
+        stoch_lp_ok = stoch_lp_violations == 0
+        if not r['greedy_lp_valid'] or not stoch_lp_ok:
+            eval_violations += 1
+        flag = " *** NOVEL (greedy) ***" if r['greedy_is_novel'] else ""
+        print(f"  {gname:<16} {pb2:>8.4f} {lp_lb:>8.4f} {r['greedy_p3_bound']:>12.4f} "
+              f"{'  OK' if r['greedy_lp_valid'] else 'FAIL':>10} {stoch_pct:>15.1f}% "
+              f"{'  OK' if stoch_lp_ok else 'FAIL':>13}{flag}")
         summary[gname] = {
             "partition_bound": float(pb2),
-            "lp_lower_bound":  float(lp_lb),
-            "p2_avg":    p2a,
-            "p3_avg":    p3a,
-            "p3_best":   p3b,
-            "novel_pct": nv,
-            "lp_valid":  bool(p3b >= lp_lb - 1e-6),
-            "is_novel":  bool(p3b < pb2 - 1e-8),
-            "improvement_pct": float(100.0 * (pb2 - p3b) / pb2) if p3b < pb2 - 1e-8 else 0.0,
+            "lp_lower_bound": float(lp_lb),
+            "greedy_best_bound": float(r['greedy_p3_bound']),
+            "greedy_is_novel": bool(r['greedy_is_novel']),
+            "greedy_lp_valid": bool(r['greedy_lp_valid']),
+            "stochastic_success_pct": float(stoch_pct),
+            "stochastic_episodes": int(stoch_total),
+            "stochastic_lp_valid": bool(stoch_lp_ok),
+            "improvement_pct": float(100.0 * (pb2 - r['greedy_p3_bound']) / pb2)
+                                if r['greedy_is_novel'] else 0.0,
         }
+        # Flush the summary NOW, per graph, with complete still False --
+        # this is the actual crash-recovery mechanism. "complete" only
+        # flips to True once every graph is done, further down.
+        _eval_log["summary"] = summary
+        _eval_log["stochastic_episodes_per_graph"] = stochastic_episodes
+        _eval_log["greedy_trials"] = greedy_trials
+        _flush_eval_log()
+
+    if eval_violations:
+        print(f"\n  !! {eval_violations} graphs have at least one bound "
+              f"below LP lower bound — INVALID")
+    else:
+        print(f"\n  LP validation: ALL evaluation bounds are valid.")
+
     _eval_log["summary"] = summary
     _eval_log["complete"] = True
-    _eval_log["total_episodes"] = num_episodes
+    _eval_log["stochastic_episodes_per_graph"] = stochastic_episodes
+    _eval_log["greedy_trials"] = greedy_trials
     _eval_log["lp_violations"] = eval_violations
     _flush_eval_log()
     print(f"\n  [eval log] Results saved to config_files/eval_results.json")
 
     return dict(results)
+
+
 
 
 if __name__ == "__main__":
@@ -2103,7 +2368,7 @@ if __name__ == "__main__":
         eval_results = evaluate(
             phase1_policy, phase2_policy, phase3_policy,
             best_partitions=best_partitions,
-            num_episodes=4800, graph_dataset_size=19
+            stochastic_episodes=30, greedy_trials=8, graph_dataset_size=19
         )
         print("Fine-tune + eval complete.")
         sys.exit(0)
@@ -2127,7 +2392,7 @@ if __name__ == "__main__":
     eval_results = evaluate(
         phase1_policy, phase2_policy, phase3_policy,
         best_partitions=best_partitions,
-        num_episodes=4800, graph_dataset_size=19
+        stochastic_episodes=30, greedy_trials=8, graph_dataset_size=19
     )
 
     runtime = time.time() - t0
@@ -2261,29 +2526,31 @@ if __name__ == "__main__":
         print(f"Graph visualization failed: {e}")
 
     # --- Auto git push ---
-    print("\n--- Pushing to git ---")
-    try:
-        subprocess.run(["git", "add", "--all"], check=True)
-        status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
-        if status.stdout.strip() != "":
-            novel_tag = ""
-            if novel_bounds:
-                graphs_str = ", ".join(sorted(novel_bounds.keys()))
-                novel_tag = f" - NOVEL BOUNDS: {graphs_str}"
-            commit_msg = (
-                f"Training run completed - "
-                f"{time.strftime('%Y-%m-%d %H:%M')} - "
-                f"runtime {runtime/60:.0f}min"
-                f"{novel_tag}"
-            )
-            subprocess.run(["git", "commit", "-m", commit_msg], check=True)
-            subprocess.run(["git", "push"], check=True)
-            print("Git push completed successfully.")
-        else:
-            print("No changes to commit. Auto git push skipped.")
-    except subprocess.CalledProcessError as e:
-        print(f"Git push failed with error code: {e.returncode}")
-        print("Run 'git status' and commit manually if needed.")
-    except Exception as e:
-        print(f"Git push failed: {e}")
-        print("Push manually with: git add --all && git commit -m 'training results' && git push")
+    # COMMENTED OUT ON REQUEST: disabled before a training run so nothing
+    # gets pushed automatically. Re-enable by uncommenting this block.
+    # print("\n--- Pushing to git ---")
+    # try:
+    #     subprocess.run(["git", "add", "--all"], check=True)
+    #     status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
+    #     if status.stdout.strip() != "":
+    #         novel_tag = ""
+    #         if novel_bounds:
+    #             graphs_str = ", ".join(sorted(novel_bounds.keys()))
+    #             novel_tag = f" - NOVEL BOUNDS: {graphs_str}"
+    #         commit_msg = (
+    #             f"Training run completed - "
+    #             f"{time.strftime('%Y-%m-%d %H:%M')} - "
+    #             f"runtime {runtime/60:.0f}min"
+    #             f"{novel_tag}"
+    #         )
+    #         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
+    #         subprocess.run(["git", "push"], check=True)
+    #         print("Git push completed successfully.")
+    #     else:
+    #         print("No changes to commit. Auto git push skipped.")
+    # except subprocess.CalledProcessError as e:
+    #     print(f"Git push failed with error code: {e.returncode}")
+    #     print("Run 'git status' and commit manually if needed.")
+    # except Exception as e:
+    #     print(f"Git push failed: {e}")
+    #     print("Push manually with: git add --all && git commit -m 'training results' && git push")

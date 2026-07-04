@@ -1,18 +1,261 @@
 {
   "episodes": [
     {
-      "episode": 4600,
-      "graph": "two_k4_10N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 5.333333333333333,
-      "partition_bound": 2.6666666666666665,
-      "lp_lower_bound": 0.6666666666666666,
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4601,
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 2.7983193277310927,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 1.2316647264260772,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": true,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 1.25,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 1.1913145539906105,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": true,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 2.5,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "greedy_best_of_trials",
       "graph": "ford_fulkerson_6N",
+      "greedy_trials": 8,
       "p2_bound": 10.0,
       "p3_bound": 10.0,
       "partition_bound": 5.0,
@@ -21,158 +264,279 @@
       "lp_valid": true
     },
     {
-      "episode": 4602,
-      "graph": "butterfly_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 3.0,
-      "partition_bound": 1.5,
-      "lp_lower_bound": 1.0,
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4603,
-      "graph": "okamura_4N",
-      "p2_bound": 2.5,
-      "p3_bound": 2.5,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4604,
-      "graph": "hu_2pairs_6N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4605,
-      "graph": "grid_9N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4606,
-      "graph": "okamura_4N",
-      "p2_bound": 2.5,
-      "p3_bound": 2.5,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4607,
-      "graph": "yin_et_al_7N",
-      "p2_bound": 3.3333333333333335,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.25,
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4608,
-      "graph": "hu_three_session_6N",
-      "p2_bound": 1.3333333333333333,
-      "p3_bound": 2.6666666666666665,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.1428571428571428,
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4609,
-      "graph": "okamura_4N",
-      "p2_bound": 2.5,
-      "p3_bound": 2.5,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4610,
-      "graph": "okamura_seymour_8N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4611,
-      "graph": "kramer_savari_ladder_8N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4612,
-      "graph": "okamura_seymour_8N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4613,
-      "graph": "butterfly_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 3.0,
-      "partition_bound": 1.5,
-      "lp_lower_bound": 1.0,
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4614,
-      "graph": "okamura_seymour_8N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4615,
-      "graph": "two_k4_10N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 5.333333333333333,
-      "partition_bound": 2.6666666666666665,
-      "lp_lower_bound": 0.6666666666666666,
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4616,
-      "graph": "kramer_savari_ladder_8N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4617,
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": 10.0,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "greedy_best_of_trials",
       "graph": "grid_3x4_12N",
+      "greedy_trials": 8,
       "p2_bound": 5.666666666666667,
       "p3_bound": 5.666666666666667,
       "partition_bound": 2.8333333333333335,
@@ -181,279 +545,8 @@
       "lp_valid": true
     },
     {
-      "episode": 4618,
-      "graph": "grid_4x4_16N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4619,
-      "graph": "okamura_4N",
-      "p2_bound": 2.5,
-      "p3_bound": 2.5,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4620,
-      "graph": "hu_2pairs_6N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4621,
-      "graph": "kramer_savari_ladder_8N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4622,
-      "graph": "butterfly_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 3.0,
-      "partition_bound": 1.5,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4623,
-      "graph": "okamura_network_paper_5N",
-      "p2_bound": 1.5,
-      "p3_bound": 1.5,
-      "partition_bound": 0.75,
-      "lp_lower_bound": 0.75,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4624,
-      "graph": "okamura_4N",
-      "p2_bound": 2.5,
-      "p3_bound": 2.5,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4625,
-      "graph": "okamura_4N",
-      "p2_bound": 2.5,
-      "p3_bound": 2.5,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4626,
-      "graph": "diamond_6N",
-      "p2_bound": 3.5,
-      "p3_bound": 3.5,
-      "partition_bound": 1.75,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4627,
-      "graph": "okamura_4N",
-      "p2_bound": 2.5,
-      "p3_bound": 2.5,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4628,
-      "graph": "yin_et_al_7N",
-      "p2_bound": 3.3333333333333335,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4629,
-      "graph": "grid_4x4_16N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4630,
-      "graph": "grid_9N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4631,
-      "graph": "grid_9N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4632,
-      "graph": "butterfly_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 3.0,
-      "partition_bound": 1.5,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4633,
-      "graph": "diamond_6N",
-      "p2_bound": 3.5,
-      "p3_bound": 3.5,
-      "partition_bound": 1.75,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4634,
-      "graph": "star_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 4.5,
-      "partition_bound": 2.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4635,
-      "graph": "diamond_6N",
-      "p2_bound": 3.5,
-      "p3_bound": 3.5,
-      "partition_bound": 1.75,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4636,
-      "graph": "grid_9N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4637,
-      "graph": "butterfly_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 3.0,
-      "partition_bound": 1.5,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4638,
-      "graph": "hu_2pairs_6N",
-      "p2_bound": 1.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4639,
-      "graph": "petersen_10N",
-      "p2_bound": 3.75,
-      "p3_bound": 3.75,
-      "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4640,
-      "graph": "yin_et_al_7N",
-      "p2_bound": 3.3333333333333335,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4641,
-      "graph": "grid_9N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4642,
-      "graph": "okamura_network_paper_5N",
-      "p2_bound": 1.5,
-      "p3_bound": 1.5,
-      "partition_bound": 0.75,
-      "lp_lower_bound": 0.75,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4643,
-      "graph": "two_k4_10N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 5.333333333333333,
-      "partition_bound": 2.6666666666666665,
-      "lp_lower_bound": 0.6666666666666666,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4644,
-      "graph": "al_bashabsheh_7N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4645,
+      "mode": "stochastic",
       "graph": "grid_3x4_12N",
-      "p2_bound": 5.666666666666667,
       "p3_bound": 5.666666666666667,
       "partition_bound": 2.8333333333333335,
       "lp_lower_bound": 1.0,
@@ -461,349 +554,8 @@
       "lp_valid": true
     },
     {
-      "episode": 4646,
-      "graph": "hu_3pairs_6N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 2.6666666666666665,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4647,
-      "graph": "yin_et_al_7N",
-      "p2_bound": 3.3333333333333335,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4648,
-      "graph": "two_k4_10N",
-      "p2_bound": 5.333333333333333,
-      "p3_bound": 5.333333333333333,
-      "partition_bound": 2.6666666666666665,
-      "lp_lower_bound": 0.6666666666666666,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4649,
-      "graph": "ford_fulkerson_6N",
-      "p2_bound": 10.0,
-      "p3_bound": 10.0,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4650,
-      "graph": "al_bashabsheh_7N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4651,
-      "graph": "okamura_4N",
-      "p2_bound": 2.5,
-      "p3_bound": 2.5,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4652,
-      "graph": "hu_3pairs_6N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 2.6666666666666665,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4653,
-      "graph": "kramer_savari_ladder_8N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4654,
-      "graph": "ford_fulkerson_6N",
-      "p2_bound": 10.0,
-      "p3_bound": 10.0,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4655,
-      "graph": "paper_7N",
-      "p2_bound": 3.3333333333333335,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4656,
-      "graph": "hu_three_session_6N",
-      "p2_bound": 1.6,
-      "p3_bound": 2.6666666666666665,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.1428571428571428,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4657,
-      "graph": "grid_9N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4658,
-      "graph": "yin_et_al_7N",
-      "p2_bound": 3.3333333333333335,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4659,
-      "graph": "diamond_6N",
-      "p2_bound": 3.5,
-      "p3_bound": 3.5,
-      "partition_bound": 1.75,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4660,
-      "graph": "grid_9N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4661,
-      "graph": "paper_7N",
-      "p2_bound": 3.3333333333333335,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4662,
-      "graph": "hu_3pairs_6N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 2.6666666666666665,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4663,
-      "graph": "star_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 4.5,
-      "partition_bound": 2.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4664,
-      "graph": "two_k4_10N",
-      "p2_bound": 5.333333333333333,
-      "p3_bound": 5.333333333333333,
-      "partition_bound": 2.6666666666666665,
-      "lp_lower_bound": 0.6666666666666666,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4665,
-      "graph": "okamura_4N",
-      "p2_bound": 2.5,
-      "p3_bound": 2.5,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4666,
-      "graph": "petersen_10N",
-      "p2_bound": 3.75,
-      "p3_bound": 3.75,
-      "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4667,
-      "graph": "star_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 4.5,
-      "partition_bound": 2.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4668,
-      "graph": "yin_et_al_7N",
-      "p2_bound": 3.3333333333333335,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4669,
-      "graph": "star_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 4.5,
-      "partition_bound": 2.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4670,
-      "graph": "kramer_savari_ladder_8N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4671,
-      "graph": "okamura_seymour_8N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4672,
-      "graph": "yin_et_al_7N",
-      "p2_bound": 3.3333333333333335,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4673,
-      "graph": "diamond_6N",
-      "p2_bound": 3.5,
-      "p3_bound": 3.5,
-      "partition_bound": 1.75,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4674,
-      "graph": "okamura_4N",
-      "p2_bound": 2.5,
-      "p3_bound": 2.5,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4675,
-      "graph": "star_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 4.5,
-      "partition_bound": 2.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4676,
-      "graph": "hu_3pairs_6N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 2.6666666666666665,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4677,
-      "graph": "ford_fulkerson_6N",
-      "p2_bound": 10.0,
-      "p3_bound": 10.0,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4678,
-      "graph": "al_bashabsheh_7N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4679,
-      "graph": "butterfly_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 3.0,
-      "partition_bound": 1.5,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4680,
+      "mode": "stochastic",
       "graph": "grid_3x4_12N",
-      "p2_bound": 5.666666666666667,
       "p3_bound": 5.666666666666667,
       "partition_bound": 2.8333333333333335,
       "lp_lower_bound": 1.0,
@@ -811,139 +563,8 @@
       "lp_valid": true
     },
     {
-      "episode": 4681,
-      "graph": "yin_et_al_7N",
-      "p2_bound": 3.3333333333333335,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4682,
-      "graph": "star_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 4.5,
-      "partition_bound": 2.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4683,
-      "graph": "petersen_10N",
-      "p2_bound": 3.75,
-      "p3_bound": 3.75,
-      "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4684,
-      "graph": "hu_3pairs_6N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 2.6666666666666665,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4685,
-      "graph": "okamura_4N",
-      "p2_bound": 2.5,
-      "p3_bound": 2.5,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4686,
-      "graph": "yin_et_al_7N",
-      "p2_bound": 3.3333333333333335,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4687,
-      "graph": "hu_three_session_6N",
-      "p2_bound": 1.6,
-      "p3_bound": 2.6666666666666665,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.1428571428571428,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4688,
-      "graph": "paper_7N",
-      "p2_bound": 3.3333333333333335,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4689,
-      "graph": "yin_et_al_7N",
-      "p2_bound": 3.3333333333333335,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4690,
-      "graph": "okamura_4N",
-      "p2_bound": 2.5,
-      "p3_bound": 2.5,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4691,
-      "graph": "grid_4x4_16N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4692,
-      "graph": "butterfly_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 3.0,
-      "partition_bound": 1.5,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4693,
-      "graph": "okamura_network_paper_5N",
-      "p2_bound": 1.5,
-      "p3_bound": 1.5,
-      "partition_bound": 0.75,
-      "lp_lower_bound": 0.75,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4694,
+      "mode": "stochastic",
       "graph": "grid_3x4_12N",
-      "p2_bound": 5.666666666666667,
       "p3_bound": 5.666666666666667,
       "partition_bound": 2.8333333333333335,
       "lp_lower_bound": 1.0,
@@ -951,9 +572,8 @@
       "lp_valid": true
     },
     {
-      "episode": 4695,
+      "mode": "stochastic",
       "graph": "grid_3x4_12N",
-      "p2_bound": 5.666666666666667,
       "p3_bound": 5.666666666666667,
       "partition_bound": 2.8333333333333335,
       "lp_lower_bound": 1.0,
@@ -961,188 +581,243 @@
       "lp_valid": true
     },
     {
-      "episode": 4696,
-      "graph": "paper_7N",
-      "p2_bound": 3.3333333333333335,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
+      "mode": "stochastic",
+      "graph": "grid_3x4_12N",
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
       "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4697,
-      "graph": "grid_9N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
+      "mode": "stochastic",
+      "graph": "grid_3x4_12N",
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
       "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4698,
-      "graph": "hu_three_session_6N",
-      "p2_bound": 1.6,
-      "p3_bound": 2.6666666666666665,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.1428571428571428,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4699,
-      "graph": "butterfly_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 3.0,
-      "partition_bound": 1.5,
+      "mode": "stochastic",
+      "graph": "grid_3x4_12N",
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
       "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4700,
-      "graph": "grid_9N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
+      "mode": "stochastic",
+      "graph": "grid_3x4_12N",
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
       "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4701,
-      "graph": "paper_7N",
-      "p2_bound": 3.3333333333333335,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
+      "mode": "stochastic",
+      "graph": "grid_3x4_12N",
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
       "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4702,
-      "graph": "hu_three_session_6N",
-      "p2_bound": 1.6,
-      "p3_bound": 2.6666666666666665,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.1428571428571428,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4703,
-      "graph": "grid_9N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
+      "mode": "stochastic",
+      "graph": "grid_3x4_12N",
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
       "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4704,
-      "graph": "hu_three_session_6N",
-      "p2_bound": 2.0,
-      "p3_bound": 2.6666666666666665,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.1428571428571428,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4705,
-      "graph": "two_k4_10N",
-      "p2_bound": 5.333333333333333,
-      "p3_bound": 5.333333333333333,
-      "partition_bound": 2.6666666666666665,
-      "lp_lower_bound": 0.6666666666666666,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4706,
-      "graph": "okamura_4N",
-      "p2_bound": 2.5,
-      "p3_bound": 2.5,
-      "partition_bound": 1.25,
+      "mode": "stochastic",
+      "graph": "grid_3x4_12N",
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
       "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4707,
-      "graph": "two_k4_10N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 5.333333333333333,
-      "partition_bound": 2.6666666666666665,
-      "lp_lower_bound": 0.6666666666666666,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4708,
-      "graph": "hu_2pairs_6N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
+      "mode": "stochastic",
+      "graph": "grid_3x4_12N",
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
       "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4709,
-      "graph": "star_8N",
-      "p2_bound": 4.5,
-      "p3_bound": 4.5,
-      "partition_bound": 2.25,
+      "mode": "stochastic",
+      "graph": "grid_3x4_12N",
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
       "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4710,
-      "graph": "hu_3pairs_6N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 2.6666666666666665,
-      "partition_bound": 1.3333333333333333,
+      "mode": "stochastic",
+      "graph": "grid_3x4_12N",
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
       "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4711,
-      "graph": "okamura_4N",
-      "p2_bound": 2.5,
-      "p3_bound": 2.5,
-      "partition_bound": 1.25,
+      "mode": "stochastic",
+      "graph": "grid_3x4_12N",
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
       "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4712,
-      "graph": "butterfly_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 3.0,
-      "partition_bound": 1.5,
+      "mode": "stochastic",
+      "graph": "grid_3x4_12N",
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
       "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4713,
-      "graph": "butterfly_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 3.0,
-      "partition_bound": 1.5,
+      "mode": "stochastic",
+      "graph": "grid_3x4_12N",
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
       "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4714,
+      "mode": "stochastic",
+      "graph": "grid_3x4_12N",
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_3x4_12N",
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_3x4_12N",
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_3x4_12N",
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_3x4_12N",
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_3x4_12N",
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_3x4_12N",
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_3x4_12N",
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_3x4_12N",
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_3x4_12N",
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_3x4_12N",
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_3x4_12N",
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_3x4_12N",
+      "p3_bound": 5.666666666666667,
+      "partition_bound": 2.8333333333333335,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "greedy_best_of_trials",
       "graph": "petersen_10N",
+      "greedy_trials": 8,
       "p2_bound": 3.75,
       "p3_bound": 3.75,
       "partition_bound": 1.875,
@@ -1151,79 +826,8 @@
       "lp_valid": true
     },
     {
-      "episode": 4715,
-      "graph": "grid_9N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4716,
-      "graph": "hu_3pairs_6N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 2.6666666666666665,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4717,
-      "graph": "okamura_network_paper_5N",
-      "p2_bound": 1.5,
-      "p3_bound": 1.5,
-      "partition_bound": 0.75,
-      "lp_lower_bound": 0.75,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4718,
-      "graph": "kramer_savari_ladder_8N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4719,
-      "graph": "okamura_4N",
-      "p2_bound": 2.5,
-      "p3_bound": 2.5,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4720,
-      "graph": "ford_fulkerson_6N",
-      "p2_bound": 10.0,
-      "p3_bound": 10.0,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4721,
-      "graph": "grid_9N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4722,
+      "mode": "stochastic",
       "graph": "petersen_10N",
-      "p2_bound": 3.75,
       "p3_bound": 3.75,
       "partition_bound": 1.875,
       "lp_lower_bound": 1.25,
@@ -1231,98 +835,270 @@
       "lp_valid": true
     },
     {
-      "episode": 4723,
-      "graph": "paper_7N",
-      "p2_bound": 3.3333333333333335,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.0,
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4724,
-      "graph": "kramer_savari_ladder_8N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4725,
-      "graph": "okamura_seymour_8N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4726,
-      "graph": "diamond_6N",
-      "p2_bound": 3.5,
-      "p3_bound": 3.5,
-      "partition_bound": 1.75,
-      "lp_lower_bound": 1.0,
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4727,
-      "graph": "okamura_network_paper_5N",
-      "p2_bound": 1.5,
-      "p3_bound": 1.5,
-      "partition_bound": 0.75,
-      "lp_lower_bound": 0.75,
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4728,
-      "graph": "hu_three_session_6N",
-      "p2_bound": 1.6,
-      "p3_bound": 2.6666666666666665,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.1428571428571428,
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4729,
-      "graph": "kramer_savari_ladder_8N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4730,
-      "graph": "butterfly_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 3.0,
-      "partition_bound": 1.5,
-      "lp_lower_bound": 1.0,
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4731,
-      "graph": "butterfly_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 3.0,
-      "partition_bound": 1.5,
-      "lp_lower_bound": 1.0,
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4732,
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "petersen_10N",
+      "p3_bound": 3.75,
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "greedy_best_of_trials",
       "graph": "two_k4_10N",
+      "greedy_trials": 8,
       "p2_bound": 2.6666666666666665,
       "p3_bound": 5.333333333333333,
       "partition_bound": 2.6666666666666665,
@@ -1331,109 +1107,8 @@
       "lp_valid": true
     },
     {
-      "episode": 4733,
-      "graph": "petersen_10N",
-      "p2_bound": 3.75,
-      "p3_bound": 3.75,
-      "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4734,
-      "graph": "grid_9N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4735,
-      "graph": "butterfly_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 3.0,
-      "partition_bound": 1.5,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4736,
-      "graph": "butterfly_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 3.0,
-      "partition_bound": 1.5,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4737,
-      "graph": "paper_7N",
-      "p2_bound": 3.3333333333333335,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4738,
-      "graph": "kramer_savari_ladder_8N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4739,
-      "graph": "yin_et_al_7N",
-      "p2_bound": 3.3333333333333335,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4740,
-      "graph": "paper_7N",
-      "p2_bound": 3.3333333333333335,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4741,
-      "graph": "petersen_10N",
-      "p2_bound": 3.75,
-      "p3_bound": 3.75,
-      "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4742,
-      "graph": "yin_et_al_7N",
-      "p2_bound": 3.3333333333333335,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4743,
+      "mode": "stochastic",
       "graph": "two_k4_10N",
-      "p2_bound": 2.6666666666666665,
       "p3_bound": 5.333333333333333,
       "partition_bound": 2.6666666666666665,
       "lp_lower_bound": 0.6666666666666666,
@@ -1441,88 +1116,270 @@
       "lp_valid": true
     },
     {
-      "episode": 4744,
-      "graph": "hu_2pairs_6N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4745,
-      "graph": "okamura_network_paper_5N",
-      "p2_bound": 1.5,
-      "p3_bound": 1.5,
-      "partition_bound": 0.75,
-      "lp_lower_bound": 0.75,
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4746,
-      "graph": "ford_fulkerson_6N",
-      "p2_bound": 10.0,
-      "p3_bound": 10.0,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4747,
-      "graph": "hu_2pairs_6N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4748,
-      "graph": "okamura_network_paper_5N",
-      "p2_bound": 1.5,
-      "p3_bound": 1.5,
-      "partition_bound": 0.75,
-      "lp_lower_bound": 0.75,
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4749,
-      "graph": "hu_3pairs_6N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 2.6666666666666665,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.0,
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4750,
-      "graph": "okamura_4N",
-      "p2_bound": 2.5,
-      "p3_bound": 2.5,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4751,
-      "graph": "ford_fulkerson_6N",
-      "p2_bound": 10.0,
-      "p3_bound": 10.0,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4752,
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "two_k4_10N",
+      "p3_bound": 5.333333333333333,
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "greedy_best_of_trials",
       "graph": "al_bashabsheh_7N",
+      "greedy_trials": 8,
       "p2_bound": 4.0,
       "p3_bound": 4.0,
       "partition_bound": 2.0,
@@ -1531,129 +1388,8 @@
       "lp_valid": true
     },
     {
-      "episode": 4753,
-      "graph": "hu_three_session_6N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 2.6666666666666665,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.1428571428571428,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4754,
-      "graph": "butterfly_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 3.0,
-      "partition_bound": 1.5,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4755,
-      "graph": "hu_3pairs_6N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 2.6666666666666665,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4756,
-      "graph": "diamond_6N",
-      "p2_bound": 3.5,
-      "p3_bound": 3.5,
-      "partition_bound": 1.75,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4757,
-      "graph": "hu_3pairs_6N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 2.6666666666666665,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4758,
-      "graph": "two_k4_10N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 5.333333333333333,
-      "partition_bound": 2.6666666666666665,
-      "lp_lower_bound": 0.6666666666666666,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4759,
-      "graph": "paper_7N",
-      "p2_bound": 3.3333333333333335,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4760,
-      "graph": "okamura_seymour_8N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4761,
-      "graph": "star_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 4.5,
-      "partition_bound": 2.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4762,
-      "graph": "grid_9N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4763,
-      "graph": "two_k4_10N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 5.333333333333333,
-      "partition_bound": 2.6666666666666665,
-      "lp_lower_bound": 0.6666666666666666,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4764,
-      "graph": "okamura_seymour_8N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4765,
+      "mode": "stochastic",
       "graph": "al_bashabsheh_7N",
-      "p2_bound": 4.0,
       "p3_bound": 4.0,
       "partition_bound": 2.0,
       "lp_lower_bound": 1.5,
@@ -1661,9 +1397,8 @@
       "lp_valid": true
     },
     {
-      "episode": 4766,
+      "mode": "stochastic",
       "graph": "al_bashabsheh_7N",
-      "p2_bound": 4.0,
       "p3_bound": 4.0,
       "partition_bound": 2.0,
       "lp_lower_bound": 1.5,
@@ -1671,28 +1406,261 @@
       "lp_valid": true
     },
     {
-      "episode": 4767,
-      "graph": "ford_fulkerson_6N",
-      "p2_bound": 10.0,
-      "p3_bound": 10.0,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
+      "mode": "stochastic",
+      "graph": "al_bashabsheh_7N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4768,
-      "graph": "hu_three_session_6N",
-      "p2_bound": 1.6,
-      "p3_bound": 2.6666666666666665,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.1428571428571428,
+      "mode": "stochastic",
+      "graph": "al_bashabsheh_7N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4769,
-      "graph": "grid_9N",
+      "mode": "stochastic",
+      "graph": "al_bashabsheh_7N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "al_bashabsheh_7N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "al_bashabsheh_7N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "al_bashabsheh_7N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "al_bashabsheh_7N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "al_bashabsheh_7N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "al_bashabsheh_7N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "al_bashabsheh_7N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "al_bashabsheh_7N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "al_bashabsheh_7N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "al_bashabsheh_7N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "al_bashabsheh_7N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "al_bashabsheh_7N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "al_bashabsheh_7N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "al_bashabsheh_7N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "al_bashabsheh_7N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "al_bashabsheh_7N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "al_bashabsheh_7N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "al_bashabsheh_7N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "al_bashabsheh_7N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "al_bashabsheh_7N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "al_bashabsheh_7N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "al_bashabsheh_7N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "al_bashabsheh_7N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "al_bashabsheh_7N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "al_bashabsheh_7N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "greedy_best_of_trials",
+      "graph": "hu_2pairs_6N",
+      "greedy_trials": 8,
       "p2_bound": 4.0,
       "p3_bound": 4.0,
       "partition_bound": 2.0,
@@ -1701,38 +1669,279 @@
       "lp_valid": true
     },
     {
-      "episode": 4770,
-      "graph": "yin_et_al_7N",
-      "p2_bound": 3.3333333333333335,
-      "p3_bound": 3.3333333333333335,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4771,
-      "graph": "okamura_network_paper_5N",
-      "p2_bound": 1.5,
-      "p3_bound": 1.5,
-      "partition_bound": 0.75,
-      "lp_lower_bound": 0.75,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4772,
-      "graph": "butterfly_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 3.0,
-      "partition_bound": 1.5,
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
       "lp_lower_bound": 1.0,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4773,
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 2.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 1.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": true,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 1.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": true,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "greedy_best_of_trials",
       "graph": "grid_4x4_16N",
+      "greedy_trials": 8,
       "p2_bound": 6.0,
       "p3_bound": 6.0,
       "partition_bound": 3.0,
@@ -1741,8 +1950,841 @@
       "lp_valid": true
     },
     {
-      "episode": 4774,
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "greedy_best_of_trials",
+      "graph": "okamura_seymour_8N",
+      "greedy_trials": 8,
+      "p2_bound": 6.0,
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": 6.0,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "greedy_best_of_trials",
+      "graph": "kramer_savari_ladder_8N",
+      "greedy_trials": 8,
+      "p2_bound": 4.0,
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 1.6,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": true,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 4.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "greedy_best_of_trials",
       "graph": "okamura_network_paper_5N",
+      "greedy_trials": 8,
       "p2_bound": 1.5,
       "p3_bound": 1.5,
       "partition_bound": 0.75,
@@ -1751,88 +2793,560 @@
       "lp_valid": true
     },
     {
-      "episode": 4775,
-      "graph": "al_bashabsheh_7N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.5,
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.6315789473684212,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4776,
-      "graph": "diamond_6N",
-      "p2_bound": 3.5,
-      "p3_bound": 3.5,
-      "partition_bound": 1.75,
-      "lp_lower_bound": 1.0,
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.5,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4777,
-      "graph": "star_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 4.5,
-      "partition_bound": 2.25,
-      "lp_lower_bound": 1.0,
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.5,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4778,
-      "graph": "okamura_seymour_8N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.5,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4779,
-      "graph": "okamura_4N",
-      "p2_bound": 2.5,
-      "p3_bound": 2.5,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.5,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4780,
-      "graph": "star_8N",
-      "p2_bound": 3.0,
-      "p3_bound": 4.5,
-      "partition_bound": 2.25,
-      "lp_lower_bound": 1.0,
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.5,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4781,
-      "graph": "two_k4_10N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 5.333333333333333,
-      "partition_bound": 2.6666666666666665,
-      "lp_lower_bound": 0.6666666666666666,
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.5,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4782,
-      "graph": "petersen_10N",
-      "p2_bound": 3.75,
-      "p3_bound": 3.75,
-      "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.5,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4783,
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.8157894736842106,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.5,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.5,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.5,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.5,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.5,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.5,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.5,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.5,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.5,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.5,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.5,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.5,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.5,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.5,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.5,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.5,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.5,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.5,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.5,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.5,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 1.5,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "greedy_best_of_trials",
+      "graph": "hu_three_session_6N",
+      "greedy_trials": 8,
+      "p2_bound": 1.6,
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_three_session_6N",
+      "p3_bound": 2.6666666666666665,
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "greedy_best_of_trials",
       "graph": "yin_et_al_7N",
+      "greedy_trials": 8,
       "p2_bound": 3.3333333333333335,
       "p3_bound": 3.3333333333333335,
       "partition_bound": 1.6666666666666667,
@@ -1841,374 +3355,484 @@
       "lp_valid": true
     },
     {
-      "episode": 4784,
-      "graph": "okamura_seymour_8N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4785,
-      "graph": "al_bashabsheh_7N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4786,
-      "graph": "kramer_savari_ladder_8N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4787,
-      "graph": "okamura_network_paper_5N",
-      "p2_bound": 1.5,
-      "p3_bound": 1.5,
-      "partition_bound": 0.75,
-      "lp_lower_bound": 0.75,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4788,
-      "graph": "hu_2pairs_6N",
-      "p2_bound": 2.6666666666666665,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4789,
-      "graph": "okamura_4N",
-      "p2_bound": 2.5,
-      "p3_bound": 2.5,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4790,
-      "graph": "star_8N",
-      "p2_bound": 4.5,
-      "p3_bound": 4.5,
-      "partition_bound": 2.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4791,
-      "graph": "grid_4x4_16N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": true
-    },
-    {
-      "episode": 4792,
-      "graph": "petersen_10N",
-      "p2_bound": 3.75,
-      "p3_bound": 3.75,
-      "partition_bound": 1.875,
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
       "lp_lower_bound": 1.25,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4793,
-      "graph": "ford_fulkerson_6N",
-      "p2_bound": 10.0,
-      "p3_bound": 10.0,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4794,
-      "graph": "two_k4_10N",
-      "p2_bound": 5.333333333333333,
-      "p3_bound": 5.333333333333333,
-      "partition_bound": 2.6666666666666665,
-      "lp_lower_bound": 0.6666666666666666,
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4795,
-      "graph": "okamura_seymour_8N",
-      "p2_bound": 6.0,
-      "p3_bound": 6.0,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4796,
-      "graph": "kramer_savari_ladder_8N",
-      "p2_bound": 4.0,
-      "p3_bound": 4.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4797,
-      "graph": "ford_fulkerson_6N",
-      "p2_bound": 10.0,
-      "p3_bound": 10.0,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4798,
-      "graph": "okamura_network_paper_5N",
-      "p2_bound": 1.5,
-      "p3_bound": 1.5,
-      "partition_bound": 0.75,
-      "lp_lower_bound": 0.75,
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
       "is_novel": false,
       "lp_valid": true
     },
     {
-      "episode": 4799,
-      "graph": "star_8N",
-      "p2_bound": 4.5,
-      "p3_bound": 4.5,
-      "partition_bound": 2.25,
-      "lp_lower_bound": 1.0,
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 1.6666666666666667,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 3.3333333333333335,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
       "is_novel": false,
       "lp_valid": true
     }
   ],
   "summary": {
-    "al_bashabsheh_7N": {
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.5,
-      "p2_avg": 4.0,
-      "p3_avg": 4.0,
-      "p3_best": 4.0,
-      "novel_pct": 0.0,
-      "lp_valid": true,
-      "is_novel": false,
-      "improvement_pct": 0.0
-    },
-    "butterfly_8N": {
-      "partition_bound": 1.5,
+    "paper_7N": {
+      "partition_bound": 1.6666666666666667,
       "lp_lower_bound": 1.0,
-      "p2_avg": 3.0,
-      "p3_avg": 3.0,
-      "p3_best": 3.0,
-      "novel_pct": 0.0,
-      "lp_valid": true,
-      "is_novel": false,
+      "greedy_best_bound": 3.3333333333333335,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 0.0,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
       "improvement_pct": 0.0
     },
     "diamond_6N": {
       "partition_bound": 1.75,
       "lp_lower_bound": 1.0,
-      "p2_avg": 3.5,
-      "p3_avg": 3.5,
-      "p3_best": 3.5,
-      "novel_pct": 0.0,
-      "lp_valid": true,
-      "is_novel": false,
+      "greedy_best_bound": 3.5,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 0.0,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
       "improvement_pct": 0.0
     },
-    "ford_fulkerson_6N": {
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
-      "p2_avg": 10.0,
-      "p3_avg": 10.0,
-      "p3_best": 10.0,
-      "novel_pct": 0.0,
-      "lp_valid": true,
-      "is_novel": false,
-      "improvement_pct": 0.0
-    },
-    "grid_3x4_12N": {
-      "partition_bound": 2.8333333333333335,
+    "butterfly_8N": {
+      "partition_bound": 1.5,
       "lp_lower_bound": 1.0,
-      "p2_avg": 5.666666666666667,
-      "p3_avg": 5.666666666666667,
-      "p3_best": 5.666666666666667,
-      "novel_pct": 0.0,
-      "lp_valid": true,
-      "is_novel": false,
-      "improvement_pct": 0.0
-    },
-    "grid_4x4_16N": {
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "p2_avg": 6.0,
-      "p3_avg": 6.0,
-      "p3_best": 6.0,
-      "novel_pct": 0.0,
-      "lp_valid": true,
-      "is_novel": false,
+      "greedy_best_bound": 3.0,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 0.0,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
       "improvement_pct": 0.0
     },
     "grid_9N": {
       "partition_bound": 2.0,
       "lp_lower_bound": 1.0,
-      "p2_avg": 4.0,
-      "p3_avg": 4.0,
-      "p3_best": 4.0,
-      "novel_pct": 0.0,
-      "lp_valid": true,
-      "is_novel": false,
-      "improvement_pct": 0.0
-    },
-    "hu_2pairs_6N": {
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "p2_avg": 2.822055137844612,
-      "p3_avg": 4.0,
-      "p3_best": 4.0,
-      "novel_pct": 0.0,
-      "lp_valid": true,
-      "is_novel": false,
-      "improvement_pct": 0.0
-    },
-    "hu_3pairs_6N": {
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.0,
-      "p2_avg": 2.666666666666666,
-      "p3_avg": 2.666666666666666,
-      "p3_best": 2.6666666666666665,
-      "novel_pct": 0.0,
-      "lp_valid": true,
-      "is_novel": false,
-      "improvement_pct": 0.0
-    },
-    "hu_three_session_6N": {
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.1428571428571428,
-      "p2_avg": 1.920209973753281,
-      "p3_avg": 2.6666666666666665,
-      "p3_best": 2.6666666666666665,
-      "novel_pct": 0.0,
-      "lp_valid": true,
-      "is_novel": false,
-      "improvement_pct": 0.0
-    },
-    "kramer_savari_ladder_8N": {
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "p2_avg": 4.0,
-      "p3_avg": 4.0,
-      "p3_best": 4.0,
-      "novel_pct": 0.0,
-      "lp_valid": true,
-      "is_novel": false,
-      "improvement_pct": 0.0
-    },
-    "okamura_4N": {
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "p2_avg": 2.5,
-      "p3_avg": 2.5,
-      "p3_best": 2.5,
-      "novel_pct": 0.0,
-      "lp_valid": true,
-      "is_novel": false,
-      "improvement_pct": 0.0
-    },
-    "okamura_network_paper_5N": {
-      "partition_bound": 0.75,
-      "lp_lower_bound": 0.75,
-      "p2_avg": 1.5,
-      "p3_avg": 1.5,
-      "p3_best": 1.5,
-      "novel_pct": 0.0,
-      "lp_valid": true,
-      "is_novel": false,
-      "improvement_pct": 0.0
-    },
-    "okamura_seymour_8N": {
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "p2_avg": 6.0,
-      "p3_avg": 6.0,
-      "p3_best": 6.0,
-      "novel_pct": 0.0,
-      "lp_valid": true,
-      "is_novel": false,
-      "improvement_pct": 0.0
-    },
-    "paper_7N": {
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.0,
-      "p2_avg": 3.3333333333333335,
-      "p3_avg": 3.3333333333333335,
-      "p3_best": 3.3333333333333335,
-      "novel_pct": 0.0,
-      "lp_valid": true,
-      "is_novel": false,
-      "improvement_pct": 0.0
-    },
-    "petersen_10N": {
-      "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
-      "p2_avg": 3.75,
-      "p3_avg": 3.75,
-      "p3_best": 3.75,
-      "novel_pct": 0.0,
-      "lp_valid": true,
-      "is_novel": false,
+      "greedy_best_bound": 4.0,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 0.0,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
       "improvement_pct": 0.0
     },
     "star_8N": {
       "partition_bound": 2.25,
       "lp_lower_bound": 1.0,
-      "p2_avg": 3.3613636363636363,
-      "p3_avg": 4.5,
-      "p3_best": 4.5,
-      "novel_pct": 0.0,
-      "lp_valid": true,
-      "is_novel": false,
+      "greedy_best_bound": 4.5,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 0.0,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
+      "improvement_pct": 0.0
+    },
+    "hu_3pairs_6N": {
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.0,
+      "greedy_best_bound": 2.6666666666666665,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 0.0,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
+      "improvement_pct": 0.0
+    },
+    "okamura_4N": {
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "greedy_best_bound": 2.5,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 6.666666666666667,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
+      "improvement_pct": 0.0
+    },
+    "ford_fulkerson_6N": {
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "greedy_best_bound": 10.0,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 0.0,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
+      "improvement_pct": 0.0
+    },
+    "grid_3x4_12N": {
+      "partition_bound": 2.8333333333333335,
+      "lp_lower_bound": 1.0,
+      "greedy_best_bound": 5.666666666666667,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 0.0,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
+      "improvement_pct": 0.0
+    },
+    "petersen_10N": {
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "greedy_best_bound": 3.75,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 0.0,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
       "improvement_pct": 0.0
     },
     "two_k4_10N": {
       "partition_bound": 2.6666666666666665,
       "lp_lower_bound": 0.6666666666666666,
-      "p2_avg": 3.1958495460440983,
-      "p3_avg": 5.333333333333333,
-      "p3_best": 5.333333333333333,
-      "novel_pct": 0.0,
-      "lp_valid": true,
-      "is_novel": false,
+      "greedy_best_bound": 5.333333333333333,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 0.0,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
+      "improvement_pct": 0.0
+    },
+    "al_bashabsheh_7N": {
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "greedy_best_bound": 4.0,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 0.0,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
+      "improvement_pct": 0.0
+    },
+    "hu_2pairs_6N": {
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "greedy_best_bound": 4.0,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 6.666666666666667,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
+      "improvement_pct": 0.0
+    },
+    "grid_4x4_16N": {
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "greedy_best_bound": 6.0,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 0.0,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
+      "improvement_pct": 0.0
+    },
+    "okamura_seymour_8N": {
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "greedy_best_bound": 6.0,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 0.0,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
+      "improvement_pct": 0.0
+    },
+    "kramer_savari_ladder_8N": {
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "greedy_best_bound": 4.0,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 3.3333333333333335,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
+      "improvement_pct": 0.0
+    },
+    "okamura_network_paper_5N": {
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "greedy_best_bound": 1.5,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 0.0,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
+      "improvement_pct": 0.0
+    },
+    "hu_three_session_6N": {
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "greedy_best_bound": 2.6666666666666665,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 0.0,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
       "improvement_pct": 0.0
     },
     "yin_et_al_7N": {
       "partition_bound": 1.6666666666666667,
       "lp_lower_bound": 1.25,
-      "p2_avg": 3.333333333333333,
-      "p3_avg": 3.333333333333333,
-      "p3_best": 3.3333333333333335,
-      "novel_pct": 0.0,
-      "lp_valid": true,
-      "is_novel": false,
+      "greedy_best_bound": 3.3333333333333335,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 0.0,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
       "improvement_pct": 0.0
     }
   },
@@ -2234,6 +3858,7 @@
     "hu_three_session_6N": 1.1428571428571428,
     "yin_et_al_7N": 1.25
   },
-  "total_episodes": 4800,
+  "stochastic_episodes_per_graph": 30,
+  "greedy_trials": 8,
   "lp_violations": 0
 }

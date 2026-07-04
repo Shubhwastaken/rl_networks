@@ -329,6 +329,17 @@ class Stage4ProofLogger:
         # ---- call real env step ----
         state, reward, done = env.step(action)
 
+        # If the step budget cut the episode off, the action above was
+        # NEVER ACTUALLY EXECUTED -- env.step() redirected to forced
+        # termination before dispatching to the action handler. Label this
+        # honestly instead of crediting whatever action the policy
+        # proposed (which, in a real run, produced a misleading trace
+        # showing e.g. "APPLY_CRYPTO reward=12.0" for a step where crypto
+        # never ran at all -- the +12.0 was the timeout-forced terminal
+        # bonus, not a crypto-specific reward).
+        if getattr(env, '_last_step_forced_terminal', False):
+            aname = "FORCED_TERMINAL_TIMEOUT"
+
         # ---- snapshot AFTER ----
         post_pool = _snap_pool(env, label="after")
 

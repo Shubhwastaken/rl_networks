@@ -10,20 +10,28 @@ NETWORK
   Sessions: [['a', 'e'], ['b', 'f'], ['c', 'g'], ['d', 'h']]
 
 PARTITION
+  P1 = {a}
+  P2 = {b}
+  P3 = {c}
+  P4 = {d}
+  P5 = {e}
+  P6 = {f}
+  P7 = {g}
+  P8 = {h}
 
 BOUNDS
   Partition bound: 3.000000
   LP lower bound : 1.500000
-  Best observed : 3.000000
+  Best observed : 6.000000
 
 STAGE 4 COUNTS
-  Attempts             : 3127
+  Attempts             : 319
   Valid novel episodes : 0
-  Terminal episodes    : 11
-  No-terminal episodes : 3116
-  CROSS_SUBMOD used    : 783
-  APPLY_CRYPTO used    : 1
-  APPLY_DECODE used    : 3
+  Terminal episodes    : 1
+  No-terminal episodes : 318
+  CROSS_SUBMOD used    : 120
+  APPLY_CRYPTO used    : 41
+  APPLY_DECODE used    : 254
 
 This is a status report, not a mathematical proof.
 ======================================================================

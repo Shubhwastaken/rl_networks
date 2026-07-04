@@ -64,6 +64,7 @@ from rl_functional_dep_integration import (
     is_decode_valid,
     ACTION_CRYPTO,
     ACTION_DECODE,
+    apply_all_improving_func_dep,
 )
 from functional_dependence import (
     apply_crypto_inequality_direct,
@@ -704,7 +705,18 @@ class PartitionBoundEnv:
         action_type = action['type']
         self.phase3_steps += 1
 
+        # Reset every call -- only True for the specific call where the
+        # step budget cuts the episode off instead of running the action
+        # the policy actually proposed. Without this, the proof logger
+        # labels a forced-timeout termination with whatever action type
+        # happened to be selected that step (e.g. "APPLY_CRYPTO reward=12.0"
+        # when APPLY_CRYPTO never actually ran) -- exactly the kind of
+        # misattribution that already corrupted mechanism classification
+        # once in this project. See stage4_proof_logger.py's use of this flag.
+        self._last_step_forced_terminal = False
+
         if self.phase3_steps > MAX_PHASE3_STEPS:
+            self._last_step_forced_terminal = True
             return self._force_terminal_p3()
 
         if action_type == ActionType.FRACTIONAL_IO:
@@ -841,13 +853,26 @@ class PartitionBoundEnv:
 
         elif action_type == ActionType.APPLY_CRYPTO:
             self.phase3_used_crypto = True
-            # Apply crypto inequality to every terminal-form inequality in frac_pool
+            # Apply crypto to every eligible inequality in the accumulator
+            # AND the pool -- previously this only ever touched frac_pool
+            # items that were already fully terminal-valid (see the matching
+            # fix in _valid_phase3 for why that starved the policy of the
+            # chance to ever use this action while still building a proof).
             cut_idx = action.get('cut_idx', 0)
             reward  = -0.1
             if (self.func_dep_actions is not None
                     and cut_idx < self.func_dep_actions.num_crypto_cuts()):
                 vp, sep_list = self.func_dep_actions.crypto_cut(cut_idx)
                 applied_any = False
+                for i, ineq in enumerate(list(self.accumulator)):
+                    new_ineq, applied = apply_crypto_inequality_direct(
+                        ineq, set(vp),
+                        list(self.nodes), list(self.edges),
+                        list(self.sessions), self.index
+                    )
+                    if applied:
+                        self.accumulator[i] = new_ineq
+                        applied_any = True
                 for ineq in list(self.frac_pool):
                     if not ineq.check_valid_terminal_form():
                         continue
@@ -876,12 +901,20 @@ class PartitionBoundEnv:
 
         elif action_type == ActionType.APPLY_DECODE:
             self.phase3_used_decode = True
-            # Apply decoding substitution to terminal-form inequalities in frac_pool
+            # Apply decode to accumulator items too -- see matching crypto fix above.
             si     = action.get('session_idx', 0)
             reward = -0.1
             if (self.func_dep_actions is not None
                     and si < len(self.sessions)):
                 applied_any = False
+                for i, ineq in enumerate(list(self.accumulator)):
+                    new_ineq, applied = apply_decode_substitution(
+                        ineq, si,
+                        list(self.sessions), list(self.edges), self.index
+                    )
+                    if applied:
+                        self.accumulator[i] = new_ineq
+                        applied_any = True
                 for ineq in list(self.frac_pool):
                     if not ineq.check_valid_terminal_form():
                         continue
@@ -956,9 +989,18 @@ class PartitionBoundEnv:
             # produces structurally richer inequalities worth encouraging.
             used_cross = bool(getattr(self, 'phase3_used_cross_submod', False))
             if used_cross:
-                reward = 7.0 + 20.0 * improvement  # higher bonus for cross_submod path
+                # NOTE: previously 7.0 + 20.0*improvement, i.e. a HIGHER reward
+                # than the non-cross path below. That was backwards: the
+                # Section IX-A2 ablation (crypto/decode disabled entirely)
+                # showed cross_submod's collapse condition fires correctly on
+                # only a small minority of graphs and is not independently
+                # responsible for any credited novel result once crypto/decode
+                # and source cancellation are accounted for. Rewarding it MORE
+                # than the mechanism that actually does the work (crypto/decode)
+                # actively trains the policy away from the thing that works.
+                reward = 5.0 + 15.0 * improvement
             else:
-                reward = 5.0 + 15.0 * improvement  # still good for crypto/decode path
+                reward = 7.0 + 20.0 * improvement  # crypto/decode/source-cancellation path
         elif abs(best_bound - pb) < 1e-6:
             reward = 1.0
         else:
@@ -1270,13 +1312,26 @@ class PartitionBoundEnv:
         if self.accumulator:
             valid.append({'type': ActionType.STORE_AND_RESET})
 
-        # Crypto and decode: offer once per cut/session if any pool item is valid
+        # Crypto and decode: offer against BOTH the accumulator being built
+        # AND any fully-terminal pool item.
+        #
+        # FIX: previously this only checked self.frac_pool items that already
+        # passed check_valid_terminal_form() -- i.e. crypto/decode were only
+        # ever offered as a last-second polish on an ALREADY-complete proof,
+        # never as a tool while the accumulator is still being built. That is
+        # almost certainly why these actions were nearly invisible to the
+        # policy: a diagnostic rollout of the trained checkpoint (10 episodes
+        # each on okamura_4N, paper_7N, butterfly_8N, star_8N -- ~1400 steps
+        # total) found APPLY_CRYPTO/APPLY_DECODE valid in essentially none of
+        # them. is_crypto_valid()/is_decode_valid() only check whether the
+        # relevant edges are already on the RHS -- they do NOT require full
+        # terminal-form completeness, so this restriction was never required
+        # by the math, only by this exposure check.
         if self.func_dep_actions is not None:
             seen_crypto = set()
             seen_decode = set()
-            for ineq in self.frac_pool:
-                if not ineq.check_valid_terminal_form():
-                    continue
+            candidates = list(self.accumulator) + list(self.frac_pool)
+            for ineq in candidates:
                 for ci in range(self.func_dep_actions.num_crypto_cuts()):
                     if ci in seen_crypto:
                         continue
