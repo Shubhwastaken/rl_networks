@@ -2547,12 +2547,23 @@ if __name__ == "__main__":
         print(f"  Resuming from episode {_s4_done_eps}, "
               f"running {_finetune_extra} extra → total {_finetune_total}")
 
-        # Target only graphs that failed to find novel bounds this run.
-        # okamura_network_paper_5N excluded — gap=0, mathematically impossible.
+        # Target the 3 graphs confirmed (via real trace data, not guessing)
+        # to have zero novel finds despite 500+ dedicated attempts each in
+        # the last run: al_bashabsheh_7N, okamura_seymour_8N, petersen_10N.
+        # okamura_network_paper_5N still excluded -- gap=0, mathematically
+        # impossible regardless of training.
+        #
+        # WARNING: finetune_graphs restricts run_stage4's ENTIRE dataset to
+        # ONLY these 3 graphs for the full run -- not a bias, a total
+        # exclusion of the other 16. That means every other graph's
+        # performance (including graphs that were novel in the last run)
+        # gets zero gradient signal for the whole finetune duration and can
+        # regress. Re-evaluate ALL 19 graphs after this finishes, not just
+        # these 3 -- do not assume the rest are untouched.
         _FINETUNE_GRAPHS = [
-            "butterfly_8N",
-            "grid_4x4_16N",
+            "al_bashabsheh_7N",
             "okamura_seymour_8N",
+            "petersen_10N",
         ]
 
         phase3_policy, s4, novel_bounds = run_stage4(

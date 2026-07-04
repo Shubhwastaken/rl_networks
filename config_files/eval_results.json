@@ -1,65 +1,10 @@
 {
   "episodes": [],
   "summary": {
-    "al_bashabsheh_7N": {
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.5,
-      "greedy_best_bound": 4.0,
-      "greedy_is_novel": false,
-      "greedy_lp_valid": true,
-      "stochastic_success_pct": 0.0,
-      "stochastic_episodes": 30,
-      "stochastic_lp_valid": true,
-      "improvement_pct": 0.0
-    },
-    "kramer_savari_ladder_8N": {
-      "partition_bound": 2.0,
+    "okamura_4N": {
+      "partition_bound": 1.25,
       "lp_lower_bound": 1.0,
-      "greedy_best_bound": 4.0,
-      "greedy_is_novel": false,
-      "greedy_lp_valid": true,
-      "stochastic_success_pct": 3.3333333333333335,
-      "stochastic_episodes": 30,
-      "stochastic_lp_valid": true,
-      "improvement_pct": 0.0
-    },
-    "two_k4_10N": {
-      "partition_bound": 2.6666666666666665,
-      "lp_lower_bound": 0.6666666666666666,
-      "greedy_best_bound": 5.333333333333333,
-      "greedy_is_novel": false,
-      "greedy_lp_valid": true,
-      "stochastic_success_pct": 0.0,
-      "stochastic_episodes": 30,
-      "stochastic_lp_valid": true,
-      "improvement_pct": 0.0
-    },
-    "diamond_6N": {
-      "partition_bound": 1.75,
-      "lp_lower_bound": 1.0,
-      "greedy_best_bound": 3.5,
-      "greedy_is_novel": false,
-      "greedy_lp_valid": true,
-      "stochastic_success_pct": 0.0,
-      "stochastic_episodes": 30,
-      "stochastic_lp_valid": true,
-      "improvement_pct": 0.0
-    },
-    "petersen_10N": {
-      "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
-      "greedy_best_bound": 3.75,
-      "greedy_is_novel": false,
-      "greedy_lp_valid": true,
-      "stochastic_success_pct": 0.0,
-      "stochastic_episodes": 30,
-      "stochastic_lp_valid": true,
-      "improvement_pct": 0.0
-    },
-    "hu_2pairs_6N": {
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "greedy_best_bound": 4.0,
+      "greedy_best_bound": 2.5,
       "greedy_is_novel": false,
       "greedy_lp_valid": true,
       "stochastic_success_pct": 6.666666666666667,
@@ -78,10 +23,87 @@
       "stochastic_lp_valid": true,
       "improvement_pct": 0.0
     },
+    "yin_et_al_7N": {
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
+      "greedy_best_bound": 3.3333333333333335,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 0.0,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
+      "improvement_pct": 0.0
+    },
+    "al_bashabsheh_7N": {
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.5,
+      "greedy_best_bound": 4.0,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 0.0,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
+      "improvement_pct": 0.0
+    },
+    "hu_2pairs_6N": {
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "greedy_best_bound": 4.0,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 6.666666666666667,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
+      "improvement_pct": 0.0
+    },
     "star_8N": {
       "partition_bound": 2.25,
       "lp_lower_bound": 1.0,
       "greedy_best_bound": 4.5,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 0.0,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
+      "improvement_pct": 0.0
+    },
+    "kramer_savari_ladder_8N": {
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "greedy_best_bound": 4.0,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 3.3333333333333335,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
+      "improvement_pct": 0.0
+    },
+    "ford_fulkerson_6N": {
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "greedy_best_bound": 10.0,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 0.0,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
+      "improvement_pct": 0.0
+    },
+    "grid_4x4_16N": {
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "greedy_best_bound": 6.0,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 0.0,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
+      "improvement_pct": 0.0
+    },
+    "hu_three_session_6N": {
+      "partition_bound": 1.3333333333333333,
+      "lp_lower_bound": 1.1428571428571428,
+      "greedy_best_bound": 2.6666666666666665,
       "greedy_is_novel": false,
       "greedy_lp_valid": true,
       "stochastic_success_pct": 0.0,
@@ -100,86 +122,9 @@
       "stochastic_lp_valid": true,
       "improvement_pct": 0.0
     },
-    "okamura_4N": {
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "greedy_best_bound": 2.5,
-      "greedy_is_novel": false,
-      "greedy_lp_valid": true,
-      "stochastic_success_pct": 6.666666666666667,
-      "stochastic_episodes": 30,
-      "stochastic_lp_valid": true,
-      "improvement_pct": 0.0
-    },
-    "grid_4x4_16N": {
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "greedy_best_bound": 6.0,
-      "greedy_is_novel": false,
-      "greedy_lp_valid": true,
-      "stochastic_success_pct": 0.0,
-      "stochastic_episodes": 30,
-      "stochastic_lp_valid": true,
-      "improvement_pct": 0.0
-    },
     "paper_7N": {
       "partition_bound": 1.6666666666666667,
       "lp_lower_bound": 1.0,
-      "greedy_best_bound": 3.3333333333333335,
-      "greedy_is_novel": false,
-      "greedy_lp_valid": true,
-      "stochastic_success_pct": 0.0,
-      "stochastic_episodes": 30,
-      "stochastic_lp_valid": true,
-      "improvement_pct": 0.0
-    },
-    "ford_fulkerson_6N": {
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
-      "greedy_best_bound": 10.0,
-      "greedy_is_novel": false,
-      "greedy_lp_valid": true,
-      "stochastic_success_pct": 0.0,
-      "stochastic_episodes": 30,
-      "stochastic_lp_valid": true,
-      "improvement_pct": 0.0
-    },
-    "okamura_network_paper_5N": {
-      "partition_bound": 0.75,
-      "lp_lower_bound": 0.75,
-      "greedy_best_bound": 1.5,
-      "greedy_is_novel": false,
-      "greedy_lp_valid": true,
-      "stochastic_success_pct": 0.0,
-      "stochastic_episodes": 30,
-      "stochastic_lp_valid": true,
-      "improvement_pct": 0.0
-    },
-    "grid_3x4_12N": {
-      "partition_bound": 2.8333333333333335,
-      "lp_lower_bound": 1.0,
-      "greedy_best_bound": 5.666666666666667,
-      "greedy_is_novel": false,
-      "greedy_lp_valid": true,
-      "stochastic_success_pct": 0.0,
-      "stochastic_episodes": 30,
-      "stochastic_lp_valid": true,
-      "improvement_pct": 0.0
-    },
-    "okamura_seymour_8N": {
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "greedy_best_bound": 6.0,
-      "greedy_is_novel": false,
-      "greedy_lp_valid": true,
-      "stochastic_success_pct": 0.0,
-      "stochastic_episodes": 30,
-      "stochastic_lp_valid": true,
-      "improvement_pct": 0.0
-    },
-    "yin_et_al_7N": {
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.25,
       "greedy_best_bound": 3.3333333333333335,
       "greedy_is_novel": false,
       "greedy_lp_valid": true,
@@ -199,10 +144,65 @@
       "stochastic_lp_valid": true,
       "improvement_pct": 0.0
     },
-    "hu_three_session_6N": {
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.1428571428571428,
-      "greedy_best_bound": 2.6666666666666665,
+    "petersen_10N": {
+      "partition_bound": 1.875,
+      "lp_lower_bound": 1.25,
+      "greedy_best_bound": 3.75,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 0.0,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
+      "improvement_pct": 0.0
+    },
+    "okamura_network_paper_5N": {
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "greedy_best_bound": 1.5,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 0.0,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
+      "improvement_pct": 0.0
+    },
+    "two_k4_10N": {
+      "partition_bound": 2.6666666666666665,
+      "lp_lower_bound": 0.6666666666666666,
+      "greedy_best_bound": 5.333333333333333,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 0.0,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
+      "improvement_pct": 0.0
+    },
+    "okamura_seymour_8N": {
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "greedy_best_bound": 6.0,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 0.0,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
+      "improvement_pct": 0.0
+    },
+    "grid_3x4_12N": {
+      "partition_bound": 2.8333333333333335,
+      "lp_lower_bound": 1.0,
+      "greedy_best_bound": 5.666666666666667,
+      "greedy_is_novel": false,
+      "greedy_lp_valid": true,
+      "stochastic_success_pct": 0.0,
+      "stochastic_episodes": 30,
+      "stochastic_lp_valid": true,
+      "improvement_pct": 0.0
+    },
+    "diamond_6N": {
+      "partition_bound": 1.75,
+      "lp_lower_bound": 1.0,
+      "greedy_best_bound": 3.5,
       "greedy_is_novel": false,
       "greedy_lp_valid": true,
       "stochastic_success_pct": 0.0,
@@ -222,7 +222,7 @@
     "okamura_4N": 1.0,
     "ford_fulkerson_6N": 2.0,
     "grid_3x4_12N": 1.0,
-    "petersen_10N": 1.25,
+    "petersen_10N": 1.2500000000000002,
     "two_k4_10N": 0.6666666666666666,
     "al_bashabsheh_7N": 1.5,
     "hu_2pairs_6N": 1.0,

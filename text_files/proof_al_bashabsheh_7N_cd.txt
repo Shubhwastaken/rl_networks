@@ -18,16 +18,16 @@ PARTITION
 BOUNDS
   Partition bound: 2.000000
   LP lower bound : 1.500000
-  Best observed : 3.083333
+  Best observed : 2.038439
 
 STAGE 4 COUNTS
-  Attempts             : 562
+  Attempts             : 1656
   Valid novel episodes : 0
-  Terminal episodes    : 3
-  No-terminal episodes : 559
-  CROSS_SUBMOD used    : 220
-  APPLY_CRYPTO used    : 498
-  APPLY_DECODE used    : 381
+  Terminal episodes    : 10
+  No-terminal episodes : 1646
+  CROSS_SUBMOD used    : 602
+  APPLY_CRYPTO used    : 1233
+  APPLY_DECODE used    : 1070
 
 This is a status report, not a mathematical proof.
 ======================================================================
