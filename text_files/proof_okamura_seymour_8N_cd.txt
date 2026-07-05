@@ -2,7 +2,7 @@
 STAGE 4 STATUS DOCUMENT: okamura_seymour_8N
 ======================================================================
 
-STATUS: NON-NOVEL TERMINAL
+STATUS: NO TERMINAL INEQUALITY FOUND
 
 NETWORK
   Nodes   : ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
@@ -22,16 +22,16 @@ PARTITION
 BOUNDS
   Partition bound: 3.000000
   LP lower bound : 1.500000
-  Best observed : 6.593407
+  Best observed : none
 
 STAGE 4 COUNTS
-  Attempts             : 1655
+  Attempts             : 502
   Valid novel episodes : 0
-  Terminal episodes    : 1
-  No-terminal episodes : 1654
-  CROSS_SUBMOD used    : 728
-  APPLY_CRYPTO used    : 139
-  APPLY_DECODE used    : 1147
+  Terminal episodes    : 0
+  No-terminal episodes : 502
+  CROSS_SUBMOD used    : 254
+  APPLY_CRYPTO used    : 73
+  APPLY_DECODE used    : 348
 
 This is a status report, not a mathematical proof.
 ======================================================================

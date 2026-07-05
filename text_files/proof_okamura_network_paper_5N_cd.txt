@@ -2,7 +2,7 @@
 STAGE 4 STATUS DOCUMENT: okamura_network_paper_5N
 ======================================================================
 
-STATUS: NO STAGE 4 ATTEMPT RECORDED
+STATUS: NON-NOVEL TERMINAL
 
 NETWORK
   Nodes   : ['v1', 'v2', 'v3', 'v4', 'v5']
@@ -16,16 +16,16 @@ PARTITION
 BOUNDS
   Partition bound: 0.750000
   LP lower bound : 0.750000
-  Best observed : none
+  Best observed : 0.750000
 
 STAGE 4 COUNTS
-  Attempts             : 0
+  Attempts             : 490
   Valid novel episodes : 0
-  Terminal episodes    : 0
-  No-terminal episodes : 0
-  CROSS_SUBMOD used    : 0
-  APPLY_CRYPTO used    : 0
-  APPLY_DECODE used    : 0
+  Terminal episodes    : 24
+  No-terminal episodes : 466
+  CROSS_SUBMOD used    : 145
+  APPLY_CRYPTO used    : 446
+  APPLY_DECODE used    : 374
 
 This is a status report, not a mathematical proof.
 ======================================================================

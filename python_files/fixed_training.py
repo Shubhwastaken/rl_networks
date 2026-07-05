@@ -382,83 +382,137 @@ def _greedy_session_partition(nodes, edges, sessions):
     return list(groups.values())
 
 
+def _partition_bound_of(partition, edges, sessions):
+    """Unweighted partition bound of a SPECIFIC partition.
+
+    Returns float('inf') if the partition violates the independent-set
+    constraint (some part contains two adjacent nodes) or is degenerate.
+    This is the single source of truth used everywhere a stored/derived
+    partition must be scored: Stage 3 saving, Stage 4 selection, eval.
+
+    FIX (root cause of the petersen_10N regression): Stage 3 used to store
+    `env._best_pool_bound()` (a Phase-2 proof-calculus bound) or the graph's
+    GLOBAL optimum as the "bound" of the partition it saved. Those numbers
+    are not the bound OF that partition. petersen ended up stored as
+    ([[0,9],[1,3],[2,8],[4,5],[6,7]], bound=1.875) when that partition's
+    real bound is 15/7 = 2.143. Stage 4 then re-scored it, correctly saw
+    2.143 > 1.875, and fell into the (previously weak) brute-force fallback.
+    """
+    eset = set()
+    for u, v in edges:
+        eset.add((u, v)); eset.add((v, u))
+    for Pk in partition:
+        pl = list(Pk)
+        for i in range(len(pl)):
+            for j in range(i + 1, len(pl)):
+                if (pl[i], pl[j]) in eset:
+                    return float('inf')
+    internal = sum(1 for Pk in partition
+                   for s, t in sessions
+                   if s in set(Pk) and t in set(Pk))
+    denom = len(sessions) + internal
+    return len(edges) / denom if denom > 0 else float('inf')
+
+
 def _find_optimal_partition(nodes, edges, sessions):
     """
-    Returns the partition that achieves _compute_partition_bound.
-    Same enumeration logic as _compute_partition_bound (in fixed_environment)
-    but also returns the winning partition, not just the bound value.
-    Returns None if no partition beats the trivial bound (shouldn't happen).
+    Returns the partition achieving the true optimal partition bound.
+
+    FIX: this used to run its OWN weaker search (greedy colorings +
+    exhaustive 2-way splits only), while the TARGET bound used by Stage 4
+    (env.partition_bound) came from the strictly more thorough
+    compute_optimal_bound (exhaustive k-coloring, k<=4 for n<=10).
+    The two disagreed on exactly the graphs the docstring of
+    _compute_partition_bound lists (petersen_10N: greedy gives a
+    3-coloring with bound 2.5 vs true optimum 1.875 via a 3-group
+    partition the greedy strategies never produce). Result: the agent
+    searched under a PB-2.5 partition while being required to beat 1.875 —
+    the base-inequality family that produced the old novel bound simply
+    did not exist in its pool.
+
+    compute_optimal_bound already computes AND returns the argmin
+    partition; the old code threw it away. Delegate instead of
+    re-implementing a worse search. compute_optimal_bound always returns
+    a valid partition (it initialises with the singleton partition, which
+    is optimal-by-construction for graphs like okamura_seymour_8N where
+    every session is a direct edge), so this never returns None.
     """
-    import networkx as nx
-    from collections import defaultdict as _dd
+    from fixed_graph_generation import compute_optimal_bound
+    _, _, best_part = compute_optimal_bound(nodes, edges, sessions)
+    return [list(g) for g in best_part]
 
-    adj = {n: set() for n in nodes}
-    for u, v in edges:
-        adj[u].add(v); adj[v].add(u)
 
-    def _sessions_within(S):
-        Ss = set(S)
-        return sum(1 for s, t in sessions if s in Ss and t in Ss)
+# --------------------------------------------------------------------------
+# Stage 4 / eval shared partition selection
+# --------------------------------------------------------------------------
 
-    def _cut_edges(partition):
-        part_of = {}
-        for k, Pk in enumerate(partition):
-            for nd in Pk: part_of[nd] = k
-        return sum(1 for u, v in edges if part_of[u] != part_of[v])
+# Experiment overrides (enabled only with --pin-partitions on the CLI).
+# Purpose: pin a graph to a SPECIFIC search partition regardless of the
+# normal RL-vs-optimal selection, to test whether the search partition
+# (not the policy) is what blocks novel bounds.
+#
+# al_bashabsheh_7N: the pre-regression run found r <= 1.523 while searching
+# under this 4-part partition. Note it is DELIBERATELY PB-suboptimal:
+# al_bashabsheh has 3 sessions and this partition internalises only 2 of
+# them ((S1,t1) and (S2,t2); (S3,t3) crosses parts), so its own bound is
+# 12/5 = 2.4 vs the true PB 2.0 achieved by the pair partition
+# [[S1,t1],[S2,t2],[S3,t3],[v1]]. The pair partition is what the current
+# run searches under and it produced 3 valid terminals in 562 episodes,
+# best 3.08 — the experiment asks whether the old, "worse-PB" partition
+# generates a base pool the agent can actually combine from.
+# env.partition_bound stays the TRUE optimum in all cases, so novelty is
+# still judged against PB = 2.0, never against the pinned partition's 2.4.
+PARTITION_OVERRIDES = {
+    "al_bashabsheh_7N": [["v1"], ["S1", "S3", "t1"], ["S2", "t2"], ["t3"]],
+}
+PIN_PARTITIONS = False   # set True via --pin-partitions
 
-    def _eval(partition):
-        for Pk in partition:
-            if any(adj[u] & (set(Pk) - {u}) for u in Pk):
-                return float('inf')
-        intra = sum(_sessions_within(Pk) for Pk in partition)
-        cut   = _cut_edges(partition)
-        denom = len(sessions) + intra
-        return cut / denom if denom > 0 else float('inf')
 
-    best_val  = len(edges) / max(len(sessions), 1)
-    # FIX: was `best_part = None`, which this function would then return
-    # whenever no partition strictly beats the trivial bound (val < best_val).
-    # That is NOT an edge case -- it is the correct, expected outcome for any
-    # graph where every session is already a direct edge (e.g. okamura_seymour_8N),
-    # since the independent-set constraint then forbids ANY partition from ever
-    # capturing an internal session, making the trivial bound optimal by
-    # construction. The caller (run_stage4) does `if opt_partition is not None:
-    # partition = opt_partition`, so a None return here silently left `partition`
-    # holding whatever value it had from the PREVIOUS graph in the training loop --
-    # a real, live data-corruption bug, not a hypothetical one. Defaulting to the
-    # singleton partition guarantees a valid, correct (if unimproved) partition is
-    # always returned.
-    best_part = [[v] for v in nodes]
+def _select_stage4_partition(graph_name, nodes, edges, sessions,
+                             best_partitions):
+    """Single partition-selection path shared by Stage 4 training AND eval.
 
-    G = nx.Graph(); G.add_nodes_from(nodes); G.add_edges_from(edges)
-    for strat in ['largest_first', 'smallest_last', 'DSATUR']:
-        try:
-            col    = nx.coloring.greedy_color(G, strategy=strat)
-            groups = _dd(list)
-            for nd, c in col.items(): groups[c].append(nd)
-            part = list(groups.values())
-            val  = _eval(part)
-            if val < best_val - 1e-9:
-                best_val = val; best_part = part
-        except Exception:
-            pass
+    FIX: training and eval previously selected partitions independently and
+    could disagree on the same graph in the same run:
+      - training re-scored the stored RL partition and fell back to the
+        (weak) brute-force search when suboptimal;
+      - eval used the stored RL partition UNCONDITIONALLY when present,
+        and ran a fresh Phase-1 rollout when absent.
+    For petersen_10N that meant training searched under a PB-2.5 greedy
+    partition while eval searched under the PB-2.143 stored pair partition
+    — two different search spaces, neither matching the true optimum.
+    Any train/eval novelty comparison on such a graph was meaningless.
 
-    if len(nodes) <= 14:
-        V = list(nodes); n = len(V)
-        for mask in range(1, 1 << (n - 1)):
-            S = [V[i] for i in range(n) if mask & (1 << i)]
-            T = [V[i] for i in range(n) if not (mask & (1 << i))]
-            if S and T:
-                val = _eval([S, T])
-                if val < best_val - 1e-9:
-                    best_val = val; best_part = [S, T]
+    Returns (partition, weights, opt_global_bound, source_label):
+      source_label in {"override", "RL", "exhaustive"}.
+    Selection:
+      1. If PIN_PARTITIONS and graph has an override -> override.
+      2. If the stored Stage-3 RL partition's OWN bound (re-scored here,
+         never trusted from the file — see _partition_bound_of docstring)
+         matches the true optimum -> RL partition (preserves the
+         "RL found an optimal partition" research claim).
+      3. Otherwise -> the exhaustive optimum from compute_optimal_bound.
+    """
+    from fixed_graph_generation import compute_optimal_bound
+    opt_bound, _, opt_part = compute_optimal_bound(nodes, edges, sessions)
+    opt_part = [list(g) for g in opt_part]
 
-    singleton = [[v] for v in nodes]
-    val = _eval(singleton)
-    if val < best_val - 1e-9:
-        best_part = singleton
+    if PIN_PARTITIONS and graph_name in PARTITION_OVERRIDES:
+        pinned = [list(g) for g in PARTITION_OVERRIDES[graph_name]]
+        if _partition_bound_of(pinned, edges, sessions) == float('inf'):
+            print(f"  [partition] {graph_name}: override INVALID "
+                  f"(violates independent-set constraint) — ignored")
+        else:
+            return pinned, {}, opt_bound, "override"
 
-    return best_part
+    if best_partitions and graph_name in best_partitions:
+        rl_part, rl_weights, _stored_bound = best_partitions[graph_name]
+        rl_part = [list(g) for g in rl_part]
+        rl_bound = _partition_bound_of(rl_part, edges, sessions)
+        if rl_bound <= opt_bound + 1e-6:
+            return rl_part, (rl_weights or {}), opt_bound, "RL"
+
+    return opt_part, {}, opt_bound, "exhaustive"
 
 
 # -----------------------------------------------------------------------
@@ -1006,9 +1060,25 @@ def run_stage3(phase1_policy, phase2_policy,
                 if len(lp_violations) <= 5:  # limit spam
                     print(f"  !! LP VIOLATION: {msg}")
 
-        # Track best partition + weights for Phase 4
-        if graph_name not in best_partitions or rl_bound < best_partitions[graph_name][2]:
-            best_partitions[graph_name] = (rl_partition, partition_weights, rl_bound)
+        # Track best partition + weights for Phase 4.
+        # FIX: the "bound" stored alongside the partition MUST be the
+        # partition's OWN unweighted bound, not `rl_bound`. `rl_bound` is
+        # the Phase-2 proof-calculus bound (or the graph's global PB as a
+        # fallback) — a number about the PROOF, not about the PARTITION.
+        # Storing it here is how petersen_10N ended up saved as
+        # (pair-partition, 1.875) when that partition's real bound is
+        # 2.143: Stage 4 re-scored it, rejected it, and fell into the
+        # weak brute-force fallback. Comparison and storage now both use
+        # the partition's own bound, so the file can never again pair a
+        # partition with a bound it does not achieve.
+        _rl_part_own_bound = _partition_bound_of(rl_partition, edges, sessions)
+        if _rl_part_own_bound < float('inf'):
+            _prev = best_partitions.get(graph_name)
+            _prev_own = (_partition_bound_of(_prev[0], edges, sessions)
+                         if _prev else float('inf'))
+            if _rl_part_own_bound < _prev_own - 1e-9:
+                best_partitions[graph_name] = (
+                    rl_partition, partition_weights, _rl_part_own_bound)
 
         if (episode + 1) % log_interval == 0:
             n   = log_interval
@@ -1298,65 +1368,29 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         graph_name = identify_graph(nodes, edges, sessions)
         per_graph_stats[graph_name]['_last_sampled_ep'] = episode
 
-        # Use best partition from Stage 3 if available, else greedy
-        if graph_name in best_partitions:
-            partition, p_weights, _ = best_partitions[graph_name]
-        else:
-            partition = _greedy_session_partition(nodes, edges, sessions)
-            p_weights = {}
-
-        # Compute the true optimal partition bound via brute force.
-        # This is always used as env.partition_bound (the target Stage 4 must beat)
-        # so the reward signal is always calibrated against the true optimum.
-        opt_global_bound = _compute_partition_bound(nodes, edges, sessions)
-
-        # Partition selection: prefer the RL-discovered partition from Stage 3.
-        # RL is given the opportunity to contribute — if its partition achieves
-        # the same bound as brute force (within 1e-6), we use it. This is the
-        # research contribution: RL found an optimal partition without exhaustive search.
-        # If RL's partition is suboptimal, fall back to brute force so Stage 4
-        # always starts from an optimal partition and correctness is guaranteed.
-        rl_partition_bound = None
-        if graph_name in best_partitions:
-            _rl_part, _, _ = best_partitions[graph_name]
-            # Evaluate the RL partition's bound directly
-            def _eval_partition(part, nodes, edges, sessions):
-                adj_local = {n: set() for n in nodes}
-                for u, v in edges:
-                    adj_local[u].add(v); adj_local[v].add(u)
-                for Pk in part:
-                    pk_set = set(Pk)
-                    if any(adj_local[nd] & (pk_set - {nd}) for nd in Pk):
-                        return float('inf')
-                internal = sum(1 for Pk in part
-                               for s, t in sessions
-                               if s in set(Pk) and t in set(Pk))
-                denom = len(sessions) + internal
-                cut = sum(1 for u, v in edges
-                          if not any(u in set(Pk) and v in set(Pk) for Pk in part))
-                return cut / denom if denom > 0 else float('inf')
-            rl_partition_bound = _eval_partition(_rl_part, nodes, edges, sessions)
-
-        # Decision: use RL partition if it matches optimal bound, else brute force
-        if rl_partition_bound is not None and rl_partition_bound <= opt_global_bound + 1e-6:
-            # RL found an optimal (or equivalent) partition — use it
-            partition = best_partitions[graph_name][0]
-            p_weights = best_partitions[graph_name][1]
-            _partition_source = "RL"
-        else:
-            # RL partition is suboptimal or missing — fall back to brute force
-            opt_partition = _find_optimal_partition(nodes, edges, sessions)
-            if opt_partition is not None:
-                partition = opt_partition
-                p_weights = best_partitions.get(graph_name, (None, {}, None))[1]
-            _partition_source = "brute_force"
-            if rl_partition_bound is not None and (episode == 0 or (episode + 1) % 500 == 0):
-                print(f"  [partition] {graph_name}: RL bound={rl_partition_bound:.4f} "
-                      f"> opt={opt_global_bound:.4f} — using brute force fallback")
+        # Partition selection — single shared path (also used by eval).
+        # See _select_stage4_partition for the full rationale. Summary of
+        # what this replaces and why:
+        #   - The stored Stage-3 "bound" field is NEVER trusted; the stored
+        #     partition is re-scored with _partition_bound_of.
+        #   - If the RL partition ties the true optimum, it is used
+        #     (research claim preserved).
+        #   - Otherwise the EXHAUSTIVE optimum partition from
+        #     compute_optimal_bound is used. The old code called
+        #     _find_optimal_partition, which ran a strictly weaker search
+        #     (greedy colorings + 2-way splits) than the one that computes
+        #     the target bound — for petersen_10N it handed the agent a
+        #     PB-2.5 partition while requiring it to beat 1.875.
+        #   - env.partition_bound is ALWAYS the true optimum, including
+        #     under --pin-partitions overrides.
+        partition, p_weights, opt_global_bound, _partition_source = \
+            _select_stage4_partition(graph_name, nodes, edges, sessions,
+                                     best_partitions)
 
         if episode == 0 or (episode + 1) % 500 == 0:
             print(f"  [partition] {graph_name}: source={_partition_source}, "
-                  f"bound={opt_global_bound:.4f}")
+                  f"search_pb={_partition_bound_of(partition, edges, sessions):.4f}, "
+                  f"target_pb={opt_global_bound:.4f}")
 
         # Set up env for Phase 3 directly
         env.nodes    = nodes
@@ -1991,49 +2025,44 @@ def _run_eval_episode(env, graph_tuple, phase1_policy, phase2_policy,
     graph_name = identify_graph(nodes, edges, sessions)
     pb = _compute_partition_bound(nodes, edges, sessions)
 
-    if best_partitions and graph_name in best_partitions:
-        partition = best_partitions[graph_name][0]
-        partition_weights = best_partitions[graph_name][1]
-        state = env.reset(fixed_graph=graph_tuple, fixed_partition=partition)
-        env.partition_weights = partition_weights or {}
-        state['edges'] = edges; state['sessions'] = sessions
-        state['nodes'] = nodes; state['partition'] = partition
-        while env.current_phase == Phase.PHASE2:
-            valid = env.get_valid_actions()
-            if not valid: break
-            # NOTE: GNNPhase2Policy.select_action has no greedy mode -- it is
-            # always stochastic. This means even the "greedy" (Phase 3) pass
-            # below is not fully deterministic end-to-end: Phase 2's proof
-            # construction under the fixed partition varies episode to
-            # episode. Flagging this rather than pretending the greedy pass
-            # is perfectly reproducible -- it mostly is, for the Phase 3
-            # decisions that matter here, but not completely.
-            action = phase2_policy.select_action(state, valid)
-            state, _, done = env.step(action)
-            state['edges'] = edges; state['sessions'] = sessions
-            if done: break
-    else:
-        state = env.reset(fixed_graph=graph_tuple)
-        state['edges'] = edges; state['sessions'] = sessions
-        while env.current_phase == Phase.PHASE1:
-            valid = env.get_valid_actions()
-            if not valid: break
-            action = phase1_policy.select_action(state, valid)
-            state, _, done = env.step(action)
-            state['edges'] = edges; state['sessions'] = sessions
-        partition = [list(g) for g in env.partition] if env.partition else []
-        partition_weights = env.partition_weights or {}
-        state['nodes'] = nodes; state['sessions'] = sessions
-        state['partition'] = partition
-        while env.current_phase == Phase.PHASE2:
-            valid = env.get_valid_actions()
-            if not valid: break
-            action = phase2_policy.select_action(state, valid)
-            state, _, done = env.step(action)
-            state['edges'] = edges; state['sessions'] = sessions
-            if done: break
+    # FIX: eval now selects its partition through the SAME shared path as
+    # Stage 4 training (_select_stage4_partition). Previously eval used the
+    # stored RL partition unconditionally when present (even when its real
+    # bound was worse than the optimum — petersen_10N was evaluated under
+    # the PB-2.143 pair partition while training searched under a PB-2.5
+    # greedy partition), and ran a fresh stochastic Phase-1 rollout when
+    # absent (the 6 graphs missing from ckpt_stage3_best_partitions.json got
+    # a DIFFERENT random partition every eval run). Both paths are gone:
+    # train and eval now always search under the identical partition, and
+    # the missing-6-graphs eval gap is closed by the exhaustive fallback.
+    partition, partition_weights, _opt_pb, _src = _select_stage4_partition(
+        graph_name, nodes, edges, sessions, best_partitions)
 
-    p2_bound = abs(env._best_pool_bound() or pb * 2)
+    state = env.reset(fixed_graph=graph_tuple, fixed_partition=partition)
+    env.partition_weights = partition_weights or {}
+    state['edges'] = edges; state['sessions'] = sessions
+    state['nodes'] = nodes; state['partition'] = partition
+    while env.current_phase == Phase.PHASE2:
+        valid = env.get_valid_actions()
+        if not valid: break
+        # NOTE: GNNPhase2Policy.select_action has no greedy mode -- it is
+        # always stochastic. This means even the "greedy" (Phase 3) pass
+        # below is not fully deterministic end-to-end: Phase 2's proof
+        # construction under the fixed partition varies episode to
+        # episode. Flagging this rather than pretending the greedy pass
+        # is perfectly reproducible -- it mostly is, for the Phase 3
+        # decisions that matter here, but not completely.
+        action = phase2_policy.select_action(state, valid)
+        state, _, done = env.step(action)
+        state['edges'] = edges; state['sessions'] = sessions
+        if done: break
+
+    # FIX: no fabricated fallback here either. The old line was
+    #   p2_bound = abs(env._best_pool_bound() or pb * 2)
+    # -- the same "invent a plausible number" bug class as the removed
+    # Stage-4 pb*2 fallback, just surviving in the Phase-2 column of
+    # eval_results.json. None now propagates; consumers guard for it.
+    p2_bound = env._best_pool_bound()
 
     env.nodes             = list(nodes)
     env.edges             = list(edges)
@@ -2303,7 +2332,10 @@ def _evaluate_inner(phase1_policy, phase2_policy, phase3_policy,
                 oom_skips += 1
                 continue
             p2b, p3b, is_novel, lp_valid, pb, _, no_terminal = result
-            results[gname]['p2_bounds'].append(p2b)
+            # p2b may be None now (no fabricated pb*2 fallback in
+            # _run_eval_episode). Only real bounds enter the list.
+            if p2b is not None:
+                results[gname]['p2_bounds'].append(p2b)
             if no_terminal:
                 no_terminal_count += 1
                 continue
@@ -2347,7 +2379,8 @@ def _evaluate_inner(phase1_policy, phase2_policy, phase3_policy,
             _eval_log["episodes"].append({
                 "mode": "greedy_best_of_trials", "graph": gname,
                 "greedy_trials": greedy_trials,
-                "p2_bound": float(p2b), "p3_bound": float(p3b),
+                "p2_bound": (float(p2b) if p2b is not None else None),
+                "p3_bound": float(p3b),
                 "partition_bound": float(pb),
                 "lp_lower_bound": float(lp_bounds.get(gname, 0.0)),
                 "is_novel": bool(is_novel), "lp_valid": bool(lp_valid),
@@ -2498,6 +2531,20 @@ def _evaluate_inner(phase1_policy, phase2_policy, phase3_policy,
 
 if __name__ == "__main__":
     import sys
+
+    # --pin-partitions: enable PARTITION_OVERRIDES (experiment mode).
+    # Currently pins al_bashabsheh_7N to the pre-regression 4-part
+    # partition {v1},{S1,S3,t1},{S2,t2},{t3}. That partition is
+    # DELIBERATELY PB-suboptimal (own bound 2.4 vs true PB 2.0 — it
+    # internalises only 2 of the graph's 3 sessions); the target bound
+    # the agent must beat stays the true PB 2.0. Use together with
+    # --finetune-stage4 to test whether the search partition, not the
+    # policy, is what blocks al_bashabsheh's novel bound.
+    if "--pin-partitions" in sys.argv:
+        PIN_PARTITIONS = True
+        print("[experiment] --pin-partitions active: "
+              f"overrides for {sorted(PARTITION_OVERRIDES.keys())}")
+
     if "--finetune-stage4" in sys.argv:
         # Fine-tune Stage 4 on all 19 graphs using existing checkpoint.
         # Resumes from ckpt_stage4_phase3.pt and trains for fewer episodes.
