@@ -31,6 +31,19 @@ from typing import Dict, List, Tuple, Set
 import numpy as np
 
 
+# ---------------------------------------------------------------------------
+# Terminal-form rejection diagnostic.
+# Set TERMINAL_REJECT_DIAG = True from a run/eval script to make
+# check_valid_terminal_form tally *why* each candidate inequality is rejected.
+# The tallies land in TERMINAL_REJECT_COUNTS. This is the tool that tells you
+# whether the ~100% no-terminal rate on the hard graphs is caused by the Y_I
+# floor, the cross-partition-edge requirement, leftover Y_ST/source terms, or
+# no candidate ever reaching the check at all. Off by default = no overhead.
+# ---------------------------------------------------------------------------
+TERMINAL_REJECT_DIAG: bool = False
+TERMINAL_REJECT_COUNTS: Dict[str, int] = {}
+
+
 @dataclass
 class EntropyIndex:
     partitions : List[List[str]]
@@ -208,21 +221,35 @@ class Inequality:
     MIN_YI_COEFF: float = 0.5
 
     def check_valid_terminal_form(self, tol: float = 1e-4) -> bool:
+        # DIAGNOSTIC: when TERMINAL_REJECT_DIAG is True (set it from a run
+        # script: `import fixed_inequality as FI; FI.TERMINAL_REJECT_DIAG=True`),
+        # every rejection is tallied by reason in FI.TERMINAL_REJECT_COUNTS.
+        # This is the measurement that answers *which* gate is killing terminal
+        # assembly on the hard graphs (Y_I floor vs. cross-partition-edge
+        # requirement vs. leftover Y_ST/source terms) instead of guessing.
+        # Off by default -> zero overhead in normal runs. Reset the dict
+        # yourself before a measured batch: FI.TERMINAL_REJECT_COUNTS.clear().
+        def _reject(reason):
+            if TERMINAL_REJECT_DIAG:
+                TERMINAL_REJECT_COUNTS[reason] = \
+                    TERMINAL_REJECT_COUNTS.get(reason, 0) + 1
+            return False
+
         c1 = self.get_yi_coefficient()
         # Require Y_I >= 0.5: blocks single-node fractional IOs that tune
         # lam to game the floor while still producing bound = LP.
         if c1 < self.MIN_YI_COEFF:
-            return False
+            return _reject("yi_below_floor")
         for i in range(len(self.index.partitions)):
             if self.coeffs[self.index.get_yst_idx(i)] > tol * c1:
-                return False
+                return _reject("leftover_yst")
         if self.get_rhs_edge_coefficient() <= 0:
-            return False
+            return _reject("no_rhs_edge")
         for v in self.index.nodes:
             if self.coeffs[self.index.get_source_idx(v)] > tol:
-                return False
+                return _reject("leftover_source_pos")
             if self.coeffs[self.index.get_source_idx(v)] < -tol:
-                return False
+                return _reject("leftover_source_neg")
         # Require at least one cross-partition edge on the RHS.
         #
         # A within-partition single-edge bound always reduces to
@@ -243,7 +270,7 @@ class Inequality:
             for e in self.index.edges
         )
         if not has_cross_partition_edge:
-            return False
+            return _reject("no_cross_partition_edge")
         return True
 
     def cancel_source_terms(self, tol: float = 1e-9) -> "Inequality":

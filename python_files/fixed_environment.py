@@ -72,6 +72,18 @@ from functional_dependence import (
 )
 
 
+# ---------------------------------------------------------------------------
+# FRACTIONAL_IO looping controls (moved here from inline so they can be swept
+# without editing step()). Defaults are the current production values.
+#   FIO_FREE_CALLS      : consecutive FRACTIONAL_IO calls allowed before decay.
+#   FIO_DECAY_PER_STEP  : reward subtracted per call beyond the free budget.
+# See the note in step() on how to interpret a sweep. Sweep under a fixed seed
+# only — otherwise the change and the RNG move together and you learn nothing.
+# ---------------------------------------------------------------------------
+FIO_FREE_CALLS: int = 3
+FIO_DECAY_PER_STEP: float = 0.08
+
+
 class Phase(IntEnum):
     PHASE1 = 1
     PHASE2 = 2
@@ -753,10 +765,25 @@ class PartitionBoundEnv:
                     reward = 0.15   # meaningful signal; cross-partition + novel
                     self._consecutive_fio = 0  # genuinely new content -- not looping
                 elif fi.is_cross_partition():
-                    reward = 0.05   # cross-partition but already in pool
+                    # FIX (degenerate-IO farm): was +0.05. A cross-partition IO
+                    # already in the pool adds nothing -- paying for it let the
+                    # policy re-emit clones for free. Zeroed. Still counts as a
+                    # loop step so the decay applies.
+                    reward = 0.0
                     self._consecutive_fio += 1
                 else:
-                    reward = 0.02   # same-partition (low value)
+                    # FIX (degenerate-IO farm): was +0.02. Same-partition IOs can
+                    # NEVER satisfy the terminal check (which requires a
+                    # cross-partition edge), yet this +0.02 floor paid the policy
+                    # to emit them forever. The terminal diagnostic showed ~900k
+                    # such degenerate emissions ("yi_below_floor") per hard graph.
+                    # Zeroing removes the farm: emitting a useless IO now earns
+                    # nothing, and the decay below pushes repeated emission
+                    # negative, forcing the policy toward terminal-producing
+                    # actions. Zeroed (not negative) so a genuine exploratory
+                    # same-partition step early in an episode isn't punished --
+                    # only looping is, via the decay.
+                    reward = 0.0
                     self._consecutive_fio += 1
                 self.frac_pool.add(fi)
                 reward += self._pool_improvement_bonus()
@@ -770,10 +797,16 @@ class PartitionBoundEnv:
             # to do better. Threshold chosen so 2-3 exploratory FRACTIONAL_IO
             # calls per episode are still free -- only genuine looping is
             # punished.
-            _FIO_FREE_CALLS = 3
-            _FIO_DECAY_PER_STEP = 0.08
-            if self._consecutive_fio > _FIO_FREE_CALLS:
-                reward -= _FIO_DECAY_PER_STEP * (self._consecutive_fio - _FIO_FREE_CALLS)
+            # Tunable from the module level (see FIO_FREE_CALLS /
+            # FIO_DECAY_PER_STEP at top of file). Defaults unchanged (3, 0.08).
+            # These control whether the agent is pushed OFF looping
+            # FRACTIONAL_IO toward terminal-producing actions. Sweep them —
+            # under a FIXED SEED — to test whether the hard graphs fail
+            # because the agent bails off FIO too early (raise FREE_CALLS /
+            # lower DECAY) or loops forever and never terminates (lower
+            # FREE_CALLS / raise DECAY). Do NOT guess a value; measure.
+            if self._consecutive_fio > FIO_FREE_CALLS:
+                reward -= FIO_DECAY_PER_STEP * (self._consecutive_fio - FIO_FREE_CALLS)
             return self._get_state(), reward, False
 
         # Any action other than FRACTIONAL_IO breaks the loop -- reset the

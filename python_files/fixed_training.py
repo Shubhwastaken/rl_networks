@@ -44,6 +44,16 @@ import json, time
 SEED = 42
 random.seed(SEED)
 np.random.seed(SEED)
+# Seed torch too. Without these, every action drawn by the GNN policies
+# (torch.distributions.Categorical(...).sample()) comes from torch's global
+# RNG, which random.seed/np.random.seed do NOT touch. That made every run
+# non-reproducible: the same code produced different novel/not-found counts
+# purely from the seed, so no two runs could be compared and no fix could be
+# measured. cudnn.deterministic trades a little GPU speed for reproducibility.
+torch.manual_seed(SEED)
+torch.cuda.manual_seed_all(SEED)
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
 
 from fixed_environment import PartitionBoundEnv, ActionType, Phase, _compute_partition_bound, MAX_DERIVED
 from partition import generate_random_valid_partition, decode_partition

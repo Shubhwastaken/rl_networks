@@ -2,174 +2,12 @@
   "episodes": [
     {
       "mode": "stochastic",
-      "graph": "hu_3pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "hu_3pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "hu_3pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "hu_3pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 1.3333333333333333,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "greedy_best_of_trials",
       "graph": "okamura_4N",
-      "greedy_trials": 8,
-      "p3_bound": null,
-      "no_valid_terminal": true,
+      "p3_bound": 1.25,
       "partition_bound": 1.25,
       "lp_lower_bound": 1.0,
       "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_4N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_4N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_4N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_4N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_4N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_4N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_4N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_4N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_4N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_4N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_4N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_4N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
+      "lp_valid": true
     },
     {
       "mode": "stochastic",
@@ -293,6 +131,135 @@
     {
       "mode": "stochastic",
       "graph": "okamura_4N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": 3.111587982832618,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 1.25,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_4N",
       "p3_bound": 1.25,
       "partition_bound": 1.25,
       "lp_lower_bound": 1.0,
@@ -330,29 +297,139 @@
       "lp_valid": false
     },
     {
-      "mode": "stochastic",
-      "graph": "okamura_4N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_4N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 1.25,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
       "mode": "greedy_best_of_trials",
       "graph": "ford_fulkerson_6N",
       "greedy_trials": 8,
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 5.0,
+      "lp_lower_bound": 2.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "ford_fulkerson_6N",
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 5.0,
@@ -502,132 +579,6 @@
     {
       "mode": "stochastic",
       "graph": "ford_fulkerson_6N",
-      "p3_bound": 5.0,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "ford_fulkerson_6N",
-      "p3_bound": 5.0,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "ford_fulkerson_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "ford_fulkerson_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "ford_fulkerson_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "ford_fulkerson_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "ford_fulkerson_6N",
-      "p3_bound": 5.0,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "ford_fulkerson_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "ford_fulkerson_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "ford_fulkerson_6N",
-      "p3_bound": 5.0,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "ford_fulkerson_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "ford_fulkerson_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "ford_fulkerson_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 5.0,
-      "lp_lower_bound": 2.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "ford_fulkerson_6N",
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 5.0,
@@ -973,7 +924,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -983,7 +934,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -993,7 +944,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1003,7 +954,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1013,7 +964,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1023,7 +974,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1033,7 +984,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1043,7 +994,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1053,7 +1004,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1063,7 +1014,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1073,7 +1024,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1083,7 +1034,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1093,7 +1044,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1103,7 +1054,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1113,7 +1064,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1123,7 +1074,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1133,7 +1084,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1143,7 +1094,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1153,7 +1104,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1163,7 +1114,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1173,7 +1124,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1183,7 +1134,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1193,7 +1144,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1203,7 +1154,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1213,7 +1164,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1223,7 +1174,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1233,7 +1184,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1243,7 +1194,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1253,7 +1204,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1263,7 +1214,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1273,7 +1224,7 @@
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "is_novel": false,
       "lp_valid": false
     },
@@ -1953,1137 +1904,6 @@
     {
       "mode": "stochastic",
       "graph": "hu_2pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "hu_2pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "hu_2pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "hu_2pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "hu_2pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "hu_2pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "hu_2pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "hu_2pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "hu_2pairs_6N",
-      "p3_bound": 2.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "hu_2pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "hu_2pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "hu_2pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "hu_2pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "hu_2pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "hu_2pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "hu_2pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "hu_2pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "hu_2pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "hu_2pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "hu_2pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "hu_2pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "hu_2pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "hu_2pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "hu_2pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "hu_2pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "hu_2pairs_6N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "greedy_best_of_trials",
-      "graph": "grid_4x4_16N",
-      "greedy_trials": 8,
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "grid_4x4_16N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "greedy_best_of_trials",
-      "graph": "okamura_seymour_8N",
-      "greedy_trials": 8,
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_seymour_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 3.0,
-      "lp_lower_bound": 1.5,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "greedy_best_of_trials",
-      "graph": "kramer_savari_ladder_8N",
-      "greedy_trials": 8,
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "kramer_savari_ladder_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "kramer_savari_ladder_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "kramer_savari_ladder_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "kramer_savari_ladder_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "kramer_savari_ladder_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "kramer_savari_ladder_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "kramer_savari_ladder_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "kramer_savari_ladder_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "kramer_savari_ladder_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "kramer_savari_ladder_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "kramer_savari_ladder_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "kramer_savari_ladder_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "kramer_savari_ladder_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "kramer_savari_ladder_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "kramer_savari_ladder_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "kramer_savari_ladder_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "kramer_savari_ladder_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "kramer_savari_ladder_8N",
-      "p3_bound": 2.0,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "kramer_savari_ladder_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "kramer_savari_ladder_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "kramer_savari_ladder_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "kramer_savari_ladder_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "kramer_savari_ladder_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "kramer_savari_ladder_8N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 2.0,
-      "lp_lower_bound": 1.0,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "kramer_savari_ladder_8N",
       "p3_bound": 1.0,
       "partition_bound": 2.0,
       "lp_lower_bound": 1.0,
@@ -3092,6 +1912,1137 @@
     },
     {
       "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": 5.625,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": true
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "hu_2pairs_6N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "greedy_best_of_trials",
+      "graph": "grid_4x4_16N",
+      "greedy_trials": 8,
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "grid_4x4_16N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "greedy_best_of_trials",
+      "graph": "okamura_seymour_8N",
+      "greedy_trials": 8,
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_seymour_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 3.0,
+      "lp_lower_bound": 1.5,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "greedy_best_of_trials",
+      "graph": "kramer_savari_ladder_8N",
+      "greedy_trials": 8,
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": 2.0,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "kramer_savari_ladder_8N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 2.0,
+      "lp_lower_bound": 1.0,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
       "graph": "kramer_savari_ladder_8N",
       "p3_bound": null,
       "no_valid_terminal": true,
@@ -3274,6 +3225,15 @@
     {
       "mode": "stochastic",
       "graph": "okamura_network_paper_5N",
+      "p3_bound": 0.75,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 0.75,
@@ -3284,7 +3244,137 @@
     {
       "mode": "stochastic",
       "graph": "okamura_network_paper_5N",
-      "p3_bound": 1.8025,
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": null,
+      "no_valid_terminal": true,
+      "partition_bound": 0.75,
+      "lp_lower_bound": 0.75,
+      "is_novel": false,
+      "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "okamura_network_paper_5N",
+      "p3_bound": 5.1880000000000015,
       "partition_bound": 0.75,
       "lp_lower_bound": 0.75,
       "is_novel": false,
@@ -3311,146 +3401,6 @@
       "lp_valid": false
     },
     {
-      "mode": "stochastic",
-      "graph": "okamura_network_paper_5N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 0.75,
-      "lp_lower_bound": 0.75,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_network_paper_5N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 0.75,
-      "lp_lower_bound": 0.75,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_network_paper_5N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 0.75,
-      "lp_lower_bound": 0.75,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_network_paper_5N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 0.75,
-      "lp_lower_bound": 0.75,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_network_paper_5N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 0.75,
-      "lp_lower_bound": 0.75,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_network_paper_5N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 0.75,
-      "lp_lower_bound": 0.75,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_network_paper_5N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 0.75,
-      "lp_lower_bound": 0.75,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_network_paper_5N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 0.75,
-      "lp_lower_bound": 0.75,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_network_paper_5N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 0.75,
-      "lp_lower_bound": 0.75,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_network_paper_5N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 0.75,
-      "lp_lower_bound": 0.75,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_network_paper_5N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 0.75,
-      "lp_lower_bound": 0.75,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_network_paper_5N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 0.75,
-      "lp_lower_bound": 0.75,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_network_paper_5N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 0.75,
-      "lp_lower_bound": 0.75,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "okamura_network_paper_5N",
-      "p3_bound": null,
-      "no_valid_terminal": true,
-      "partition_bound": 0.75,
-      "lp_lower_bound": 0.75,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
       "mode": "greedy_best_of_trials",
       "graph": "hu_three_session_6N",
       "greedy_trials": 8,
@@ -3995,15 +3945,6 @@
     {
       "mode": "stochastic",
       "graph": "yin_et_al_7N",
-      "p3_bound": 1.6666666666666667,
-      "partition_bound": 1.6666666666666667,
-      "lp_lower_bound": 1.25,
-      "is_novel": false,
-      "lp_valid": false
-    },
-    {
-      "mode": "stochastic",
-      "graph": "yin_et_al_7N",
       "p3_bound": null,
       "no_valid_terminal": true,
       "partition_bound": 1.6666666666666667,
@@ -4050,6 +3991,15 @@
       "lp_lower_bound": 1.25,
       "is_novel": false,
       "lp_valid": false
+    },
+    {
+      "mode": "stochastic",
+      "graph": "yin_et_al_7N",
+      "p3_bound": 7.187500000000002,
+      "partition_bound": 1.6666666666666667,
+      "lp_lower_bound": 1.25,
+      "is_novel": false,
+      "lp_valid": true
     },
     {
       "mode": "stochastic",
@@ -4095,9 +4045,9 @@
       "greedy_is_novel": false,
       "greedy_lp_valid": false,
       "stochastic_attempted": 30,
-      "stochastic_no_terminal_count": 29,
-      "stochastic_success_pct": 100.0,
-      "stochastic_episodes": 1,
+      "stochastic_no_terminal_count": 30,
+      "stochastic_success_pct": null,
+      "stochastic_episodes": 0,
       "stochastic_lp_valid": true,
       "improvement_pct": 0.0
     },
@@ -4165,9 +4115,9 @@
       "greedy_is_novel": false,
       "greedy_lp_valid": false,
       "stochastic_attempted": 30,
-      "stochastic_no_terminal_count": 28,
+      "stochastic_no_terminal_count": 26,
       "stochastic_success_pct": 0.0,
-      "stochastic_episodes": 2,
+      "stochastic_episodes": 4,
       "stochastic_lp_valid": true,
       "improvement_pct": 0.0
     },
@@ -4179,9 +4129,9 @@
       "greedy_is_novel": false,
       "greedy_lp_valid": false,
       "stochastic_attempted": 30,
-      "stochastic_no_terminal_count": 25,
+      "stochastic_no_terminal_count": 29,
       "stochastic_success_pct": 0.0,
-      "stochastic_episodes": 5,
+      "stochastic_episodes": 1,
       "stochastic_lp_valid": true,
       "improvement_pct": 0.0
     },
@@ -4201,7 +4151,7 @@
     },
     "petersen_10N": {
       "partition_bound": 1.875,
-      "lp_lower_bound": 1.25,
+      "lp_lower_bound": 1.2500000000000002,
       "greedy_best_bound": null,
       "greedy_no_valid_terminal": true,
       "greedy_is_novel": false,
@@ -4249,9 +4199,9 @@
       "greedy_is_novel": false,
       "greedy_lp_valid": false,
       "stochastic_attempted": 30,
-      "stochastic_no_terminal_count": 29,
-      "stochastic_success_pct": 0.0,
-      "stochastic_episodes": 1,
+      "stochastic_no_terminal_count": 28,
+      "stochastic_success_pct": 50.0,
+      "stochastic_episodes": 2,
       "stochastic_lp_valid": true,
       "improvement_pct": 0.0
     },
@@ -4291,9 +4241,9 @@
       "greedy_is_novel": false,
       "greedy_lp_valid": false,
       "stochastic_attempted": 30,
-      "stochastic_no_terminal_count": 28,
-      "stochastic_success_pct": 50.0,
-      "stochastic_episodes": 2,
+      "stochastic_no_terminal_count": 29,
+      "stochastic_success_pct": 0.0,
+      "stochastic_episodes": 1,
       "stochastic_lp_valid": true,
       "improvement_pct": 0.0
     },
@@ -4305,9 +4255,9 @@
       "greedy_is_novel": false,
       "greedy_lp_valid": false,
       "stochastic_attempted": 30,
-      "stochastic_no_terminal_count": 29,
+      "stochastic_no_terminal_count": 28,
       "stochastic_success_pct": 0.0,
-      "stochastic_episodes": 1,
+      "stochastic_episodes": 2,
       "stochastic_lp_valid": true,
       "improvement_pct": 0.0
     },
@@ -4351,7 +4301,7 @@
     "okamura_4N": 1.0,
     "ford_fulkerson_6N": 2.0,
     "grid_3x4_12N": 1.0,
-    "petersen_10N": 1.25,
+    "petersen_10N": 1.2500000000000002,
     "two_k4_10N": 0.6666666666666666,
     "al_bashabsheh_7N": 1.5,
     "hu_2pairs_6N": 1.0,
