@@ -875,9 +875,17 @@ class PartitionBoundEnv:
                 is_mixed  = a_has_yst != b_has_yst   # one partition IO + one node IO
                 is_cross  = a_parts and b_parts and not (a_parts & b_parts)
                 if is_mixed:
-                    reward = 0.8   # genuine collapse opportunity — doubled to compete with timeout risk
+                    # Was 0.8. The Stage-4 proof log shows novel bounds are
+                    # produced almost entirely by long APPLY_CRYPTO/APPLY_DECODE
+                    # chains, NOT by CROSS_SUBMOD. Paying 0.8 up front for one
+                    # CROSS_SUBMOD step trained the policy to grab that reward
+                    # and avoid the longer, lower-paying crypto/decode climb
+                    # that actually reaches valid terminals. Reduced so it stays
+                    # a legal, mildly-useful move without out-competing the
+                    # mechanism that does the work.
+                    reward = 0.15
                 elif is_cross:
-                    reward = 0.1   # cross-partition but same type, limited value
+                    reward = 0.05  # cross-partition but same type, limited value
                 else:
                     reward = 0.02  # same partition, same type — minimal
                 reward += self._pool_improvement_bonus()
@@ -921,7 +929,13 @@ class PartitionBoundEnv:
             # fix in _valid_phase3 for why that starved the policy of the
             # chance to ever use this action while still building a proof).
             cut_idx = action.get('cut_idx', 0)
-            reward  = -0.1
+            # Was -0.1 flat entry cost. The Stage-4 proof log shows novel bounds
+            # are built almost entirely by long APPLY_CRYPTO/APPLY_DECODE chains.
+            # An entry penalty on every attempt made a multi-step climb accrue
+            # negative reward until the payoff at the end, so the policy learned
+            # to avoid the very actions that reach valid terminals. Start
+            # neutral; the progress/beat-PB rewards below still apply.
+            reward  = 0.0
             if (self.func_dep_actions is not None
                     and cut_idx < self.func_dep_actions.num_crypto_cuts()):
                 vp, sep_list = self.func_dep_actions.crypto_cut(cut_idx)
@@ -954,18 +968,22 @@ class PartitionBoundEnv:
                     )
                     if new_best < pb - 1e-8:
                         improvement = (pb - new_best) / pb
-                        reward = 1.0 + 3.0 * improvement  # reduced to balance vs CROSS_SUBMOD
+                        reward = 1.0 + 3.0 * improvement
                     else:
-                        reward = 0.2
+                        # Successful crypto application that hasn't yet beaten
+                        # PB is real progress along the winning chain — pay for
+                        # it so the policy sustains the climb. Was 0.2.
+                        reward = 0.3
+                    reward += self._pool_improvement_bonus()
                 else:
-                    reward = -0.05
+                    reward = -0.02   # applied nothing; mild, not punishing
             return self._get_state(), reward, False
 
         elif action_type == ActionType.APPLY_DECODE:
             self.phase3_used_decode = True
             # Apply decode to accumulator items too -- see matching crypto fix above.
             si     = action.get('session_idx', 0)
-            reward = -0.1
+            reward = 0.0   # was -0.1 entry penalty; see APPLY_CRYPTO note above
             if (self.func_dep_actions is not None
                     and si < len(self.sessions)):
                 applied_any = False
@@ -994,11 +1012,14 @@ class PartitionBoundEnv:
                     )
                     if new_best < pb - 1e-8:
                         improvement = (pb - new_best) / pb
-                        reward = 1.0 + 3.0 * improvement  # reduced to balance vs CROSS_SUBMOD
+                        reward = 1.0 + 3.0 * improvement
                     else:
-                        reward = 0.15
+                        # Successful decode step that hasn't yet beaten PB is
+                        # progress along the winning chain. Was 0.15.
+                        reward = 0.3
+                    reward += self._pool_improvement_bonus()
                 else:
-                    reward = -0.05
+                    reward = -0.02
             return self._get_state(), reward, False
 
         elif action_type == ActionType.DECLARE_TERMINAL:

@@ -1,38 +1,44 @@
-Training completed: 2026-07-06 12:40:22
-Runtime: 25662.6s (427.7 min)
+Training completed: 2026-07-07 04:06:08
+Runtime: 1697.2s (28.3 min)
 
 ================================================================================
 RESULTS TABLE
 ================================================================================
   Graph                        PB    LP LB   RL Bound   Improv%       Status
   ---------------------------------------------------------------------------
-  paper_7N                 1.6667   1.0000   1.000000    40.00%  TIGHT (=LP)
+  paper_7N                 1.6667   1.0000   1.068555    35.89%       NOVEL
   diamond_6N               1.7500   1.0000   1.000000    42.86%  TIGHT (=LP)
-  butterfly_8N             1.5000   1.0000   1.500000     0.00%   NOT FOUND
-  grid_9N                  2.0000   1.0000   1.000000    50.00%  TIGHT (=LP)
-  star_8N                  2.2500   1.0000   1.635625    27.31%       NOVEL
-  hu_3pairs_6N             1.3333   1.0000   1.102151    17.34%       NOVEL
-  okamura_4N               1.2500   1.0000   1.060606    15.15%       NOVEL
-  ford_fulkerson_6N        5.0000   2.0000   2.250000    55.00%       NOVEL
-  grid_3x4_12N             2.8333   1.0000   2.833333     0.00%   NOT FOUND
-  petersen_10N             1.8750   1.2500   1.875000     0.00%   NOT FOUND
-  two_k4_10N               2.6667   0.6667   1.083333    59.37%       NOVEL
+  butterfly_8N             1.5000   1.0000   1.090909    27.27%       NOVEL
+  grid_9N                  2.0000   1.0000   1.037037    48.15%       NOVEL
+  star_8N                  2.2500   1.0000   1.746667    22.37%       NOVEL
+  hu_3pairs_6N             1.3333   1.0000   1.059465    20.54%       NOVEL
+  okamura_4N               1.2500   1.0000   1.000000    20.00%  TIGHT (=LP)
+  ford_fulkerson_6N        5.0000   2.0000   2.333333    53.33%       NOVEL
+  grid_3x4_12N             2.8333   1.0000   1.019701    64.01%       NOVEL
+  petersen_10N             1.8750   1.2500   1.555556    17.04%       NOVEL
+  two_k4_10N               2.6667   0.6667   1.873529    29.74%       NOVEL
   al_bashabsheh_7N         2.0000   1.5000   2.000000     0.00%   NOT FOUND
   hu_2pairs_6N             2.0000   1.0000   1.000000    50.00%  TIGHT (=LP)
-  grid_4x4_16N             3.0000   1.0000   2.000000    33.33%       NOVEL
-  okamura_seymour_8N       3.0000   1.5000   3.000000     0.00%   NOT FOUND
+  grid_4x4_16N             3.0000   1.0000   3.000000     0.00%   NOT FOUND
+  okamura_seymour_8N       3.0000   1.5000   2.912621     2.91%       NOVEL
   kramer_savari_ladder_8N   2.0000   1.0000   1.000000    50.00%  TIGHT (=LP)
   okamura_network_paper_5N   0.7500   0.7500   0.750000     0.00%  TIGHT (PB=LP)
-  hu_three_session_6N      1.3333   1.1429   1.260669     5.45%       NOVEL
+  hu_three_session_6N      1.3333   1.1429   1.207692     9.42%       NOVEL
   yin_et_al_7N             1.6667   1.2500   1.666667     0.00%   NOT FOUND
 
   ===========================================================================
-  Novel bounds found: 12 / 19 graphs
-  Tight (= LP lower bound): 5
+  Novel bounds found: 15 / 19 graphs
+  Tight (= LP lower bound): 4
 
 ================================================================================
 NOVEL INEQUALITIES (full traces)
 ================================================================================
+
+  Graph:      butterfly_8N
+  RL Bound:   r <= 1.090909
+  PB:         r <= 1.500000
+  Improvement:27.273%
+  Inequality: [proof=FRACTIONAL λ=1.0000 src=none parts=none]  1.000*Y_I_P0 + 1.000*Y_I_P1 + 1.750*Y_I <= 1.000*U_S1_S2 + 1.000*U_S2_S3 + 1.000*U_S3_S4 + 1.000*U_S1_S4 + 1.000*U_S1_t2 + 1.000*U_S2_t3 + 1.000*U_S3_t4 + 1.000*U_S4_t1 + 1.000*U_t1_t2 + 1.000*U_t2_t3 + 1.000*U_t3_t4 + 1.000*U_t1_t4
 
   Graph:      diamond_6N
   RL Bound:   r <= 1.000000
@@ -41,67 +47,79 @@ NOVEL INEQUALITIES (full traces)
   Inequality: [proof=INTEGER λ=1.0000 src=none parts=none]  1.000*Y_I_P0 + 2.000*Y_I <= 1.000*U_S1_v1 + 1.000*U_S1_v2 + 1.000*U_S2_v1 + 1.000*U_S2_v2 + 1.000*U_v1_t1 + 1.000*U_v2_t2
 
   Graph:      ford_fulkerson_6N
-  RL Bound:   r <= 2.250000
+  RL Bound:   r <= 2.333333
   PB:         r <= 5.000000
-  Improvement:55.000%
-  Inequality: [proof=FRACTIONAL λ=1.0000 src=none parts=none]  1.000*Y_I <= 1.000*U_s_a + 0.750*U_s_b + 0.250*U_a_c + 0.250*U_a_d + 1.000*U_c_t + 1.000*U_d_t + 0.250*U_a_b
+  Improvement:53.333%
+  Inequality: [proof=INTEGER λ=1.0000 src=none parts=none]  1.000*Y_I_P0 + 1.000*Y_I_P4 + 1.000*Y_I <= 1.000*U_s_a + 1.000*U_s_b + 1.000*U_a_d + 1.000*U_b_d + 1.000*U_c_t + 1.000*U_d_t + 1.000*U_c_d
 
-  Graph:      grid_4x4_16N
-  RL Bound:   r <= 2.000000
-  PB:         r <= 3.000000
-  Improvement:33.333%
-  Inequality: [proof=INTEGER λ=1.0000 src=none parts=none]  1.000*Y_I_P0 + 1.000*Y_I_P1 + 2.000*Y_I <= 1.000*U_r0c0_r0c1 + 1.000*U_r0c0_r1c0 + 1.000*U_r0c1_r0c2 + 1.000*U_r0c1_r1c1 + 1.000*U_r0c2_r0c3 + 1.000*U_r0c2_r1c2 + 1.000*U_r0c3_r1c3 + 1.000*U_r1c0_r1c1 + 1.000*U_r1c0_r2c0 + 1.000*U_r1c1_r1c2 + 1.000*U_r1c1_r2c1 + 1.000*U_r1c2_r1c3 + 1.000*U_r1c2_r2c2 + 1.000*U_r1c3_r2c3 + 1.000*U_r2c0_r2c1 + 1.000*U_r2c0_r3c0 + 1.000*U_r2c1_r2c2 + 1.000*U_r2c1_r3c1 + 1.000*U_r2c2_r2c3 + 1.000*U_r2c2_r3c2 + 1.000*U_r2c3_r3c3 + 1.000*U_r3c0_r3c1 + 1.000*U_r3c1_r3c2 + 1.000*U_r3c2_r3c3
+  Graph:      grid_3x4_12N
+  RL Bound:   r <= 1.019701
+  PB:         r <= 2.833333
+  Improvement:64.011%
+  Inequality: [proof=FRACTIONAL λ=1.0000 src=none parts=none]  5.583*Y_I <= 1.670*U_r0c0_r0c1 + 1.420*U_r0c0_r1c0 + 1.670*U_r0c1_r0c2 + 1.330*U_r0c1_r1c1 + 2.500*U_r0c2_r0c3 + 0.670*U_r0c2_r1c2 + 1.830*U_r0c3_r1c3 + 1.080*U_r1c0_r1c1 + 1.750*U_r1c0_r2c0 + 0.330*U_r1c1_r1c2 + 0.330*U_r1c1_r2c1 + 0.750*U_r1c3_r2c3 + 1.000*U_r2c0_r2c1 + 0.750*U_r2c2_r2c3
 
   Graph:      grid_9N
-  RL Bound:   r <= 1.000000
+  RL Bound:   r <= 1.037037
   PB:         r <= 2.000000
-  Improvement:50.000%
-  Inequality: [proof=INTEGER λ=1.0000 src=none parts=none]  1.000*Y_I_P0 + 1.000*Y_I_P1 + 3.000*Y_I <= 1.000*U_a_b + 1.000*U_b_c + 1.000*U_d_e + 1.000*U_e_f + 1.000*U_g_h + 1.000*U_h_i + 1.000*U_a_d + 1.000*U_b_e + 1.000*U_c_f + 1.000*U_d_g + 1.000*U_e_h + 1.000*U_f_i
+  Improvement:48.148%
+  Inequality: [proof=INTEGER λ=1.0000 src=none parts=none]  1.000*Y_I_P0 + 1.000*Y_I_P1 + 1.000*Y_I_P2 + 8.000*Y_I <= 2.000*U_a_b + 3.000*U_b_c + 2.000*U_d_e + 2.000*U_e_f + 2.000*U_g_h + 3.000*U_h_i + 2.000*U_a_d + 2.000*U_b_e + 3.000*U_c_f + 2.000*U_d_g + 2.000*U_e_h + 3.000*U_f_i
 
   Graph:      hu_2pairs_6N
   RL Bound:   r <= 1.000000
   PB:         r <= 2.000000
   Improvement:50.000%
-  Inequality: [proof=FRACTIONAL λ=1.0000 src=['b', 'a'] parts=[0, 1]]  0.500*Y_I <= 1.000*U_a_b
+  Inequality: [proof=FRACTIONAL λ=1.0000 src=['d', 'e'] parts=[0, 1]]  0.500*Y_I <= 1.000*U_d_e
 
   Graph:      hu_3pairs_6N
-  RL Bound:   r <= 1.102151
+  RL Bound:   r <= 1.059465
   PB:         r <= 1.333333
-  Improvement:17.339%
-  Inequality: [proof=FRACTIONAL λ=1.0000 src=none parts=none]  6.200*Y_I <= 3.400*U_a_c + 1.910*U_a_d + 2.310*U_a_e + 2.190*U_b_d + 2.590*U_b_e + 3.000*U_b_f + 3.500*U_c_f + 1.600*U_d_e
+  Improvement:20.540%
+  Inequality: [proof=FRACTIONAL λ=1.0000 src=none parts=none]  6.110*Y_I <= 2.500*U_a_c + 2.420*U_a_d + 3.340*U_a_e + 2.080*U_b_d + 3.000*U_b_e + 3.080*U_b_f + 1.580*U_c_f + 1.420*U_d_e
 
   Graph:      hu_three_session_6N
-  RL Bound:   r <= 1.260669
+  RL Bound:   r <= 1.207692
   PB:         r <= 1.333333
-  Improvement:5.450%
-  Inequality: [proof=FRACTIONAL λ=1.0000 src=none parts=none]  2.890*Y_I <= 0.930*U_v1_v2 + 0.730*U_v1_v6 + 1.330*U_v1_v4 + 1.600*U_v2_v3 + 1.270*U_v2_v5 + 1.400*U_v3_v6 + 2.000*U_v3_v4 + 1.670*U_v4_v5
+  Improvement:9.423%
+  Inequality: [proof=FRACTIONAL λ=1.0000 src=none parts=none]  2.167*Y_I <= 1.100*U_v1_v2 + 1.000*U_v1_v6 + 1.350*U_v1_v4 + 0.500*U_v2_v3 + 1.250*U_v2_v5 + 0.400*U_v3_v6 + 0.750*U_v3_v4 + 1.500*U_v4_v5
 
   Graph:      kramer_savari_ladder_8N
   RL Bound:   r <= 1.000000
   PB:         r <= 2.000000
   Improvement:50.000%
-  Inequality: [proof=FRACTIONAL λ=1.0000 src=['s1'] parts=[0]]  1.000*Y_I_P0 + 1.667*Y_I <= 1.000*U_s1_a1 + 1.000*U_s1_a2 + 1.000*U_s2_a1 + 1.000*U_s2_a2 + 1.000*U_b1_t1 + 1.000*U_b1_t2 + 1.000*U_b2_t1 + 1.000*U_b2_t2
+  Inequality: [proof=FRACTIONAL λ=1.0000 src=none parts=none]  1.000*Y_I_P0 + 1.667*Y_I <= 1.000*U_s1_a1 + 1.000*U_s1_a2 + 1.000*U_s2_a1 + 1.000*U_s2_a2 + 1.000*U_b1_t1 + 1.000*U_b1_t2 + 1.000*U_b2_t1 + 1.000*U_b2_t2
 
   Graph:      okamura_4N
-  RL Bound:   r <= 1.060606
+  RL Bound:   r <= 1.000000
   PB:         r <= 1.250000
-  Improvement:15.152%
-  Inequality: [proof=FRACTIONAL λ=1.0000 src=none parts=none]  2.750*Y_I <= 1.000*U_a_b + 2.250*U_b_c + 2.000*U_c_d + 0.750*U_a_d + 2.750*U_a_c
+  Improvement:20.000%
+  Inequality: [proof=FRACTIONAL λ=1.0000 src=['a', 'b'] parts=[0, 1]]  0.667*Y_I <= 1.000*U_a_b + 1.000*U_a_d
+
+  Graph:      okamura_seymour_8N
+  RL Bound:   r <= 2.912621
+  PB:         r <= 3.000000
+  Improvement:2.913%
+  Inequality: [proof=FRACTIONAL λ=1.0000 src=none parts=none]  1.545*Y_I <= 1.320*U_a_b + 1.650*U_b_c + 2.500*U_c_d + 1.500*U_d_e + 1.330*U_e_f + 1.580*U_f_g + 0.850*U_g_h + 1.270*U_h_a + 0.670*U_a_e + 1.980*U_b_f + 1.250*U_c_g + 2.100*U_d_h
 
   Graph:      paper_7N
-  RL Bound:   r <= 1.000000
+  RL Bound:   r <= 1.068555
   PB:         r <= 1.666667
-  Improvement:40.000%
-  Inequality: [proof=FRACTIONAL λ=1.0000 src=none parts=none]  6.667*Y_I <= 1.000*U_S1_S2 + 2.080*U_S1_v1 + 2.420*U_S2_v1 + 3.000*U_S3_v1 + 0.330*U_S1_t3 + 0.670*U_S2_t1 + 3.250*U_S3_t2 + 1.750*U_t1_v1 + 3.750*U_t2_v1 + 1.750*U_t3_v1
+  Improvement:35.887%
+  Inequality: [proof=FRACTIONAL λ=1.0000 src=none parts=none]  5.883*Y_I <= 2.180*U_S1_S2 + 1.770*U_S1_v1 + 1.750*U_S2_v1 + 2.170*U_S3_v1 + 2.100*U_S1_t3 + 2.330*U_S2_t1 + 1.900*U_S3_t2 + 1.920*U_t1_v1 + 1.070*U_t2_v1 + 1.670*U_t3_v1
+
+  Graph:      petersen_10N
+  RL Bound:   r <= 1.555556
+  PB:         r <= 1.875000
+  Improvement:17.037%
+  Inequality: [proof=FRACTIONAL λ=1.0000 src=none parts=none]  1.000*Y_I_P0 + 1.000*Y_I_P3 + 1.250*Y_I <= 1.000*U_1_2 + 1.000*U_5_7 + 1.000*U_6_9 + 1.000*U_2_7 + 1.000*U_2_3 + 1.000*U_0_4 + 1.000*U_4_9 + 1.000*U_7_9 + 1.000*U_0_1 + 1.000*U_3_8 + 1.000*U_6_8 + 1.000*U_3_4 + 1.000*U_5_8 + 1.000*U_0_5
 
   Graph:      star_8N
-  RL Bound:   r <= 1.635625
+  RL Bound:   r <= 1.746667
   PB:         r <= 2.250000
-  Improvement:27.306%
-  Inequality: [proof=FRACTIONAL λ=1.0000 src=none parts=none]  8.000*Y_I <= 3.270*U_S1_v1 + 2.870*U_S2_v1 + 3.770*U_v1_t1 + 2.970*U_v1_t2 + 2.730*U_S1_r1 + 2.430*U_r1_t2 + 1.500*U_S2_r2 + 2.400*U_r2_t1 + 4.230*U_r1_r3
+  Improvement:22.370%
+  Inequality: [proof=FRACTIONAL λ=1.0000 src=none parts=none]  5.625*Y_I <= 1.750*U_S1_v1 + 2.850*U_S2_v1 + 1.500*U_v1_t1 + 1.750*U_v1_t2 + 3.150*U_S1_r1 + 3.150*U_r1_t2 + 1.850*U_S2_r2 + 0.500*U_r2_t1 + 3.150*U_r1_r3
 
   Graph:      two_k4_10N
-  RL Bound:   r <= 1.083333
+  RL Bound:   r <= 1.873529
   PB:         r <= 2.666667
-  Improvement:59.375%
-  Inequality: [proof=FRACTIONAL λ=1.0000 src=none parts=none]  6.200*Y_I <= 2.400*U_a0_a1 + 2.900*U_a0_a2 + 3.400*U_a0_a3 + 0.500*U_a1_a2 + 1.000*U_a1_a3 + 1.500*U_a2_a3 + 0.250*U_b0_b1 + 0.750*U_b0_b2 + 0.600*U_b0_b3 + 1.000*U_b1_b2 + 0.850*U_b1_b3 + 1.350*U_b2_b3 + 2.900*U_a0_m + 0.500*U_m_b0 + 0.250*U_n_b1
+  Improvement:29.743%
+  Inequality: [proof=FRACTIONAL λ=1.0000 src=none parts=none]  5.667*Y_I <= 1.600*U_a0_a1 + 1.850*U_a0_a2 + 3.000*U_a0_a3 + 0.250*U_a1_a2 + 1.400*U_a1_a3 + 1.650*U_a2_a3 + 3.500*U_b0_b1 + 2.500*U_b0_b2 + 4.500*U_b0_b3 + 1.000*U_b1_b2 + 3.000*U_b1_b3 + 2.000*U_b2_b3 + 1.850*U_a0_m + 2.750*U_m_b0 + 1.000*U_n_b1
