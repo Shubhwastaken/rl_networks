@@ -373,9 +373,25 @@ class PartitionBoundEnv:
         # decay that reward toward negative the longer the loop continues.
         self._consecutive_fio = 0
 
-    # -----------------------------------------------------------------------
-    # step()
-    # -----------------------------------------------------------------------
+        # Milestone stepping-stone rewards (Phase 3).
+        # The failure mode: the policy must take ~22 actions that produce NO
+        # measurable bound before a valid terminal appears. Bound-based and
+        # structure-based shaping are both empty in that region (verified: 0 of
+        # 1061 pre-terminal steps had any terminal structure). But the assembly
+        # ACTIONS do occur early (FIO step 0, ADD step 2, crypto step 6, decode
+        # step 10, pool grows ~14 in first 22 steps). So we reward the FIRST time
+        # per episode the policy completes each productive assembly milestone.
+        # CRITICAL: first-occurrence ONLY. Rewarding every occurrence recreates
+        # the degenerate-IO farm (the 900k-rejection bug). A stepping stone is
+        # hit once; a farm is hit forever.
+        self._milestones_hit = set()
+
+    def _milestone_bonus(self, key: str, amount: float) -> float:
+        """Return `amount` the first time `key` is achieved this episode, else 0."""
+        if key in self._milestones_hit:
+            return 0.0
+        self._milestones_hit.add(key)
+        return amount
 
     def step(self, action: Dict[str, Any]) -> Tuple[Dict, float, bool]:
         if self.current_phase == Phase.PHASE1:
@@ -764,6 +780,10 @@ class PartitionBoundEnv:
                 if is_novel_cross:
                     reward = 0.15   # meaningful signal; cross-partition + novel
                     self._consecutive_fio = 0  # genuinely new content -- not looping
+                    # Stepping-stone: first cross-partition IO of the episode.
+                    # This fires in the early dead-zone (median FIO step 0) where
+                    # no bound signal exists yet. First-occurrence only.
+                    reward += self._milestone_bonus('first_cross_io', 0.3)
                 elif fi.is_cross_partition():
                     # FIX (degenerate-IO farm): was +0.05. A cross-partition IO
                     # already in the pool adds nothing -- paying for it let the
@@ -917,6 +937,11 @@ class PartitionBoundEnv:
                 self.accumulator = []
                 reward = 0.12 if has_cross_content else 0.0
                 reward += self._pool_improvement_bonus()
+                # Stepping-stone: first STORE of genuine cross-partition content
+                # (median first-store step 28 — the last dead-zone milestone
+                # before a valid terminal typically appears).
+                if has_cross_content:
+                    reward += self._milestone_bonus('first_store_cross', 0.3)
             else:
                 reward = 0.0
             return self._get_state(), reward, False
@@ -975,6 +1000,9 @@ class PartitionBoundEnv:
                         # it so the policy sustains the climb. Was 0.2.
                         reward = 0.3
                     reward += self._pool_improvement_bonus()
+                    # Stepping-stone: first successful crypto of the episode
+                    # (median first-crypto step 6 — inside the dead-zone).
+                    reward += self._milestone_bonus('first_crypto', 0.3)
                 else:
                     reward = -0.02   # applied nothing; mild, not punishing
             return self._get_state(), reward, False
@@ -1018,6 +1046,9 @@ class PartitionBoundEnv:
                         # progress along the winning chain. Was 0.15.
                         reward = 0.3
                     reward += self._pool_improvement_bonus()
+                    # Stepping-stone: first successful decode of the episode
+                    # (median first-decode step 10 — inside the dead-zone).
+                    reward += self._milestone_bonus('first_decode', 0.3)
                 else:
                     reward = -0.02
             return self._get_state(), reward, False
