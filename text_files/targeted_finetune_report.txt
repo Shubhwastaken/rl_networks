@@ -1,0 +1,36 @@
+==============================================================================
+TARGETED FINETUNE — GUARDRAIL REPORT
+solved before: 7/19   after: 7/19
+==============================================================================
+
+Graph                         before     after        pb  status
+paper_7N                      1.6667    1.6667    1.6667  unverified (eval=PB before)
+diamond_6N                    1.0000    1.0000    1.7500  protected held
+butterfly_8N                  1.1573    1.1573    1.5000  protected held
+grid_9N                       2.0000    2.0000    2.0000  unverified (eval=PB before)
+star_8N                       2.2500    2.2500    2.2500  unverified (eval=PB before)
+hu_3pairs_6N                  1.3333    1.3333    1.3333  unverified (eval=PB before)
+okamura_4N                    1.0000    1.0000    1.2500  protected held
+ford_fulkerson_6N             2.3333    2.3333    5.0000  protected held
+grid_3x4_12N                  2.8333    2.8333    2.8333  unverified (eval=PB before)
+petersen_10N                  1.8750    1.8750    1.8750  unverified (eval=PB before)
+two_k4_10N                    2.6667    2.6667    2.6667  unverified (eval=PB before)
+al_bashabsheh_7N              2.0000    2.0000    2.0000  unverified (eval=PB before)
+hu_2pairs_6N                  1.0000    1.0000    2.0000  protected held
+grid_4x4_16N                  1.4142    1.9333    3.0000  *** REGRESSED ***
+okamura_seymour_8N            3.0000    3.0000    3.0000  TARGET no change
+kramer_savari_ladder_8N       1.0000    1.0000    2.0000  protected held
+okamura_network_paper_5N      0.7500    0.7500    0.7500  unverified (eval=PB before)
+hu_three_session_6N           1.3333    1.3333    1.3333  unverified (eval=PB before)
+yin_et_al_7N                  1.6667    1.6667    1.6667  TARGET no change
+
+------------------------------------------------------------------------------
+GUARDRAIL FAILED — protected graph(s) regressed:
+  grid_4x4_16N: 1.4142 -> 1.9333
+
+Finetuned weights left at ckpt_stage4_phase3_candidate.pt
+NOT committed to ckpt_stage4_phase3.pt.
+ACTION: restore your pre-finetune ckpt_stage4_phase3.pt
+        from git/backup before re-evaluating.
+
+UNVERIFIED (excluded from gate; raise --eval-episodes to protect these): ['al_bashabsheh_7N', 'grid_3x4_12N', 'grid_9N', 'hu_3pairs_6N', 'hu_three_session_6N', 'okamura_network_paper_5N', 'paper_7N', 'petersen_10N', 'star_8N', 'two_k4_10N']

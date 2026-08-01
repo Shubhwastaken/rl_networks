@@ -1,0 +1,270 @@
+{
+  "config": {
+    "targets": [
+      "okamura_seymour_8N",
+      "yin_et_al_7N"
+    ],
+    "extra_episodes": 0,
+    "boost": 30.0,
+    "freeze": true,
+    "eval_episodes": 100,
+    "tol": 1e-06,
+    "seed": 1234
+  },
+  "before": {
+    "paper_7N": {
+      "best": 1.6666666666666667,
+      "pb": 1.6666666666666667,
+      "lp": 1.0,
+      "solved": false
+    },
+    "diamond_6N": {
+      "best": 1.0,
+      "pb": 1.75,
+      "lp": 1.0,
+      "solved": true
+    },
+    "butterfly_8N": {
+      "best": 1.1573081868838406,
+      "pb": 1.5,
+      "lp": 1.0,
+      "solved": true
+    },
+    "grid_9N": {
+      "best": 2.0,
+      "pb": 2.0,
+      "lp": 1.0,
+      "solved": false
+    },
+    "star_8N": {
+      "best": 2.25,
+      "pb": 2.25,
+      "lp": 1.0,
+      "solved": false
+    },
+    "hu_3pairs_6N": {
+      "best": 1.3333333333333333,
+      "pb": 1.3333333333333333,
+      "lp": 1.0,
+      "solved": false
+    },
+    "okamura_4N": {
+      "best": 1.0,
+      "pb": 1.25,
+      "lp": 1.0,
+      "solved": true
+    },
+    "ford_fulkerson_6N": {
+      "best": 2.3333333333333335,
+      "pb": 5.0,
+      "lp": 2.0,
+      "solved": true
+    },
+    "grid_3x4_12N": {
+      "best": 2.8333333333333335,
+      "pb": 2.8333333333333335,
+      "lp": 1.0,
+      "solved": false
+    },
+    "petersen_10N": {
+      "best": 1.875,
+      "pb": 1.875,
+      "lp": 1.25,
+      "solved": false
+    },
+    "two_k4_10N": {
+      "best": 2.6666666666666665,
+      "pb": 2.6666666666666665,
+      "lp": 0.6666666666666666,
+      "solved": false
+    },
+    "al_bashabsheh_7N": {
+      "best": 2.0,
+      "pb": 2.0,
+      "lp": 1.5,
+      "solved": false
+    },
+    "hu_2pairs_6N": {
+      "best": 1.0,
+      "pb": 2.0,
+      "lp": 1.0,
+      "solved": true
+    },
+    "grid_4x4_16N": {
+      "best": 1.4142307692307692,
+      "pb": 3.0,
+      "lp": 1.0,
+      "solved": true
+    },
+    "okamura_seymour_8N": {
+      "best": 3.0,
+      "pb": 3.0,
+      "lp": 1.5,
+      "solved": false
+    },
+    "kramer_savari_ladder_8N": {
+      "best": 1.0,
+      "pb": 2.0,
+      "lp": 1.0,
+      "solved": true
+    },
+    "okamura_network_paper_5N": {
+      "best": 0.75,
+      "pb": 0.75,
+      "lp": 0.75,
+      "solved": false
+    },
+    "hu_three_session_6N": {
+      "best": 1.3333333333333333,
+      "pb": 1.3333333333333333,
+      "lp": 1.1428571428571428,
+      "solved": false
+    },
+    "yin_et_al_7N": {
+      "best": 1.6666666666666667,
+      "pb": 1.6666666666666667,
+      "lp": 1.25,
+      "solved": false
+    }
+  },
+  "after": {
+    "paper_7N": {
+      "best": 1.6666666666666667,
+      "pb": 1.6666666666666667,
+      "lp": 1.0,
+      "solved": false
+    },
+    "diamond_6N": {
+      "best": 1.0,
+      "pb": 1.75,
+      "lp": 1.0,
+      "solved": true
+    },
+    "butterfly_8N": {
+      "best": 1.1573081868838406,
+      "pb": 1.5,
+      "lp": 1.0,
+      "solved": true
+    },
+    "grid_9N": {
+      "best": 2.0,
+      "pb": 2.0,
+      "lp": 1.0,
+      "solved": false
+    },
+    "star_8N": {
+      "best": 2.25,
+      "pb": 2.25,
+      "lp": 1.0,
+      "solved": false
+    },
+    "hu_3pairs_6N": {
+      "best": 1.3333333333333333,
+      "pb": 1.3333333333333333,
+      "lp": 1.0,
+      "solved": false
+    },
+    "okamura_4N": {
+      "best": 1.0,
+      "pb": 1.25,
+      "lp": 1.0,
+      "solved": true
+    },
+    "ford_fulkerson_6N": {
+      "best": 2.3333333333333335,
+      "pb": 5.0,
+      "lp": 2.0,
+      "solved": true
+    },
+    "grid_3x4_12N": {
+      "best": 2.8333333333333335,
+      "pb": 2.8333333333333335,
+      "lp": 1.0,
+      "solved": false
+    },
+    "petersen_10N": {
+      "best": 1.875,
+      "pb": 1.875,
+      "lp": 1.25,
+      "solved": false
+    },
+    "two_k4_10N": {
+      "best": 2.6666666666666665,
+      "pb": 2.6666666666666665,
+      "lp": 0.6666666666666666,
+      "solved": false
+    },
+    "al_bashabsheh_7N": {
+      "best": 2.0,
+      "pb": 2.0,
+      "lp": 1.5,
+      "solved": false
+    },
+    "hu_2pairs_6N": {
+      "best": 1.0,
+      "pb": 2.0,
+      "lp": 1.0,
+      "solved": true
+    },
+    "grid_4x4_16N": {
+      "best": 1.9333333333333333,
+      "pb": 3.0,
+      "lp": 1.0,
+      "solved": true
+    },
+    "okamura_seymour_8N": {
+      "best": 3.0,
+      "pb": 3.0,
+      "lp": 1.5,
+      "solved": false
+    },
+    "kramer_savari_ladder_8N": {
+      "best": 1.0,
+      "pb": 2.0,
+      "lp": 1.0,
+      "solved": true
+    },
+    "okamura_network_paper_5N": {
+      "best": 0.75,
+      "pb": 0.75,
+      "lp": 0.75,
+      "solved": false
+    },
+    "hu_three_session_6N": {
+      "best": 1.3333333333333333,
+      "pb": 1.3333333333333333,
+      "lp": 1.1428571428571428,
+      "solved": false
+    },
+    "yin_et_al_7N": {
+      "best": 1.6666666666666667,
+      "pb": 1.6666666666666667,
+      "lp": 1.25,
+      "solved": false
+    }
+  },
+  "solved_before": 7,
+  "solved_after": 7,
+  "regressions": [
+    [
+      "grid_4x4_16N",
+      1.4142307692307692,
+      1.9333333333333333
+    ]
+  ],
+  "unverified": [
+    "al_bashabsheh_7N",
+    "grid_3x4_12N",
+    "grid_9N",
+    "hu_3pairs_6N",
+    "hu_three_session_6N",
+    "okamura_network_paper_5N",
+    "paper_7N",
+    "petersen_10N",
+    "star_8N",
+    "two_k4_10N"
+  ],
+  "target_gains": [],
+  "guardrail_passed": false,
+  "runtime_s": 3284.6761915683746
+}

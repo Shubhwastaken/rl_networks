@@ -477,6 +477,13 @@ PARTITION_OVERRIDES = {
 }
 PIN_PARTITIONS = False   # set True via --pin-partitions
 
+# Targeted-priority finetune hook. Maps graph_name -> extra sampling weight
+# ADDED on top of whatever _priority_for_graph would otherwise assign. This
+# is how targeted_finetune.py biases sampling toward specific graphs WITHOUT
+# restricting the dataset (which is what causes catastrophic forgetting of
+# the other graphs). Empty by default => zero effect on normal runs.
+FINETUNE_PRIORITY_BOOST = {}
+
 
 def _select_stage4_partition(graph_name, nodes, edges, sessions,
                              best_partitions):
@@ -1177,6 +1184,37 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         _resume_ep_s4 = _meta_s4["episode"]
         print(f"  [resume] Stage 4 resuming from episode {_resume_ep_s4}")
 
+    # Targeted-finetune backbone freeze: if targeted_finetune.py set this
+    # global, freeze the GraphSAGE feature extractor so only the action
+    # heads adapt. The shared representation all graphs depend on stops
+    # moving => the finetune targets cannot corrupt features the other
+    # graphs rely on. No effect on normal runs (global defaults to False).
+    if globals().get("FINETUNE_FREEZE_BACKBONE", False):
+        _frozen = 0
+        for _p in phase3_policy.net.sage_layers.parameters():
+            _p.requires_grad = False
+            _frozen += _p.numel()
+        # Rebuild the optimizer over only the still-trainable params, else
+        # the frozen tensors stay registered and (depending on the optimizer)
+        # can still receive weight-decay / momentum updates.
+        _trainable = [p for p in phase3_policy.net.parameters() if p.requires_grad]
+        try:
+            _lr = phase3_policy.optimizer.param_groups[0]["lr"]
+        except Exception:
+            _lr = 3e-4
+        phase3_policy.optimizer = torch.optim.Adam(_trainable, lr=_lr)
+        # The CosineAnnealing scheduler is bound to the old optimizer; rebind
+        # it to the new one so LR scheduling keeps working post-freeze.
+        if hasattr(phase3_policy, "scheduler"):
+            phase3_policy.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+                phase3_policy.optimizer,
+                T_max=max(getattr(phase3_policy, "total_episodes", num_episodes), 1),
+                eta_min=1e-5,
+            )
+        print(f"  [finetune] GraphSAGE backbone FROZEN "
+              f"({_frozen} params); optimizer+scheduler rebuilt over "
+              f"{sum(p.numel() for p in _trainable)} trainable params.")
+
     rewards    = []
     per_graph  = defaultdict(list)
     novel_bounds = {}   # graph_name -> (bound, partition, weights, trace)
@@ -1300,6 +1338,10 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         recent = stats['recent_no_terminal'][-50:]
         if recent and (sum(recent) / len(recent)) > 0.4:
             priority += 4.0
+        # Targeted-priority finetune: additive boost for named graphs. Keeps
+        # the full dataset in play (no forgetting) while concentrating extra
+        # gradient signal on the finetune targets.
+        priority += FINETUNE_PRIORITY_BOOST.get(gn, 0.0)
         return priority
 
     def _sample_adaptive_graph():
