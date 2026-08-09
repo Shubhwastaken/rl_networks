@@ -81,22 +81,77 @@ RL INTEGRATION
 Each action type is:
 
   CryptoAction(cut_partition_V_prime, session_idx)
-    → if cut separates session AND cut edges ⊆ RHS of current ineq,
-      add +1 to Y_I coeff (net: tightens bound denominator)
+    → ADD the standalone crypto inequality to the current inequality
+      (both sides): +n_sep/|I| on Y_I, −1 on every cut edge.
 
   DecodeSubAction(session_idx)
-    → if incoming edges of t(i) ⊆ RHS,
-      add +1 to Y_I coeff from that session
+    → ADD the standalone decode inequality to the current inequality
+      (both sides): +1/|I| on Y_I, −1 on every edge incident to t(i).
 
-  EncodeSubAction(edge_idx)
-    → substitute h(U_e) on LHS by encoding RHS (source + incoming)
+==========================================================================
+SOUNDNESS NOTE  (2026-08-02) — READ BEFORE TOUCHING THESE FUNCTIONS
+==========================================================================
 
-All return an (inequality, gain) pair where gain > 0 means the
-substitution strictly tightened the bound.
+Both operations used to increment coeffs[yi_idx()] and leave the edge
+(RHS) coefficients untouched.  That is UNSOUND: it tightens the extracted
+bound monotonically at zero cost with no cap.  Applied in a loop to
+okamura_4N's 3.200·h(Y_I) ≤ 24.83 with V'={a,d} it walks the bound down
+through 1.9706 / 1.5917 / 1.3349 / 1.1495 / 1.0093 and keeps going to
+0.1310 by round 60 — far below the LP lower bound of 1.0.  Every bound
+ever produced with the old code is unproved.
+
+The correct operation is ADDITION of a standalone valid inequality:
+
+    crypto:  (n_sep/|I|)·h(Y_I) ≤ Σ_{e ∈ δ(V')} h(U_e)
+    decode:  (1/|I|)·h(Y_I)     ≤ Σ_{e ∋ t(i)}  h(U_e)
+
+Adding a valid inequality to a valid inequality yields a valid
+inequality.  Because extract_bound reads numerator = Σ|edge coeffs| and
+denominator = c1·|I| + …, the result is the MEDIANT of the two operand
+bounds and therefore always lies between them.  The operation can still
+tighten (when the standalone bound is below the current one) but it can
+no longer tighten for free, and it cannot run away.
 """
 
 from typing import List, Tuple, Set, Optional, Dict, FrozenSet
 from fixed_inequality import Inequality, EntropyIndex
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Soundness-check strictness (see assert_derivation_sound)
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# "strict"  — the terminal bound must be >= the standalone bound of EVERY
+#             crypto/decode inequality used in its derivation.
+# "mediant" — the terminal bound must be >= the MINIMUM standalone bound
+#             over the crypto/decode components.
+#
+# DEFAULT IS "mediant", NOT "strict".  The audit asked for strict, but
+# strict is demonstrably NOT a theorem — it fires on sound derivations.
+# Concrete counterexample, reproducible from verify_math.py's 3-node
+# network (nodes A,B,C; edges AB,AC,BC; sessions A→B, B→C):
+#
+#   base terminal inequality  1.000·h(Y_I) ≤ 3 edges     → bound 1.5
+#   crypto inequality, V'={A}, 2 cut edges, 1 separated  → bound 2.0
+#
+#   adding crypto repeatedly gives the MEDIANT each time:
+#     round 1  yi=1.5  edges=5   bound 1.6667
+#     round 2  yi=2.0  edges=7   bound 1.7500
+#     ...
+#     round 60                   bound 1.9839
+#
+# The bound rises monotonically toward 2.0 and never reaches it — the
+# runaway is gone, which is the whole point of the fix — but it sits
+# BELOW the crypto floor of 2.0 the entire time, because the base
+# inequality it is being added to is tighter (1.5) than the crypto
+# inequality itself.  Strict mode would reject every one of those
+# perfectly valid inequalities.
+#
+# Addition guarantees exactly this and no more: the sum of inequalities
+# with bounds b₁…b_k has bound in [min bᵢ, max bᵢ].  So >= the minimum is
+# the real invariant, and it is what catches the actual bug — the old
+# code's unbounded descent to 0.1310 violates it immediately.
+SOUNDNESS_MODE: str = "mediant"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -167,88 +222,67 @@ def _edges_into_sink(
 # Crypto Inequality Application
 # ─────────────────────────────────────────────────────────────────────────────
 
-def apply_crypto_inequality(
-    ineq: Inequality,
+def _resolve_edge_indices(
+    edge_list: List[Tuple[str, str]],
+    index: EntropyIndex
+) -> Optional[List[int]]:
+    """
+    Map each edge to its coefficient slot, trying U_{u}_{v} then U_{v}_{u}.
+
+    Returns None if any edge has no slot in the index — the caller must
+    then refuse to apply, since it cannot write the RHS term it owes.
+    """
+    out: List[int] = []
+    for (u, v) in edge_list:
+        key = f"U_{u}_{v}"
+        if key not in index.var_to_idx:
+            key = f"U_{v}_{u}"
+        if key not in index.var_to_idx:
+            return None
+        out.append(index.var_to_idx[key])
+    return out
+
+
+def crypto_standalone_bound(
     V_prime: Set[str],
     nodes: List[str],
     edges: List[Tuple[str, str]],
+    sessions: List[Tuple[str, str]]
+) -> Optional[float]:
+    """
+    Bound implied by the crypto inequality for this cut ON ITS OWN:
+
+        (n_sep/|I|)·h(Y_I) ≤ Σ_{e ∈ δ(V')} h(U_e)
+        ⟹  n_sep·r ≤ |δ(V')|
+        ⟹  r ≤ |δ(V')| / n_sep
+
+    Returns None when the cut separates nothing (no inequality to state).
+    Used by assert_derivation_sound as the floor this operation can
+    contribute; a derivation using it can never legitimately drop below
+    the minimum such floor.
+    """
+    cut = _directed_cut_edges(V_prime, nodes, edges)
+    sep = _sessions_separated_by_cut(V_prime, nodes, edges, sessions)
+    if not cut or not sep:
+        return None
+    return len(cut) / len(sep)
+
+
+def decode_standalone_bound(
+    session_idx: int,
     sessions: List[Tuple[str, str]],
-    index: EntropyIndex,
-    tol: float = 1e-9
-) -> Tuple[Inequality, float]:
+    edges: List[Tuple[str, str]]
+) -> Optional[float]:
     """
-    Apply the crypto inequality for cut {V', V'^c}.
+    Bound implied by the decode inequality for this session ON ITS OWN:
 
-    The crypto inequality (eq. 32) states:
-        h(Y_{sep}, U_{cut}) ≤ h(U_{cut})
-
-    Which means h(Y_{sep}) ≤ h(U_{cut}).
-
-    In terms of bounding: if U_{cut} edges are already on the RHS of our
-    accumulated inequality (each with negative coefficient, meaning they
-    upper-bound the LHS), we can add h(Yᵢ) to the LHS for each session i
-    separated by the cut, because h(Yᵢ) ≤ h(U_{cut}) ≤ Σ_{e∈cut} h(U_e).
-
-    Concretely: add +1 to the Y_I coefficient (these sessions contribute to
-    the denominator in r ≤ |E| / (|I| + internal) form).
-
-    Returns (modified_ineq, num_sessions_added) where num_sessions_added > 0
-    means a strict tightening is possible.
-
-    Mathematical validity:
-      The starting inequality has form:
-        LHS_terms ≤ Σ_e c_e * h(U_e)   (after IO + submod)
-      The crypto inequality says h(Y_{sep_i}) ≤ Σ_{e ∈ cut} h(U_e).
-      Adding to LHS: (LHS_terms + Σᵢ h(Y_{sep_i})) ≤ Σ_e c_e * h(U_e)
-        provided Σ_{e ∈ cut} h(U_e) ≤ Σ_e (c_e contribution from cut)
-        which holds because cut ⊆ RHS and each h(U_e) ≤ 1 (unit capacity).
+        (1/|I|)·h(Y_I) ≤ Σ_{e ∋ t(i)} h(U_e)
+        ⟹  r ≤ deg(t(i))
     """
-    # 1. Find cut edges
-    cut_edges = _directed_cut_edges(V_prime, nodes, edges)
-    if not cut_edges:
-        return ineq.copy(), 0.0
-
-    # 2. Check that all cut edges appear on RHS with negative coefficient
-    for e in cut_edges:
-        key = f"U_{e[0]}_{e[1]}"
-        if key not in index.var_to_idx:
-            # Try reverse
-            key = f"U_{e[1]}_{e[0]}"
-        if key not in index.var_to_idx:
-            return ineq.copy(), 0.0
-        c = ineq.coeffs[index.var_to_idx[key]]
-        if c >= -tol:  # not on RHS (RHS has negative coefficients)
-            return ineq.copy(), 0.0
-
-    # 3. Find sessions separated by this cut
-    separated = _sessions_separated_by_cut(V_prime, nodes, edges, sessions)
-    if not separated:
-        return ineq.copy(), 0.0
-
-    # 4. Each separated session adds h(Yᵢ) to LHS.
-    #    In terminal form: h(Y_I) coeff increases by len(separated)/len(sessions)
-    #    (since h(Y_I) = Σ h(Yᵢ) and each session has equal weight r).
-    #    We add fractional contribution to Y_I.
-    # GUARD: Refuse to apply to per-node IOs with uncancelled source terms.
-    # See apply_crypto_inequality_direct for detailed rationale.
-    tol = 1e-9
-    for v in index.nodes:
-        if ineq.coeffs[index.source_idx(v)] < -tol:
-            return ineq.copy(), 0.0
-
-    result = ineq.copy()
-    n_sessions = len(sessions)
-
-    extra_yi = len(separated) / n_sessions
-    result.coeffs[index.yi_idx()] += extra_yi
-
-    # NOTE: We do NOT reduce RHS edge coefficients. The crypto inequality
-    # says h(Y_sep) ≤ h(U_cut) ≤ Σ h(U_e). Adding h(Y_sep) to the LHS
-    # is valid precisely because the full edge capacity remains on the RHS.
-    # The previous code subtracted from RHS too, which double-counted and
-    # produced provably invalid bounds.
-
-    return result, float(len(separated))
+    incident = _edges_into_sink(session_idx, sessions, edges)
+    if not incident:
+        return None
+    return float(len(incident))
 
 
 def apply_crypto_inequality_direct(
@@ -258,73 +292,97 @@ def apply_crypto_inequality_direct(
     edges: List[Tuple[str, str]],
     sessions: List[Tuple[str, str]],
     index: EntropyIndex,
-    tol: float = 1e-9
+    tol: float = 1e-9,
+    internal_per_part: Optional[List[int]] = None,
 ) -> Tuple[Inequality, bool]:
     """
-    Direct crypto inequality application — Hu's network style (Section VI).
+    Add the crypto inequality for cut {V', V'^c} to *ineq*.
 
-    This is the version from the paper's Proposition 8 proof:
-      Given inequality of the form:
-        h(Y_I) + h(U_{Pi↔Pj}) + ... ≤ RHS
-      The crypto inequality says:
-        h(Y_{sep_i} | U_{Pi↔Pj}) = 0
-        → h(Y_{sep_i}, U_{Pi↔Pj}) = h(U_{Pi↔Pj})
-        → h(U_{Pi↔Pj}) ≥ h(Y_{sep_i})
+    The crypto inequality (paper eq. 32) is a STANDALONE valid inequality:
 
-    This replaces h(U_{Pi↔Pj}) in the RHS sum:
-        Σ h(U_{Pi↔Pj}) ≥ h(Y_3) + h(Y_3, U_{P1↔P23}) + h(Y_3, U_{P2↔P3})
-        [via submodularity, eq. 91 in paper]
+        h(Y_{sep} | U_{δ(V')}) = 0
+        ⟹  h(Y_{sep}) ≤ h(U_{δ(V')}) ≤ Σ_{e ∈ δ(V')} h(U_e)
 
-    Net effect: adds +1 to Y_I coefficient (tighter denominator).
+    With h(Y_{sep}) = n_sep·r and h(Y_I) = |I|·r this is
+
+        (n_sep/|I|)·h(Y_I) ≤ Σ_{e ∈ δ(V')} h(U_e)
+
+    which in this module's sign convention (positive coeff = LHS,
+    negative = RHS) is the coefficient vector
+
+        coeffs[yi_idx()]    = +n_sep/|I|
+        coeffs[edge_idx(e)] = −1.0   for each e ∈ δ(V')   (unit capacity)
+
+    We ADD that vector to *ineq*.  Both sides move.  The sum of two valid
+    inequalities is valid, so the result is proved outright — no
+    precondition on the shape of *ineq* is needed for soundness.
+
+    WHAT CHANGED AND WHY (2026-08-02):
+      The old body did `coeffs[yi_idx()] += n_sep/n_sessions` and never
+      touched the edge coefficients.  That is not addition of the crypto
+      inequality; it is a free tightening of the denominator with the
+      numerator held fixed.  Iterated, it drives the extracted bound to
+      zero.  See the SOUNDNESS NOTE at the top of this module.
+
+      Removed with it (1c): the `coeffs[source_idx(v)] < -tol` guard that
+      refused to apply to per-node IOs with uncancelled source terms.
+      That guard was patching a symptom of the broken accounting — under
+      correct addition the operation is valid on ANY inequality, source
+      terms present or not, because the added vector touches neither the
+      Y_S_v nor the Y_ST_Pk slots.
+
+      Removed with it (1d): there is no β_e ≥ 1 coefficient floor.  Under
+      addition nothing is spent out of an existing budget, so no such
+      precondition is required.
+
+    RETAINED precondition: every cut edge must already carry a negative
+    (RHS) coefficient.  This is NOT needed for validity — it is the
+    action's gating semantics, kept so the action space is unchanged.
 
     Returns (new_ineq, was_applied).
-    The 'was_applied' flag is True if the crypto term could be added.
     """
     cut_edges = _directed_cut_edges(V_prime, nodes, edges)
     if not cut_edges:
         return ineq.copy(), False
 
-    # Check cut edges are all on RHS
-    cut_rhs_total = 0.0
-    for e in cut_edges:
-        key = f"U_{e[0]}_{e[1]}"
-        if key not in index.var_to_idx:
-            key = f"U_{e[1]}_{e[0]}"
-        if key not in index.var_to_idx:
+    cut_idx = _resolve_edge_indices(cut_edges, index)
+    if cut_idx is None:
+        return ineq.copy(), False
+
+    # Gating precondition (semantics, not soundness): cut edges on RHS.
+    for j in cut_idx:
+        if ineq.coeffs[j] >= -tol:
             return ineq.copy(), False
-        c = ineq.coeffs[index.var_to_idx[key]]
-        if c >= -tol:
-            return ineq.copy(), False
-        cut_rhs_total += abs(c)
 
     separated = _sessions_separated_by_cut(V_prime, nodes, edges, sessions)
     if not separated:
         return ineq.copy(), False
 
-    # The paper's technique: for each separated session i, crypto inequality gives
-    #   h(Y_i | U_cut) = 0  →  h(Y_i) can be added to LHS
-    # This is valid as long as h(U_cut) ≥ h(Y_i), which follows from the
-    # functional dependence constraint at t(i).
-    # In the terminal inequality, Y_I represents h(Y_I) = |I|*r.
-    # Adding h(Y_i) = r for each separated session adds n_sep * r to LHS.
-    # Since Y_I coeff c1 satisfies c1 * h(Y_I) = c1 * |I| * r,
-    # adding n_sep * r is equivalent to adding n_sep / |I| to c1.
-    # GUARD: Do NOT apply functional dependence to per-node IOs.
-    # Per-node IOs have Y_S_v = -1.0 on the RHS (source terms uncancelled).
-    # The crypto inequality "borrows" edge capacity that's already serving
-    # as the RHS for the per-node IO — applying both double-counts the
-    # edges and produces provably invalid bounds below LP lower bound.
-    # Only apply to properly collapsed partition-level terminal forms
-    # where source terms have been zeroed by the Y_ST→Y_I collapse.
-    for v in index.nodes:
-        if ineq.coeffs[index.source_idx(v)] < -tol:
-            return ineq.copy(), False
+    n_sep      = len(separated)
+    n_sessions = len(sessions)
+    if n_sessions == 0:
+        return ineq.copy(), False
 
     result = ineq.copy()
-    n_sep = len(separated)
-    n_sessions = len(sessions)
-
+    # LHS: (n_sep/|I|)·h(Y_I)
     result.coeffs[index.yi_idx()] += n_sep / n_sessions
+    # RHS: Σ_{e ∈ δ(V')} h(U_e), unit capacity each
+    for j in cut_idx:
+        result.coeffs[j] -= 1.0
+
+    detail = {
+        "V_prime":          sorted(V_prime),
+        "cut_edges":        [list(e) for e in cut_edges],
+        "cut_size":         len(cut_edges),
+        "separated":        list(separated),
+        "n_sep":            n_sep,
+        "yi_delta":         n_sep / n_sessions,
+        "standalone_bound": len(cut_edges) / n_sep,
+    }
+    _assert_rhs_changed(ineq, result, index, "CRYPTO", detail)
+    _assert_mediant_step(ineq, result, detail["standalone_bound"],
+                         n_sessions, internal_per_part, "CRYPTO", detail)
+    result.record_op(op="CRYPTO", detail=detail)
     return result, True
 
 
@@ -338,114 +396,238 @@ def apply_decode_substitution(
     sessions: List[Tuple[str, str]],
     edges: List[Tuple[str, str]],
     index: EntropyIndex,
-    tol: float = 1e-9
+    tol: float = 1e-9,
+    internal_per_part: Optional[List[int]] = None,
 ) -> Tuple[Inequality, bool]:
     """
-    Decoding functional dependence: h(Yᵢ | {U_e : e incident to t(i)}) = 0
+    Add the decoding functional-dependence inequality for *session_idx*.
 
-    This means h(Yᵢ) ≤ Σ_{e incident to t(i)} h(U_e).
+    Decoding gives h(Yᵢ | {U_e : e incident to t(i)}) = 0, hence the
+    STANDALONE valid inequality
 
-    Application: if all edges incident to t(session_idx) are on the RHS of
-    `ineq` with negative coefficients, we can add h(Yᵢ) = r to the LHS,
-    tightening the bound.
+        h(Yᵢ) ≤ Σ_{e ∋ t(i)} h(U_e)
+        ⟹  (1/|I|)·h(Y_I) ≤ Σ_{e ∋ t(i)} h(U_e)
 
-    The precise rule:
-      If Σ_{e ∈ in(t(i))} h(U_e) ≥ h(Yᵢ) = r, and these edges are on RHS:
-        LHS + r ≤ Σ_{e ∈ in(t(i))} h(U_e) + rest_of_RHS  (still valid)
-      Equivalent: add +1/|I| to Y_I coefficient (for symmetric rate).
+    whose coefficient vector is
+
+        coeffs[yi_idx()]    = +1/|I|
+        coeffs[edge_idx(e)] = −1.0   for each e incident to t(i)
+
+    We ADD that vector to *ineq*.  Identical in structure to
+    apply_crypto_inequality_direct with n_sep → 1 and δ(V') → the edges
+    incident to t(session_idx); see that function's docstring for the full
+    rationale, including why the source-term guard (1c) and the
+    coefficient floor (1d) are both gone.
+
+    WHAT CHANGED AND WHY (2026-08-02):
+      The old body did `coeffs[yi_idx()] += 1.0/n_sessions` and never
+      touched the edge coefficients — the same unsound free tightening
+      documented in the module header.
 
     Returns (new_ineq, was_applied).
     """
-    _, t = sessions[session_idx]
-    incident = _incoming_edges(t, edges)
+    n_sessions = len(sessions)
+    if n_sessions == 0:
+        return ineq.copy(), False
+
+    incident = _edges_into_sink(session_idx, sessions, edges)
     if not incident:
         return ineq.copy(), False
 
-    # Check all incident edges are on RHS
-    rhs_capacity = 0.0
-    for e in incident:
-        key = f"U_{e[0]}_{e[1]}"
-        if key not in index.var_to_idx:
-            key = f"U_{e[1]}_{e[0]}"
-        if key not in index.var_to_idx:
-            return ineq.copy(), False
-        c = ineq.coeffs[index.var_to_idx[key]]
-        if c >= -tol:
-            return ineq.copy(), False
-        rhs_capacity += abs(c)
+    inc_idx = _resolve_edge_indices(incident, index)
+    if inc_idx is None:
+        return ineq.copy(), False
 
-    # GUARD: Do NOT apply decode to per-node IOs.
-    # Per-node IOs have Y_S_v on the RHS (source terms uncancelled).
-    # The decode constraint h(Y_i) ≤ h(edges into t(i)) relies on the
-    # SAME edges that are already on the RHS of the per-node IO.
-    # Adding h(Y_i) to the LHS without adding new edge capacity to the
-    # RHS double-counts the edges, producing bounds below LP lower bound.
-    # Only apply to collapsed partition-level terminal forms.
-    for v in index.nodes:
-        if ineq.coeffs[index.source_idx(v)] < -tol:
+    # Gating precondition (semantics, not soundness): edges on RHS.
+    for j in inc_idx:
+        if ineq.coeffs[j] >= -tol:
             return ineq.copy(), False
 
-    n_sessions = len(sessions)
     result = ineq.copy()
-    result.coeffs[index.yi_idx()] += 1.0 / n_sessions   # add r/|I| = h(Yi)/|I|
+    # LHS: (1/|I|)·h(Y_I) = h(Y_i)
+    result.coeffs[index.yi_idx()] += 1.0 / n_sessions
+    # RHS: Σ_{e ∋ t(i)} h(U_e), unit capacity each
+    for j in inc_idx:
+        result.coeffs[j] -= 1.0
 
+    detail = {
+        "session_idx":      session_idx,
+        "sink":             sessions[session_idx][1],
+        "incident_edges":   [list(e) for e in incident],
+        "sink_degree":      len(incident),
+        "yi_delta":         1.0 / n_sessions,
+        "standalone_bound": float(len(incident)),
+    }
+    _assert_rhs_changed(ineq, result, index, "DECODE", detail)
+    _assert_mediant_step(ineq, result, detail["standalone_bound"],
+                         n_sessions, internal_per_part, "DECODE", detail)
+    result.record_op(op="DECODE", detail=detail)
     return result, True
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Encoding Functional Dependence
+# Encoding Functional Dependence — DELETED 2026-08-02
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# apply_encode_substitution() was removed.  It fired on a POSITIVE (LHS)
+# coefficient of h(U_e) and replaced that term with the encoding UPPER
+# bound h(Y_{S(u)}) + Σ_{e'→u} h(U_{e'}).  Substituting an upper bound for
+# a term on the LHS is invalid: it makes the LHS larger, so the resulting
+# inequality does not follow from the original.  (The substitution is only
+# legitimate on the RHS, where enlarging a term weakens the inequality.)
+#
+# It had exactly one call site, the self-test in verify_math.py, which has
+# been updated to assert the function is gone rather than exercise it.  No
+# training, environment, or evaluation path ever called it, so no bound in
+# any proof log depends on this operator.
+#
+# FAMILY 3 (paper eq. 16) is therefore currently unimplemented.  If it is
+# reinstated it must be written as ADDITION of the standalone inequality
+#     h(U_e) ≤ h(Y_{S(u)}) + Σ_{e' → u} h(U_{e'})
+# in the same style as the crypto/decode operators above.
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Soundness assertion (1f)
 # ─────────────────────────────────────────────────────────────────────────────
 
-def apply_encode_substitution(
+class UnsoundDerivationError(AssertionError):
+    """Raised when a terminal bound falls below what its derivation can prove."""
+
+
+class MediantViolationError(UnsoundDerivationError):
+    """Raised when one addition step leaves the [min, max] mediant interval."""
+
+
+class RHSUnchangedError(UnsoundDerivationError):
+    """Raised when an applied crypto/decode step did not move the RHS."""
+
+
+# Every applied crypto/decode step is checked by BOTH assertions below.
+# They catch different things and neither subsumes the other:
+#
+#   _assert_rhs_changed   — structural. The exact defect being fixed was
+#       "increment Y_I, never touch the RHS". This fires on that single
+#       step, unconditionally, regardless of numbers.
+#
+#   _assert_mediant_step  — numeric, two-sided. Addition of inequalities
+#       with bounds b_before and b_addend must yield the mediant
+#           (E_before + E_add) / (D_before + D_add)
+#       which lies in [min(b_before, b_addend), max(b_before, b_addend)].
+#       A one-sided ">= min" check would pass on a step that tightened
+#       for free below b_addend but stayed above b_before; the upper
+#       bound closes that hole.
+#
+# The mediant check alone can pass on an individual buggy step (a free
+# tightening that happens to land inside the interval), which is why the
+# structural check is not redundant.
+
+def _assert_rhs_changed(before, after, index, op, detail):
+    """The RHS coefficient vector must move. Byte-identical means the bug."""
+    edge_slots = [index.edge_idx(e) for e in index.edges]
+    if all(before.coeffs[j] == after.coeffs[j] for j in edge_slots):
+        raise RHSUnchangedError(
+            f"{op} reported applied=True but left the RHS byte-identical.\n"
+            f"  This is precisely the defect the 2026-08-02 fix removed: "
+            f"incrementing Y_I without adding the addend's edge terms is a "
+            f"free tightening with no cap.\n"
+            f"  detail: {detail}"
+        )
+
+
+def _assert_mediant_step(before, after, addend_bound, n_sessions,
+                         internal_per_part, op, detail, tol=1e-6):
+    """
+    Two-sided mediant invariant for one addition step:
+
+        min(b_before, b_addend) <= b_after <= max(b_before, b_addend)
+
+    Skipped when either operand has a non-positive denominator (in which
+    case extract_bound returns inf and there is no finite bound to
+    compare against).
+    """
+    if internal_per_part is None:
+        return
+    b_before = before.extract_bound(n_sessions, 0, internal_per_part)
+    b_after  = after.extract_bound(n_sessions, 0, internal_per_part)
+    if not (b_before < float('inf') and b_after < float('inf')):
+        return
+    if addend_bound is None:
+        return
+    lo, hi = min(b_before, addend_bound), max(b_before, addend_bound)
+    if not (lo - tol <= b_after <= hi + tol):
+        raise MediantViolationError(
+            f"{op} left the mediant interval.\n"
+            f"  b_before = {b_before:.6f}\n"
+            f"  b_addend = {addend_bound:.6f}\n"
+            f"  b_after  = {b_after:.6f}   (must be in "
+            f"[{lo:.6f}, {hi:.6f}])\n"
+            f"  detail: {detail}"
+        )
+
+
+def assert_derivation_sound(
     ineq: Inequality,
-    edge: Tuple[str, str],
-    partition: List[List[str]],
-    nodes: List[str],
-    edges: List[Tuple[str, str]],
-    sessions: List[Tuple[str, str]],
-    index: EntropyIndex,
-    adjacency: Dict[str, List[str]],
-    tol: float = 1e-9
-) -> Tuple[Inequality, bool]:
+    bound: float,
+    graph_name: str,
+    episode=None,
+    step=None,
+    tol: float = 1e-6,
+) -> None:
     """
-    Encoding functional dependence: h(U_e) ≤ h(Y_{S(tail(e))}) + Σ h(U_{e'→tail(e)})
+    Check a terminal bound against the crypto/decode inequalities used to
+    derive it, and raise UnsoundDerivationError if it is too low.
 
-    Application: if h(U_e) appears on the LHS of `ineq` (positive coefficient),
-    replace it by the encoding upper bound, potentially introducing source and
-    incoming-edge terms that cancel with other parts of the inequality.
+    Two modes, selected by the module-level SOUNDNESS_MODE:
 
-    This is useful when combining two IOs that share an internal edge: the
-    internal edge appears on the LHS of one IO and the encoding constraint
-    says it's bounded by source + incoming edges at its tail.
+    "mediant" (default — the invariant addition actually guarantees)
+        Summing inequalities produces the mediant of their bounds:
+            (n₁+n₂)/(d₁+d₂) lies between n₁/d₁ and n₂/d₂.
+        So the sum is >= the MINIMUM component bound, never below it.
+        It may legitimately sit below an individual component's bound
+        when another component is tighter.
 
-    Returns (new_ineq, was_applied).
+    "strict"  (what the audit asked for; NOT a theorem)
+        bound must be >= the standalone bound of EVERY crypto/decode
+        inequality in the trace.  See the SOUNDNESS_MODE comment at the
+        top of this module for a worked counterexample where strict mode
+        rejects a valid inequality.  Available for diagnosis; do not
+        leave it on for a production re-derivation.
+
+    Either way a violation means the bound is not proved.  This raises —
+    louder than the old behaviour, which silently clamped the value to PB
+    (see the LP-clamp sites in fixed_training.py) and then reported zero
+    violations.  Nothing is filtered and nothing is dropped.
     """
-    u, v = edge
-    key = f"U_{u}_{v}"
-    if key not in index.var_to_idx:
-        return ineq.copy(), False
+    floors = [
+        (entry["op"], entry["detail"]["standalone_bound"], entry["detail"])
+        for entry in getattr(ineq, "op_trace", [])
+        if entry.get("op") in ("CRYPTO", "DECODE")
+        and entry.get("detail", {}).get("standalone_bound") is not None
+    ]
+    if not floors:
+        return
 
-    c = ineq.coeffs[index.var_to_idx[key]]
-    if c <= tol:  # edge not on LHS
-        return ineq.copy(), False
+    if SOUNDNESS_MODE == "mediant":
+        worst = min(f[1] for f in floors)
+        violated = [f for f in floors if bound < worst - tol]
+    else:
+        violated = [f for f in floors if bound < f[1] - tol]
 
-    # Encoding bound: h(U_{u→v}) ≤ h(Y_{S(u)}) + Σ h(U_{e'}) for e' into u
-    result = ineq.copy()
-    result.coeffs[index.var_to_idx[key]] = 0.0  # remove from LHS
+    if not violated:
+        return
 
-    # Add source term for u
-    src_key = f"Y_S_{u}"
-    if src_key in index.var_to_idx:
-        result.coeffs[index.var_to_idx[src_key]] += c  # add to LHS
-
-    # Add incoming edge terms for u
-    for (a, b) in edges:
-        if b == u:  # edge into u
-            e_key = f"U_{a}_{b}"
-            if e_key in index.var_to_idx:
-                result.coeffs[index.var_to_idx[e_key]] += c
-
-    return result, True
+    lines = [
+        f"UNSOUND DERIVATION on {graph_name} "
+        f"(episode={episode}, step={step}, mode={SOUNDNESS_MODE})",
+        f"  extracted bound : {bound:.6f}",
+        f"  terminal ineq   : {ineq!r}",
+        f"  op trace        : {len(getattr(ineq, 'op_trace', []))} recorded operations",
+    ]
+    for op, floor, detail in violated:
+        lines.append(f"  {op} standalone bound {floor:.6f} > extracted {bound:.6f}")
+        lines.append(f"      {detail}")
+    raise UnsoundDerivationError("\n".join(lines))
 
 
 # ─────────────────────────────────────────────────────────────────────────────

@@ -1,0 +1,74 @@
+[
+ {
+  "name": "grid_4x4_16N",
+  "ok": true,
+  "ceiling": 1.0,
+  "lp": 1.0,
+  "pb": 3.0,
+  "n_used": 1,
+  "n_weights": 1,
+  "best_single": 1.0,
+  "best_single_name": "CRYPTO(|V'|=8,sep=4)",
+  "n_gens": 4042
+ },
+ {
+  "name": "kramer_savari_ladder_8N",
+  "ok": true,
+  "ceiling": 1.0,
+  "lp": 1.0,
+  "pb": 2.0,
+  "n_used": 1,
+  "n_weights": 1,
+  "best_single": 1.0,
+  "best_single_name": "CRYPTO(|V'|=1,sep=2)",
+  "n_gens": 141
+ },
+ {
+  "name": "hu_2pairs_6N",
+  "ok": true,
+  "ceiling": 1.0,
+  "lp": 1.0,
+  "pb": 2.0,
+  "n_used": 1,
+  "n_weights": 1,
+  "best_single": 1.0,
+  "best_single_name": "CRYPTO(|V'|=3,sep=2)",
+  "n_gens": 46
+ },
+ {
+  "name": "yin_et_al_7N",
+  "ok": true,
+  "ceiling": 1.3333333333333333,
+  "lp": 1.25,
+  "pb": 1.6666666666666667,
+  "n_used": 1,
+  "n_weights": 1,
+  "best_single": 1.3333333333333333,
+  "best_single_name": "CRYPTO(|V'|=3,sep=3)",
+  "n_gens": 84
+ },
+ {
+  "name": "hu_three_session_6N",
+  "ok": true,
+  "ceiling": 1.3333333333333333,
+  "lp": 1.1428571428571428,
+  "pb": 1.3333333333333333,
+  "n_used": 1,
+  "n_weights": 1,
+  "best_single": 1.3333333333333333,
+  "best_single_name": "CRYPTO(|V'|=3,sep=3)",
+  "n_gens": 51
+ },
+ {
+  "name": "okamura_network_paper_5N",
+  "ok": true,
+  "ceiling": 1.0,
+  "lp": 0.75,
+  "pb": 0.75,
+  "n_used": 1,
+  "n_weights": 1,
+  "best_single": 1.0,
+  "best_single_name": "CRYPTO(|V'|=1,sep=2)",
+  "n_gens": 33
+ }
+]

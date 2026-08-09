@@ -232,7 +232,8 @@ def generate_fractional_io(
     nodes      : List[str],
     edges      : List[Tuple[str, str]],
     sessions   : List[Tuple[str, str]],
-    index      : EntropyIndex
+    index      : EntropyIndex,
+    mu         : float = None
 ) -> FractionalInequality:
     """
     Form λ·IO(u) + (1-λ)·IO(v).
@@ -255,7 +256,21 @@ def generate_fractional_io(
         partition_ids = [pid_u, pid_v]
         coeffs        = lam * IO(u).coeffs + (1-lam) * IO(v).coeffs
     """
-    assert 0.0 < lam < 1.0, f"λ must be in (0,1), got {lam}"
+    # EXPERIMENT (2026-08-04): ADDITIVE, not convex.
+    #
+    # This used to require 0 < lam < 1 and form lam*IO(u) + (1-lam)*IO(v),
+    # a CONVEX combination. A nonnegative combination of valid inequalities
+    # is valid, so convexity is not required for soundness -- and it is
+    # actively limiting: under convexity the result's Y_I coefficient is
+    # lam*c_u + (1-lam)*c_v <= max(c_u, c_v), so FRACTIONAL_IO can never
+    # produce more Y_I mass than the larger of its two inputs. That is why
+    # the accumulator was the only route to raising c1.
+    #
+    # Now: mu defaults to 1-lam (old behaviour) but may be supplied
+    # independently, with the only requirement lam, mu >= 0 and not both 0.
+    if mu is None:
+        mu = 1.0 - lam
+    assert lam >= 0.0 and mu >= 0.0 and (lam + mu) > 0.0,         f"need lam,mu >= 0 and not both zero, got lam={lam}, mu={mu}"
 
     adjacency = {n: [] for n in nodes}
     for u, v in edges:
@@ -266,7 +281,7 @@ def generate_fractional_io(
     io_v = generate_node_io(node_v, partition, nodes, edges, sessions, index, adjacency)
 
     scaled_u = io_u.scale(lam)
-    scaled_v = io_v.scale(1.0 - lam)
+    scaled_v = io_v.scale(mu)
 
     combined        = scaled_u.add(scaled_v)
     combined.lam    = lam

@@ -1,0 +1,90 @@
+[
+ {
+  "graph": "paper_7N",
+  "bound": 0.9999999999999997,
+  "pb": 1.6666666666666667,
+  "lp": 1.0,
+  "n_sets": 700,
+  "n_seeds": 345,
+  "n_cons": 38636,
+  "ground": 23,
+  "sec": 3.000732421875
+ },
+ {
+  "graph": "diamond_6N",
+  "bound": 1.0,
+  "pb": 1.75,
+  "lp": 1.0,
+  "n_sets": 700,
+  "n_seeds": 156,
+  "n_cons": 50733,
+  "ground": 16,
+  "sec": 3.0532782077789307
+ },
+ {
+  "graph": "butterfly_8N",
+  "bound": 1.0,
+  "pb": 1.5,
+  "lp": 1.0,
+  "n_sets": 715,
+  "n_seeds": 715,
+  "n_cons": 22238,
+  "ground": 28,
+  "sec": 1.250882863998413
+ },
+ {
+  "graph": "grid_9N",
+  "bound": 1.0,
+  "pb": 2.0,
+  "lp": 1.0,
+  "n_sets": 1293,
+  "n_seeds": 1293,
+  "n_cons": 52148,
+  "ground": 27,
+  "sec": 6.187246561050415
+ },
+ {
+  "graph": "star_8N",
+  "bound": 1.0,
+  "pb": 2.25,
+  "lp": 1.0,
+  "n_sets": 700,
+  "n_seeds": 584,
+  "n_cons": 35955,
+  "ground": 20,
+  "sec": 2.7696995735168457
+ },
+ {
+  "graph": "hu_3pairs_6N",
+  "bound": 0.9999999999999999,
+  "pb": 1.3333333333333333,
+  "lp": 1.0,
+  "n_sets": 700,
+  "n_seeds": 183,
+  "n_cons": 41437,
+  "ground": 19,
+  "sec": 4.019777774810791
+ },
+ {
+  "graph": "okamura_4N",
+  "bound": 1.0,
+  "pb": 1.25,
+  "lp": 1.0,
+  "n_sets": 700,
+  "n_seeds": 55,
+  "n_cons": 101139,
+  "ground": 13,
+  "sec": 11.845866918563843
+ },
+ {
+  "graph": "ford_fulkerson_6N",
+  "bound": 2.0,
+  "pb": 3.3333333333333335,
+  "lp": 2.0,
+  "n_sets": 700,
+  "n_seeds": 166,
+  "n_cons": 39687,
+  "ground": 22,
+  "sec": 3.7923195362091064
+ }
+]

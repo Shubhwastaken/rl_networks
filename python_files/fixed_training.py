@@ -37,9 +37,70 @@ import numpy as np
 import torch
 from collections import defaultdict
 from rl_functional_dep_integration import apply_all_improving_func_dep
+from functional_dependence import assert_derivation_sound
 from lp_lower_bound import compute_lp_lower_bound, validate_bound_against_lp
 from stage4_proof_logger import Stage4ProofLogger, generate_proof_document
 import json, time
+
+
+# ---------------------------------------------------------------------------
+# Sub-LP bounds are unsoundness, not noise (1g)
+# ---------------------------------------------------------------------------
+# A bound below the max-flow LP lower bound is mathematically impossible.
+# It cannot be a "bad result" to be clamped away -- it is proof that some
+# operation in the derivation does not follow from its premises.
+#
+# Both places that used to clamp (Stage 4 training and _run_eval_episode)
+# now route here. Set SUB_LP_FATAL = False only to survey how many
+# violations a run produces; the default aborts so nothing sub-LP can be
+# laundered into a metric, a reward, or a reported bound.
+SUB_LP_FATAL: bool = True
+SUB_LP_OBSERVED: list = []
+
+
+class SubLPBoundError(AssertionError):
+    """Raised when a derivation produces a bound below the LP lower bound."""
+
+
+def _policy_fingerprint(*policies) -> str:
+    """
+    Stable hash of the policy weights an eval run was produced with.
+
+    NOTE: this function did not exist before. The eval resume check keyed
+    only on (stochastic_episodes, greedy_trials), so a cached
+    eval_results.json from a DIFFERENT checkpoint -- or from before a
+    change to the proof calculus -- was silently reused as long as those
+    two numbers matched. That is exactly how stale bounds survive a fix.
+    Keying on the weights makes reuse impossible unless the policies are
+    bit-identical.
+    """
+    import hashlib
+    h = hashlib.sha256()
+    for p in policies:
+        if p is None:
+            h.update(b"<none>")
+            continue
+        sd = getattr(p, "state_dict", None)
+        if sd is None:
+            h.update(repr(p).encode())
+            continue
+        for k, v in sorted(sd().items()):
+            h.update(k.encode())
+            h.update(np.ascontiguousarray(
+                v.detach().cpu().numpy()).tobytes())
+    return h.hexdigest()[:32]
+
+
+def raise_sub_lp(graph_name, bound, lp_lb, pb, episode=None, where=""):
+    """Report a sub-LP bound. Raises unless SUB_LP_FATAL is disabled."""
+    msg = (f"SUB-LP BOUND [{where}] on {graph_name}"
+           f"{f' (episode {episode})' if episode is not None else ''}: "
+           f"bound={bound:.6f} < LP lower bound={lp_lb:.6f} (PB={pb:.6f}). "
+           f"The derivation that produced this is unsound.")
+    SUB_LP_OBSERVED.append((where, graph_name, episode, bound, lp_lb))
+    if SUB_LP_FATAL:
+        raise SubLPBoundError(msg)
+    print(f"  !! {msg}")
 
 SEED = 42
 random.seed(SEED)
@@ -1566,6 +1627,12 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
                     ineq, env.func_dep_actions, env.index,
                     env.internal_per_part, len(sessions), len(edges)
                 )
+                # A sub-LP result here is not "an improvement we decline to
+                # take" -- it is the func-dep oracle producing an unsound
+                # inequality. Surface it instead of stepping over it.
+                if fd_bound < _lp_floor - 1e-9 and fd_bound < 1e9:
+                    raise_sub_lp(graph_name, fd_bound, _lp_floor, pb,
+                                 episode=episode, where="func_dep_oracle")
                 if fd_bound < best_b - 1e-8 and fd_bound >= _lp_floor - 1e-9:
                     best_b = fd_bound
                     _oracle_fired = True
@@ -1582,16 +1649,34 @@ def run_stage4(phase1_policy, phase2_policy, best_partitions,
         #        cross_used reflect this episode's outcome.
         _pb_impr = (pb - best_b) / max(pb, 1e-9) if best_b < pb - 1e-8 else 0.0
 
-        # Clamp best_b to LP lower bound before recording metrics and novel bounds.
-        # If best_b is below LP it is mathematically invalid — treat it as PB
-        # so it doesn't pollute the novel_found signal or the stopper.
+        # ── THE LP CLAMP IS GONE (1g) ────────────────────────────────────────
+        # DELETED, not reordered. The removed lines were:
+        #
+        #     _lp_floor_s4 = lp_bounds.get(graph_name, 0.0)
+        #     if best_b < _lp_floor_s4 - 1e-9:
+        #         best_b = pb   # invalid — discard, use PB as fallback
+        #
+        # They ran BEFORE the `validate_bound_against_lp` block further
+        # down that appends to lp_violations. By the time that check ran,
+        # best_b had already been overwritten with pb, so it was comparing
+        # pb against the floor pb was chosen to satisfy: a tautology, not
+        # a check. lp_violations == 0 was structurally guaranteed no
+        # matter what the policy produced. okamura_4N episode 2517 carries
+        # pool bounds of 0.8333 (step 26, APPLY_CRYPTO) and 0.7143 (step
+        # 33, APPLY_DECODE) against an LP lower bound of 1.0, and still
+        # reported a clean summary of 1.25.
+        #
+        # best_b now flows through UNMODIFIED. A sub-LP value is a bug to
+        # surface, never a number to correct, so the validation block
+        # below sees the real value and raise_sub_lp() reports it.
         _lp_floor_s4 = lp_bounds.get(graph_name, 0.0)
         if best_b < _lp_floor_s4 - 1e-9:
-            best_b = pb   # invalid — discard, use PB as conservative fallback
+            raise_sub_lp(graph_name, best_b, _lp_floor_s4, pb,
+                         episode=episode, where="stage4_training")
 
         # Close the episode log — records summary and (for novel episodes)
-        # the terminal inequality detail. Called after LP clamp so the
-        # logged best_b is always the valid, final value.
+        # the terminal inequality detail. best_b is the real derived
+        # value; nothing has been clamped.
         #
         # BLIND SPOT FIX: only_novel=True normally means a graph with zero
         # novel finds has ZERO logged traces anywhere -- not even a summary
@@ -2152,7 +2237,7 @@ def _run_eval_episode(env, graph_tuple, phase1_policy, phase2_policy,
         state2['partition_weights'] = partition_weights or {}
         if done: break
 
-    p3_bound = env.frac_pool.best_bound(
+    p3_bound, p3_ineq = env.frac_pool.best_terminal(
         len(sessions), len(edges), env.internal_per_part
     )
     # NO fabricated fallback. If the episode never assembled a valid
@@ -2169,10 +2254,37 @@ def _run_eval_episode(env, graph_tuple, phase1_policy, phase2_policy,
         env.stored_derived = []
         return p2_bound, None, False, False, pb, graph_name, True
 
+    # Soundness assertion (1f): attribute the bound to the crypto/decode
+    # inequalities in its provenance trace and fail if it is below what
+    # they can prove.
+    if p3_ineq is not None:
+        assert_derivation_sound(
+            p3_ineq, p3_bound, graph_name=graph_name,
+            episode="eval", step="terminal",
+        )
+
+    # ── THE LP CLAMP IS GONE (1g), eval side ─────────────────────────────────
+    # DELETED, not reordered. The removed line was:
+    #
+    #     if not lp_valid:
+    #         p3_bound = pb   # clamp invalid sub-LP results to PB
+    #
+    # It ran before the returned bound was appended to
+    # stochastic_p3_bounds, and stoch_lp_violations is computed from that
+    # list by comparing against lp_lb -- i.e. comparing already-clamped
+    # values against the floor they were clamped to satisfy. Dead code.
+    # The greedy path was laundered the same way: a violating trial got
+    # clamped UP to pb, which made it lose the best-of-trials min, so
+    # lp_valid=False never reached the summary. Between them,
+    # eval_results.json's lp_violations: 0 was structurally guaranteed
+    # regardless of what the policy actually produced.
+    #
+    # p3_bound now propagates UNMODIFIED, with lp_valid=False attached.
     lp_floor = lp_bounds.get(graph_name, 0.0)
     lp_valid = p3_bound >= lp_floor - 1e-6
     if not lp_valid:
-        p3_bound = pb  # clamp invalid sub-LP results to PB, don't report them as novel
+        raise_sub_lp(graph_name, p3_bound, lp_floor, pb,
+                     episode="eval", where="eval_episode")
 
     is_novel = p3_bound < pb - 1e-8
 
@@ -2247,8 +2359,21 @@ def _evaluate_inner(phase1_policy, phase2_policy, phase3_policy,
         'stochastic_no_terminal_count': 0,
     })
 
+    # Full RNG re-seed at the top of eval, so a re-derivation run is
+    # reproducible regardless of how much training ran before it.
+    random.seed(SEED)
+    np.random.seed(SEED)
+    torch.manual_seed(SEED)
+    torch.cuda.manual_seed_all(SEED)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+    _fingerprint = _policy_fingerprint(phase1_policy, phase2_policy, phase3_policy)
+    print(f"  [eval] policy fingerprint: {_fingerprint}")
+
     _eval_log_path = "config_files/eval_results.json"
-    _eval_log = {"episodes": [], "summary": {}, "complete": False}
+    _eval_log = {"episodes": [], "summary": {}, "complete": False,
+                 "policy_fingerprint": _fingerprint}
     def _flush_eval_log():
         with open(_eval_log_path, "w") as _f:
             json.dump(_eval_log, _f, indent=2)
@@ -2280,8 +2405,13 @@ def _evaluate_inner(phase1_policy, phase2_policy, phase3_policy,
         # produces a log this code refuses to resume from. Matching
         # settings is still required, so a run with different
         # stochastic_episodes/greedy_trials won't be silently reused.
+        # Resume is now additionally keyed on the POLICY FINGERPRINT. A
+        # prior log written by different weights (or by the pre-fix proof
+        # calculus, which has no fingerprint recorded at all) is not
+        # reusable and is ignored -- every graph is recomputed.
         if _prior.get("stochastic_episodes_per_graph") == stochastic_episodes \
-                and _prior.get("greedy_trials") == greedy_trials:
+                and _prior.get("greedy_trials") == greedy_trials \
+                and _prior.get("policy_fingerprint") == _fingerprint:
             for gname, s in _prior.get("summary", {}).items():
                 results[gname]['greedy_p3_bound'] = s['greedy_best_bound']  # may be None
                 results[gname]['greedy_is_novel'] = s['greedy_is_novel']
@@ -2572,7 +2702,12 @@ def _evaluate_inner(phase1_policy, phase2_policy, phase3_policy,
     _eval_log["complete"] = True
     _eval_log["stochastic_episodes_per_graph"] = stochastic_episodes
     _eval_log["greedy_trials"] = greedy_trials
+    _eval_log["policy_fingerprint"] = _fingerprint
+    # lp_violations now counts real, surfaced violations. With
+    # SUB_LP_FATAL=True a sub-LP bound aborts the run before reaching
+    # here, so a completed log with 0 means 0 -- not "the clamp hid them".
     _eval_log["lp_violations"] = eval_violations
+    _eval_log["sub_lp_observed"] = [list(x) for x in SUB_LP_OBSERVED]
     _flush_eval_log()
     print(f"\n  [eval log] Results saved to config_files/eval_results.json")
 

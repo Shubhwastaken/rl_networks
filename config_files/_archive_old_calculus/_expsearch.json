@@ -1,0 +1,29 @@
+[
+ {
+  "name": "okamura_4N",
+  "pb": 1.25,
+  "lp": 1.0,
+  "best": Infinity,
+  "seq": null,
+  "n_term": 0,
+  "episodes": 400
+ },
+ {
+  "name": "diamond_6N",
+  "pb": 1.75,
+  "lp": 1.0,
+  "best": Infinity,
+  "seq": null,
+  "n_term": 0,
+  "episodes": 400
+ },
+ {
+  "name": "ford_fulkerson_6N",
+  "pb": 3.3333333333333335,
+  "lp": 2.0,
+  "best": Infinity,
+  "seq": null,
+  "n_term": 0,
+  "episodes": 400
+ }
+]

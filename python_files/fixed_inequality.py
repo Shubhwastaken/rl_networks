@@ -156,6 +156,30 @@ class Inequality:
         self.index  = index
         self.coeffs = np.zeros(index.dim, dtype=np.float64)
         self.active_st_partitions: Set[int] = set()
+        # PROVENANCE (1h): ordered record of the operations that produced
+        # this inequality.  The proof log records which ACTIONS the policy
+        # fired, but not which OPERATIONS produced each terminal
+        # inequality -- which is why a previous audit could not attribute
+        # 6 of 16 graphs to a mechanism.  Every derivation primitive
+        # appends here, and the trace survives copy/scale/add, so a
+        # terminal inequality carries the full list of what built it.
+        # Consumed by functional_dependence.assert_derivation_sound and by
+        # stage4_proof_logger._snap_ineq.
+        self.op_trace: List[Dict] = []
+
+    def record_op(self, op: str, detail: Dict = None) -> None:
+        """Append one operation to this inequality's provenance trace."""
+        self.op_trace.append({"op": op, "detail": dict(detail or {})})
+
+    def mechanisms(self) -> List[str]:
+        """Distinct operation names in the trace, in first-use order."""
+        seen, out = set(), []
+        for entry in self.op_trace:
+            name = entry.get("op")
+            if name not in seen:
+                seen.add(name)
+                out.append(name)
+        return out
 
     def set_lhs(self, var_key: str, value: float):
         self.coeffs[self.index.var_to_idx[var_key]] += value
@@ -169,6 +193,7 @@ class Inequality:
         result.active_st_partitions = (
             self.active_st_partitions | other.active_st_partitions
         )
+        result.op_trace = self.op_trace + list(getattr(other, "op_trace", []))
         return result
 
     def scale(self, lam: float) -> "Inequality":
@@ -176,6 +201,7 @@ class Inequality:
         result = Inequality(self.index)
         result.coeffs = self.coeffs * lam
         result.active_st_partitions = set(self.active_st_partitions)
+        result.op_trace = list(self.op_trace)
         return result
 
     def active_yst(self) -> Set[int]:
@@ -212,12 +238,28 @@ class Inequality:
     def internal_coeff_sum(self) -> float:
         return self.get_lhs_internal_coefficient()
 
-    # Minimum Y_I coefficient for a non-degenerate terminal inequality.
-    # n2-submod always produces Y_I=1.0.  A valid 2-partition fractional
-    # combination via CROSS_SUBMOD should produce Y_I >= 0.5.
-    # Single-edge FIOs that game the floor by tuning lam so Y_I=1/|I|
-    # (giving bound=1.0=LP) are blocked — they pass the old 0.125 floor
-    # by adapting lam but are still structurally vacuous.
+    # ── MIN_YI_COEFF REMOVED (experiment branch, 2026-08-04) ───────────────
+    # The old gate was:  reject if get_yi_coefficient() < 0.5
+    #
+    # It gates a SCALE-INVARIANT quantity, so it filters nothing
+    # mathematical.  Scaling an inequality by t > 0 multiplies c1 by t and
+    # the edge capacity by t, leaving extract_bound() = cap/(c1*|I| + ...)
+    # unchanged; so the identical bound sits on either side of the 0.5
+    # threshold depending only on an arbitrary normalisation.  What it did
+    # do is make terminals unreachable on the 13/19 graphs where no
+    # reachable inequality attains c1 >= 0.5.
+    #
+    # Replaced by a bound-QUALITY gate: accept a terminal only if the bound
+    # it yields is actually below PB.  That is scale-invariant (as a gate
+    # on a scale-invariant quantity should be) and directly expresses what
+    # the terminal is for.
+    #
+    # pb_target is set by the environment (see _start_phase3); when it is
+    # None the quality gate is skipped and only the structural checks run.
+    pb_target: float = None
+    _floor: float = None
+
+    # Retained for reference; no longer consulted.
     MIN_YI_COEFF: float = 0.5
 
     def check_valid_terminal_form(self, tol: float = 1e-4) -> bool:
@@ -236,9 +278,15 @@ class Inequality:
             return False
 
         c1 = self.get_yi_coefficient()
-        # Require Y_I >= 0.5: blocks single-node fractional IOs that tune
-        # lam to game the floor while still producing bound = LP.
-        if c1 < self.MIN_YI_COEFF:
+        # A terminal must still have positive Y_I mass, or extract_bound has
+        # no denominator to divide by. This is a well-formedness check, not
+        # a magnitude threshold.
+        if c1 <= tol:
+            return _reject("yi_nonpositive")
+        # experiment harness only: re-enable the old floor for the A/B/C
+        # comparison. None in every production path.
+        _fl = getattr(type(self), "_floor", None)
+        if _fl is not None and c1 < _fl:
             return _reject("yi_below_floor")
         for i in range(len(self.index.partitions)):
             if self.coeffs[self.index.get_yst_idx(i)] > tol * c1:
@@ -271,6 +319,24 @@ class Inequality:
         )
         if not has_cross_partition_edge:
             return _reject("no_cross_partition_edge")
+
+        # ── BOUND-QUALITY GATE (replaces MIN_YI_COEFF) ─────────────────────
+        # Accept only if the terminal actually improves on the partition
+        # bound. Scale-invariant, and it states the requirement directly
+        # instead of proxying it through a coefficient magnitude.
+        if self.pb_target is not None:
+            ipp = getattr(self.index, "internal_per_part_cache", None)
+            if ipp is None:
+                ipp = [
+                    sum(1 for s, t in self.index.sessions
+                        if s in set(P) and t in set(P))
+                    for P in self.index.partitions
+                ]
+                self.index.internal_per_part_cache = ipp
+            b = self.extract_bound(len(self.index.sessions),
+                                   len(self.index.edges), ipp)
+            if not (b < self.pb_target - 1e-9):
+                return _reject("bound_not_below_pb")
         return True
 
     def cancel_source_terms(self, tol: float = 1e-9) -> "Inequality":
@@ -324,6 +390,8 @@ class Inequality:
         if result.coeffs[self.index.yi_idx()] <= tol:
             return self
 
+        result.record_op("SOURCE_CANCEL",
+                         {"yi_deduction": float(source_yi_deduction)})
         return result
 
     def extract_bound(
@@ -375,6 +443,7 @@ class Inequality:
         result = Inequality(self.index)
         result.coeffs = self.coeffs.copy()
         result.active_st_partitions = set(self.active_st_partitions)
+        result.op_trace = list(self.op_trace)
         return result
 
     def __repr__(self) -> str:
@@ -423,6 +492,7 @@ class FractionalInequality(Inequality):
         )
         result.coeffs = self.coeffs.copy()
         result.active_st_partitions = set(self.active_st_partitions)
+        result.op_trace = list(self.op_trace)
         return result
 
     def add(self, other: "Inequality") -> "FractionalInequality":
@@ -430,6 +500,7 @@ class FractionalInequality(Inequality):
         result = FractionalInequality(self.index)
         result.coeffs = base.coeffs
         result.active_st_partitions = base.active_st_partitions
+        result.op_trace = list(base.op_trace)
         # Merge source nodes and partition ids from both operands
         result.source_nodes  = self.source_nodes  + getattr(other, 'source_nodes',  [])
         result.partition_ids = self.partition_ids + getattr(other, 'partition_ids', [])
@@ -446,6 +517,7 @@ class FractionalInequality(Inequality):
         )
         result.coeffs = base.coeffs
         result.active_st_partitions = set(self.active_st_partitions)
+        result.op_trace = list(base.op_trace)
         return result
 
     def is_cross_partition(self) -> bool:
@@ -486,6 +558,7 @@ def make_fractional(ineq: Inequality, lam: float = 1.0,
                               source_nodes or [], partition_ids or [])
     fi.coeffs = ineq.coeffs.copy()
     fi.active_st_partitions = set(ineq.active_st_partitions)
+    fi.op_trace = list(getattr(ineq, "op_trace", []))
     return fi
 
 
@@ -530,13 +603,26 @@ class FractionalPool:
 
     def best_bound(self, num_sessions: int, num_edges: int,
                    internal_per_part: List[int]) -> float:
-        best = float('inf')
+        return self.best_terminal(num_sessions, num_edges, internal_per_part)[0]
+
+    def best_terminal(self, num_sessions: int, num_edges: int,
+                      internal_per_part: List[int]):
+        """
+        Return (best_bound, best_inequality) over terminal-form items.
+
+        best_bound is float('inf') and best_inequality is None when no item
+        is in terminal form.  Callers that must attribute a bound to the
+        operations that produced it (soundness assertion, provenance
+        reporting) need the inequality, not just the number -- best_bound
+        threw it away, which is why mechanism attribution was impossible.
+        """
+        best, best_ineq = float('inf'), None
         for ineq in self.items:
             if ineq.check_valid_terminal_form():
                 b = ineq.extract_bound(num_sessions, num_edges, internal_per_part)
                 if b < best:
-                    best = b
-        return best
+                    best, best_ineq = b, ineq
+        return best, best_ineq
 
     def contains_equivalent(self, ineq: "FractionalInequality",
                              tol: float = 1e-6) -> bool:

@@ -67,6 +67,7 @@ from rl_functional_dep_integration import (
     apply_all_improving_func_dep,
 )
 from functional_dependence import (
+    assert_derivation_sound,
     apply_crypto_inequality_direct,
     apply_decode_substitution,
 )
@@ -80,8 +81,13 @@ from functional_dependence import (
 # See the note in step() on how to interpret a sweep. Sweep under a fixed seed
 # only — otherwise the change and the RNG move together and you learn nothing.
 # ---------------------------------------------------------------------------
-FIO_FREE_CALLS: int = 3
-FIO_DECAY_PER_STEP: float = 0.08
+# EXPERIMENT (2026-08-04): FIO repeat-decay DISABLED.
+# Was FIO_FREE_CALLS=3, FIO_DECAY_PER_STEP=0.08. The decay pushed the
+# policy off FRACTIONAL_IO after 3 consecutive calls; with the additive
+# form, long FIO chains are the mechanism for building Y_I mass, so the
+# decay would penalise exactly the behaviour under test.
+FIO_FREE_CALLS: int = 10**9
+FIO_DECAY_PER_STEP: float = 0.0
 
 
 class Phase(IntEnum):
@@ -327,6 +333,13 @@ class PartitionBoundEnv:
         if self.index is None:
             self._start_phase2()   # ensure index is built
 
+        # EXPERIMENT (2026-08-04): arm the bound-quality gate that replaced
+        # MIN_YI_COEFF. check_valid_terminal_form now accepts a terminal
+        # only if its bound is strictly below PB.
+        from fixed_inequality import Inequality as _Ineq
+        _Ineq.pb_target = self.partition_bound
+        self.index.internal_per_part_cache = list(self.internal_per_part or [])
+
         # Populate frac_pool with all per-node IOs at weight 1.0
         self.frac_pool = FractionalPool(MAX_DERIVED)
         for fi in self.node_ios.values():
@@ -522,7 +535,7 @@ class PartitionBoundEnv:
                     and idx_i != idx_j):
                 a = self.accumulator[idx_i]
                 b = self.accumulator[idx_j]
-                union_ineq, inter_ineq = apply_pairwise_submodularity(
+                union_ineq = apply_pairwise_submodularity(
                     a, b, self.index, self.sessions
                 )
                 self.accumulator = [
@@ -530,7 +543,6 @@ class PartitionBoundEnv:
                     if k not in (idx_i, idx_j)
                 ]
                 self.pool.append(union_ineq)
-                self.pool.append(inter_ineq)
                 self.combination_log.append({
                     'step': self.phase2_steps, 'action': 'PAIRWISE',
                     'idx_i': idx_i, 'idx_j': idx_j,
@@ -559,7 +571,7 @@ class PartitionBoundEnv:
                 a_parts = set(getattr(a, 'partition_ids', []))
                 b_parts = set(getattr(b, 'partition_ids', []))
                 is_cross = bool(a_parts and b_parts and not (a_parts & b_parts))
-                union_ineq, inter_ineq = apply_pairwise_submodularity(
+                union_ineq = apply_pairwise_submodularity(
                     a, b, self.index, self.sessions
                 )
                 self.accumulator = [
@@ -567,7 +579,6 @@ class PartitionBoundEnv:
                     if k not in (idx_i, idx_j)
                 ]
                 self.pool.append(union_ineq)
-                self.pool.append(inter_ineq)
                 self.combination_log.append({
                     'step': self.phase2_steps, 'action': 'CROSS_SUBMOD',
                     'cross': is_cross,
@@ -641,7 +652,8 @@ class PartitionBoundEnv:
                     new_ineq, applied = apply_crypto_inequality_direct(
                         target, set(vp),
                         list(self.nodes), list(self.edges),
-                        list(self.sessions), self.index
+                        list(self.sessions), self.index,
+                        internal_per_part=self.internal_per_part,
                     )
                     if applied:
                         self.pool.append(new_ineq)
@@ -672,7 +684,8 @@ class PartitionBoundEnv:
                 if target is not None:
                     new_ineq, applied = apply_decode_substitution(
                         target, si,
-                        list(self.sessions), list(self.edges), self.index
+                        list(self.sessions), list(self.edges), self.index,
+                        internal_per_part=self.internal_per_part,
                     )
                     if applied:
                         self.pool.append(new_ineq)
@@ -761,12 +774,16 @@ class PartitionBoundEnv:
             node_u = action.get('node_u')
             node_v = action.get('node_v')
             lam    = action.get('lam', 0.5)
+            _mu = action.get('mu')
+            _mu_ok = (_mu is None) or (_mu >= 0.0)
             if (node_u in self.node_ios and node_v in self.node_ios
-                    and node_u != node_v and 0.0 < lam < 1.0):
+                    and node_u != node_v and lam >= 0.0 and _mu_ok
+                    and (lam + (_mu if _mu is not None else 1.0 - lam)) > 0.0):
                 fi = generate_fractional_io(
                     node_u, node_v, lam,
                     self.partition, self.nodes, self.edges,
-                    self.sessions, self.index
+                    self.sessions, self.index,
+                    mu=action.get('mu')          # None => old convex behaviour
                 )
                 # Fix B: shaping reward for novel cross-partition FIOs.
                 # A cross-partition fractional IO with a non-trivial λ is
@@ -858,7 +875,7 @@ class PartitionBoundEnv:
                     and idx_i != idx_j):
                 a = self.accumulator[idx_i]
                 b = self.accumulator[idx_j]
-                union_ineq, inter_ineq = apply_pairwise_submodularity(
+                union_ineq = apply_pairwise_submodularity(
                     a, b, self.index, self.sessions
                 )
                 self.accumulator = [
@@ -871,13 +888,10 @@ class PartitionBoundEnv:
                     source_nodes  = getattr(a,'source_nodes',[]) + getattr(b,'source_nodes',[]),
                     partition_ids = getattr(a,'partition_ids',[]) + getattr(b,'partition_ids',[])
                 )
-                fi2 = make_fractional(
-                    inter_ineq, lam=1.0,
-                    source_nodes  = getattr(a,'source_nodes',[]) + getattr(b,'source_nodes',[]),
-                    partition_ids = getattr(a,'partition_ids',[]) + getattr(b,'partition_ids',[])
-                )
+                # The intersection is gone: it produced a FALSE inequality
+                # on 35% of valid input pairs and every one was added to
+                # the pool here. See apply_pairwise_submodularity.
                 self.frac_pool.add(fu)
-                self.frac_pool.add(fi2)
                 # Reward based on what the combination can actually produce.
                 # The only productive CROSS_SUBMOD case is mixed: one input
                 # has Y_ST terms (partition IO) and the other has Y_I directly
@@ -969,7 +983,8 @@ class PartitionBoundEnv:
                     new_ineq, applied = apply_crypto_inequality_direct(
                         ineq, set(vp),
                         list(self.nodes), list(self.edges),
-                        list(self.sessions), self.index
+                        list(self.sessions), self.index,
+                        internal_per_part=self.internal_per_part,
                     )
                     if applied:
                         self.accumulator[i] = new_ineq
@@ -980,7 +995,8 @@ class PartitionBoundEnv:
                     new_ineq, applied = apply_crypto_inequality_direct(
                         ineq, set(vp),
                         list(self.nodes), list(self.edges),
-                        list(self.sessions), self.index
+                        list(self.sessions), self.index,
+                        internal_per_part=self.internal_per_part,
                     )
                     if applied:
                         self.frac_pool.add(make_fractional(new_ineq))
@@ -1018,7 +1034,8 @@ class PartitionBoundEnv:
                 for i, ineq in enumerate(list(self.accumulator)):
                     new_ineq, applied = apply_decode_substitution(
                         ineq, si,
-                        list(self.sessions), list(self.edges), self.index
+                        list(self.sessions), list(self.edges), self.index,
+                        internal_per_part=self.internal_per_part,
                     )
                     if applied:
                         self.accumulator[i] = new_ineq
@@ -1028,7 +1045,8 @@ class PartitionBoundEnv:
                         continue
                     new_ineq, applied = apply_decode_substitution(
                         ineq, si,
-                        list(self.sessions), list(self.edges), self.index
+                        list(self.sessions), list(self.edges), self.index,
+                        internal_per_part=self.internal_per_part,
                     )
                     if applied:
                         self.frac_pool.add(make_fractional(new_ineq))
@@ -1079,12 +1097,26 @@ class PartitionBoundEnv:
         reward poisoning problem.
         """
         pb = self.partition_bound
-        best_bound = self.frac_pool.best_bound(
+        best_bound, best_ineq = self.frac_pool.best_terminal(
             len(self.sessions), len(self.edges), self.internal_per_part
         )
         if best_bound == float('inf'):
             # No terminal form found — heavy penalty
             return self._get_state(), -pb, True
+
+        # ── Soundness assertion (1f) ─────────────────────────────────────────
+        # Every terminal inequality is checked against the standalone bound
+        # of each crypto/decode inequality in its provenance trace. A
+        # terminal bound below what its own components can prove means the
+        # derivation is unsound; raise rather than penalise, so it cannot be
+        # laundered into a training signal.
+        if best_ineq is not None:
+            assert_derivation_sound(
+                best_ineq, best_bound,
+                graph_name=getattr(self, '_graph_name', '<unknown>'),
+                episode=getattr(self, '_episode', None),
+                step=self.phase3_steps,
+            )
 
         # ── LP floor guard ───────────────────────────────────────────────────
         # A bound below the LP lower bound is mathematically invalid.

@@ -197,7 +197,8 @@ def apply_best_functional_dep(
         if not is_crypto_valid(ineq, vp, fda.nodes, fda.edges, fda.sessions, index):
             continue
         new_ineq, applied = apply_crypto_inequality_direct(
-            ineq, set(vp), fda.nodes, fda.edges, fda.sessions, index
+            ineq, set(vp), fda.nodes, fda.edges, fda.sessions, index,
+            internal_per_part=internal_per_part,
         )
         if not applied:
             continue
@@ -215,7 +216,8 @@ def apply_best_functional_dep(
         if not is_decode_valid(ineq, si, incoming, index):
             continue
         new_ineq, applied = apply_decode_substitution(
-            ineq, si, fda.sessions, fda.edges, index
+            ineq, si, fda.sessions, fda.edges, index,
+            internal_per_part=internal_per_part,
         )
         if not applied:
             continue

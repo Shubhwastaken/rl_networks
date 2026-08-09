@@ -1,0 +1,14 @@
+{
+ "okamura_4N": {
+  "step": 23,
+  "action": "APPLY_SUBMODULARITY",
+  "violation": 0.6699999999999999,
+  "ineq": "[proof=FRACTIONAL ?=1.0000 src=['a', 'd'] parts=[0, 1]]  0.557*Y_I <= 0.330*U_c_d + 0.670*U_a_c"
+ },
+ "ford_fulkerson_6N": {
+  "step": 32,
+  "action": "CROSS_SUBMOD",
+  "violation": 1.25,
+  "ineq": "[proof=FRACTIONAL ?=1.0000 src=['s', 'b'] parts=[0, 2]]  0.375*Y_I <= 0.250*U_b_d"
+ }
+}

@@ -117,14 +117,31 @@ def _snap_ineq(ineq, index: EntropyIndex, label: str = "") -> Dict:
             snap["edge_coeffs"][key] = round(abs(c), 6)
 
     snap["edge_total"] = round(sum(snap["edge_coeffs"].values()), 6)
+
+    # PROVENANCE (1h): the operations that actually produced this
+    # inequality. The step log already records which ACTIONS the policy
+    # fired, but an action can fire without applying and several actions
+    # feed one inequality, so "which action ran at step k" does not
+    # determine "which operation produced this bound". That gap is why a
+    # previous audit could not attribute 6 of 16 graphs to a mechanism.
+    # op_trace closes it: it travels with the inequality through
+    # copy/scale/add, so a terminal snapshot names its own derivation.
+    trace = list(getattr(ineq, "op_trace", []))
+    snap["op_trace"]   = trace
+    snap["mechanisms"] = ineq.mechanisms() if hasattr(ineq, "mechanisms") else []
+    snap["op_counts"]  = {
+        name: sum(1 for e in trace if e.get("op") == name)
+        for name in snap["mechanisms"]
+    }
     return snap
 
 
 def _snap_pool(env, label: str = "") -> Dict:
     """Snapshot the frac_pool: size + best terminal inequality."""
     size = len(env.frac_pool)
-    best_repr = "none"
-    best_b    = None
+    best_repr  = "none"
+    best_b     = None
+    best_ineq  = None
     for ineq in env.frac_pool:
         if ineq.check_valid_terminal_form():
             b = ineq.extract_bound(
@@ -133,11 +150,22 @@ def _snap_pool(env, label: str = "") -> Dict:
             if best_b is None or b < best_b:
                 best_b    = b
                 best_repr = repr(ineq)
+                best_ineq = ineq
     return {
         "label":              label,
         "pool_size":          size,
         "best_bound":         round(best_b, 6) if best_b is not None else None,
         "best_terminal_repr": best_repr,
+        # Which operations produced THIS pool's best bound (1h). Without
+        # this, a pool best_bound of 0.8333 (as in okamura_4N episode
+        # 2517, step 26) is an unattributable number.
+        "best_mechanisms": (
+            best_ineq.mechanisms()
+            if best_ineq is not None and hasattr(best_ineq, "mechanisms") else []
+        ),
+        "best_op_trace": (
+            list(getattr(best_ineq, "op_trace", [])) if best_ineq is not None else []
+        ),
     }
 
 

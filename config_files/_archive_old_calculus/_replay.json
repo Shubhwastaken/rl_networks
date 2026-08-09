@@ -1,0 +1,921 @@
+{
+ "grid_4x4_16N": [
+  {
+   "episode": 210,
+   "claimed": 1.012658,
+   "lp": 1.0,
+   "replayed": 2.9310344827586206,
+   "mechanisms": [
+    "COLLAPSE_YST",
+    "CRYPTO",
+    "DECODE"
+   ],
+   "op_counts": {
+    "COLLAPSE_YST": 1,
+    "CRYPTO": 5,
+    "DECODE": 3
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  1.000*Y_I_P0 + 1.000*Y_I_P1 + 9.150*Y_I <= 2.000*U_r0c0_r0c1 + 2.000*U_r0c0_r1c0 + 6.000*U_r0c1_r0c2 + 5.000*U_r0c1_r1c1 + 6.000*U_r0c2_r0c3 + 5.000*U_r0c2_r1c2 + 9.000*U_r0c3_r1c3 + 5.000*U_r1c0_r1c1 + 7.000*U_r1c0_r2c0 + 8.000*U_r1c1_r1c2 + 6.000*U_r1c1_r2c1 + 4.000*U_r1c2_r1c3 + 4.000*U_r1c2_r2c2 + 6.000*U_r1c3_r2c3 + 4.000*U_r2c0_r2c1 + 6.000*U_r2c0_r3c0 + 2.000*U_r2c1_r2c2 + 2.000*U_r2c1_r3c1 + 6.000*U_r2c2_r2c3 + 4.000*U_r2c2_r3c2 + 7.000*U_r2c3_r3c3 + 4.000*U_r3c0_r3c1 + 4.000*U_r3c1_r3c2 + 5.000*U_r3c2_r3c3"
+  },
+  {
+   "episode": 7249,
+   "claimed": 1.846154,
+   "lp": 1.0,
+   "replayed": 2.6818181818181817,
+   "mechanisms": [
+    "COLLAPSE_YST",
+    "DECODE",
+    "CRYPTO"
+   ],
+   "op_counts": {
+    "COLLAPSE_YST": 1,
+    "DECODE": 1,
+    "CRYPTO": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  1.000*Y_I_P0 + 1.000*Y_I_P1 + 4.500*Y_I <= 1.000*U_r0c0_r0c1 + 1.000*U_r0c0_r1c0 + 4.000*U_r0c1_r0c2 + 3.000*U_r0c1_r1c1 + 4.000*U_r0c2_r0c3 + 3.000*U_r0c2_r1c2 + 4.000*U_r0c3_r1c3 + 3.000*U_r1c0_r1c1 + 4.000*U_r1c0_r2c0 + 4.000*U_r1c1_r1c2 + 3.000*U_r1c1_r2c1 + 3.000*U_r1c2_r1c3 + 4.000*U_r1c2_r2c2 + 2.000*U_r1c3_r2c3 + 2.000*U_r2c0_r2c1 + 2.000*U_r2c0_r3c0 + 1.000*U_r2c1_r2c2 + 1.000*U_r2c1_r3c1 + 1.000*U_r2c2_r2c3 + 1.000*U_r2c2_r3c2 + 3.000*U_r2c3_r3c3 + 1.000*U_r3c0_r3c1 + 1.000*U_r3c1_r3c2 + 3.000*U_r3c2_r3c3"
+  }
+ ],
+ "grid_9N": [
+  {
+   "episode": 267,
+   "claimed": 1.714286,
+   "lp": 1.0,
+   "replayed": 2.466666666666667,
+   "mechanisms": [
+    "COLLAPSE_YST",
+    "DECODE"
+   ],
+   "op_counts": {
+    "COLLAPSE_YST": 1,
+    "DECODE": 1
+   },
+   "assertion": null,
+   "steps_applied": 26,
+   "repr": "[proof=INTEGER \u03bb=1.0000 src=none parts=none]  1.000*Y_I_P0 + 1.000*Y_I_P1 + 4.000*Y_I <= 1.000*U_a_b + 3.000*U_b_c + 2.000*U_d_e + 3.000*U_e_f + 4.000*U_g_h + 4.000*U_h_i + 4.000*U_a_d + 3.000*U_b_e + 3.000*U_c_f + 3.000*U_d_g + 3.000*U_e_h + 4.000*U_f_i"
+  }
+ ],
+ "diamond_6N": [
+  {
+   "episode": 481,
+   "claimed": 1.455,
+   "lp": 1.0,
+   "replayed": 2.2729999999999992,
+   "mechanisms": [
+    "DECODE",
+    "CRYPTO",
+    "SOURCE_CANCEL"
+   ],
+   "op_counts": {
+    "DECODE": 3,
+    "CRYPTO": 10,
+    "SOURCE_CANCEL": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  10.000*Y_I <= 5.200*U_S1_v1 + 1.330*U_S1_v2 + 10.670*U_S2_v1 + 12.800*U_S2_v2 + 6.800*U_v1_t1 + 2.930*U_v2_t2 + 5.730*U_v1_v2"
+  },
+  {
+   "episode": 1318,
+   "claimed": 1.0,
+   "lp": 1.0,
+   "replayed": null,
+   "mechanisms": [],
+   "op_counts": {},
+   "assertion": null,
+   "steps_applied": 41
+  },
+  {
+   "episode": 1690,
+   "claimed": 1.34383,
+   "lp": 1.0,
+   "replayed": 3.4417391304347826,
+   "mechanisms": [
+    "DECODE",
+    "CRYPTO",
+    "SOURCE_CANCEL"
+   ],
+   "op_counts": {
+    "DECODE": 2,
+    "CRYPTO": 1,
+    "SOURCE_CANCEL": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  2.875*Y_I <= 2.500*U_S1_v1 + 1.730*U_S1_v2 + 2.520*U_S2_v1 + 1.750*U_S2_v2 + 5.520*U_v1_t1 + 3.000*U_v2_t2 + 2.770*U_v1_v2"
+  },
+  {
+   "episode": 1762,
+   "claimed": 1.2,
+   "lp": 1.0,
+   "replayed": 3.3333333333333335,
+   "mechanisms": [
+    "COLLAPSE_YST"
+   ],
+   "op_counts": {
+    "COLLAPSE_YST": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=['t2'] parts=[0]]  1.000*Y_I_P0 + 0.500*Y_I <= 1.000*U_S1_v1 + 1.000*U_S1_v2 + 2.000*U_S2_v1 + 2.000*U_S2_v2 + 2.000*U_v1_t1 + 2.000*U_v2_t2"
+  },
+  {
+   "episode": 2003,
+   "claimed": 1.0,
+   "lp": 1.0,
+   "replayed": 1.8,
+   "mechanisms": [
+    "COLLAPSE_YST",
+    "DECODE"
+   ],
+   "op_counts": {
+    "COLLAPSE_YST": 1,
+    "DECODE": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  1.000*Y_I_P0 + 1.500*Y_I <= 1.000*U_S1_v1 + 1.000*U_S1_v2 + 1.000*U_S2_v1 + 1.000*U_S2_v2 + 3.000*U_v1_t1 + 2.000*U_v2_t2"
+  },
+  {
+   "episode": 2937,
+   "claimed": 1.3312,
+   "lp": 1.0,
+   "replayed": 4.298181818181818,
+   "mechanisms": [
+    "DECODE",
+    "SOURCE_CANCEL",
+    "CRYPTO"
+   ],
+   "op_counts": {
+    "DECODE": 3,
+    "SOURCE_CANCEL": 1,
+    "CRYPTO": 1
+   },
+   "assertion": null,
+   "steps_applied": 38,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  2.750*Y_I <= 4.670*U_S1_v1 + 2.400*U_S1_v2 + 3.100*U_S2_v1 + 2.830*U_S2_v2 + 2.670*U_v1_t1 + 4.900*U_v2_t2 + 3.070*U_v1_v2"
+  },
+  {
+   "episode": 5308,
+   "claimed": 1.2,
+   "lp": 1.0,
+   "replayed": 2.6666666666666665,
+   "mechanisms": [
+    "COLLAPSE_YST"
+   ],
+   "op_counts": {
+    "COLLAPSE_YST": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=['t2'] parts=[0]]  1.000*Y_I_P0 + 0.500*Y_I <= 2.000*U_S1_v1 + 2.000*U_S1_v2 + 1.000*U_S2_v1 + 1.000*U_S2_v2 + 1.000*U_v1_t1 + 1.000*U_v2_t2"
+  },
+  {
+   "episode": 6125,
+   "claimed": 1.2,
+   "lp": 1.0,
+   "replayed": 2.0,
+   "mechanisms": [
+    "COLLAPSE_YST"
+   ],
+   "op_counts": {
+    "COLLAPSE_YST": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=['S2'] parts=[0]]  1.000*Y_I_P0 + 0.500*Y_I <= 1.000*U_S1_v1 + 1.000*U_S1_v2 + 1.000*U_S2_v1 + 1.000*U_S2_v2 + 1.000*U_v1_t1 + 1.000*U_v2_t2"
+  },
+  {
+   "episode": 6586,
+   "claimed": 1.0,
+   "lp": 1.0,
+   "replayed": 2.2,
+   "mechanisms": [
+    "COLLAPSE_YST",
+    "DECODE"
+   ],
+   "op_counts": {
+    "COLLAPSE_YST": 1,
+    "DECODE": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  1.000*Y_I_P0 + 1.500*Y_I <= 2.000*U_S1_v1 + 2.000*U_S1_v2 + 2.000*U_S2_v1 + 2.000*U_S2_v2 + 2.000*U_v1_t1 + 1.000*U_v2_t2"
+  },
+  {
+   "episode": 7851,
+   "claimed": 1.0,
+   "lp": 1.0,
+   "replayed": 2.6923076923076925,
+   "mechanisms": [
+    "DECODE",
+    "SOURCE_CANCEL"
+   ],
+   "op_counts": {
+    "DECODE": 3,
+    "SOURCE_CANCEL": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  3.250*Y_I <= 1.250*U_S1_v1 + 3.250*U_S1_v2 + 0.250*U_S2_v1 + 2.250*U_S2_v2 + 4.500*U_v1_t1 + 4.000*U_v2_t2 + 2.000*U_v1_v2"
+  },
+  {
+   "episode": 8246,
+   "claimed": 1.742308,
+   "lp": 1.0,
+   "replayed": 3.665384615384615,
+   "mechanisms": [
+    "SOURCE_CANCEL",
+    "CRYPTO"
+   ],
+   "op_counts": {
+    "SOURCE_CANCEL": 1,
+    "CRYPTO": 3
+   },
+   "assertion": null,
+   "steps_applied": 40,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  2.600*Y_I <= 2.670*U_S1_v1 + 3.800*U_S1_v2 + 3.000*U_S2_v1 + 4.130*U_S2_v2 + 2.330*U_v2_t2 + 3.130*U_v1_v2"
+  },
+  {
+   "episode": 8602,
+   "claimed": 1.2,
+   "lp": 1.0,
+   "replayed": 2.0,
+   "mechanisms": [
+    "COLLAPSE_YST"
+   ],
+   "op_counts": {
+    "COLLAPSE_YST": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=['S1'] parts=[0]]  1.000*Y_I_P0 + 0.500*Y_I <= 1.000*U_S1_v1 + 1.000*U_S1_v2 + 1.000*U_S2_v1 + 1.000*U_S2_v2 + 1.000*U_v1_t1 + 1.000*U_v2_t2"
+  },
+  {
+   "episode": 8995,
+   "claimed": 1.166667,
+   "lp": 1.0,
+   "replayed": null,
+   "mechanisms": [],
+   "op_counts": {},
+   "assertion": null,
+   "steps_applied": 41
+  },
+  {
+   "episode": 9261,
+   "claimed": 1.0,
+   "lp": 1.0,
+   "replayed": 1.75,
+   "mechanisms": [
+    "COLLAPSE_YST",
+    "DECODE"
+   ],
+   "op_counts": {
+    "COLLAPSE_YST": 1,
+    "DECODE": 1
+   },
+   "assertion": null,
+   "steps_applied": 24,
+   "repr": "[proof=INTEGER \u03bb=1.0000 src=none parts=none]  1.000*Y_I_P0 + 1.000*Y_I <= 1.000*U_S1_v1 + 1.000*U_S1_v2 + 1.000*U_S2_v1 + 1.000*U_S2_v2 + 1.000*U_v1_t1 + 2.000*U_v2_t2"
+  }
+ ],
+ "hu_2pairs_6N": [
+  {
+   "episode": 531,
+   "claimed": 1.253467,
+   "lp": 1.0,
+   "replayed": 3.1666666666666665,
+   "mechanisms": [
+    "CRYPTO",
+    "SOURCE_CANCEL"
+   ],
+   "op_counts": {
+    "CRYPTO": 3,
+    "SOURCE_CANCEL": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  3.990*Y_I <= 1.250*U_a_b + 2.340*U_b_c + 3.820*U_c_d + 3.980*U_d_e + 4.930*U_e_f + 1.680*U_f_a + 1.770*U_b_f + 5.500*U_c_e"
+  },
+  {
+   "episode": 3011,
+   "claimed": 1.0,
+   "lp": 1.0,
+   "replayed": 1.0,
+   "mechanisms": [],
+   "op_counts": {},
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=['a', 'b'] parts=[0, 1]]  0.500*Y_I <= 1.000*U_a_b"
+  },
+  {
+   "episode": 3133,
+   "claimed": 1.0,
+   "lp": 1.0,
+   "replayed": 1.0,
+   "mechanisms": [],
+   "op_counts": {},
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=['a', 'b'] parts=[0, 1]]  0.500*Y_I <= 1.000*U_a_b"
+  },
+  {
+   "episode": 3662,
+   "claimed": 1.0,
+   "lp": 1.0,
+   "replayed": 1.0,
+   "mechanisms": [],
+   "op_counts": {},
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=['a', 'b'] parts=[0, 1]]  0.500*Y_I <= 1.000*U_a_b"
+  },
+  {
+   "episode": 3783,
+   "claimed": 1.0,
+   "lp": 1.0,
+   "replayed": 1.0,
+   "mechanisms": [],
+   "op_counts": {},
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=['b', 'a'] parts=[0, 1]]  0.500*Y_I <= 1.000*U_a_b"
+  },
+  {
+   "episode": 4516,
+   "claimed": 1.0,
+   "lp": 1.0,
+   "replayed": 1.0,
+   "mechanisms": [],
+   "op_counts": {},
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=['d', 'e'] parts=[0, 1]]  0.500*Y_I <= 1.000*U_d_e"
+  },
+  {
+   "episode": 4795,
+   "claimed": 1.0,
+   "lp": 1.0,
+   "replayed": 1.0,
+   "mechanisms": [],
+   "op_counts": {},
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=['d', 'e'] parts=[0, 1]]  0.500*Y_I <= 1.000*U_d_e"
+  },
+  {
+   "episode": 6568,
+   "claimed": 1.0,
+   "lp": 1.0,
+   "replayed": 1.0,
+   "mechanisms": [],
+   "op_counts": {},
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=['a', 'b'] parts=[0, 1]]  0.500*Y_I <= 1.000*U_a_b"
+  },
+  {
+   "episode": 6899,
+   "claimed": 1.0,
+   "lp": 1.0,
+   "replayed": 1.0,
+   "mechanisms": [],
+   "op_counts": {},
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=['e', 'd'] parts=[0, 1]]  0.500*Y_I <= 1.000*U_d_e"
+  },
+  {
+   "episode": 8293,
+   "claimed": 1.725063,
+   "lp": 1.0,
+   "replayed": 4.701298701298701,
+   "mechanisms": [
+    "DECODE",
+    "CRYPTO",
+    "SOURCE_CANCEL"
+   ],
+   "op_counts": {
+    "DECODE": 3,
+    "CRYPTO": 1,
+    "SOURCE_CANCEL": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  3.465*Y_I <= 5.820*U_a_b + 3.600*U_b_c + 4.200*U_c_d + 5.930*U_d_e + 2.980*U_e_f + 3.470*U_f_a + 3.650*U_b_f + 2.930*U_c_e"
+  },
+  {
+   "episode": 8377,
+   "claimed": 1.963889,
+   "lp": 1.0,
+   "replayed": 2.841304347826087,
+   "mechanisms": [
+    "CRYPTO",
+    "SOURCE_CANCEL",
+    "DECODE"
+   ],
+   "op_counts": {
+    "CRYPTO": 1,
+    "SOURCE_CANCEL": 1,
+    "DECODE": 2
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  2.300*Y_I <= 2.400*U_a_b + 0.400*U_b_c + 2.930*U_c_d + 3.600*U_d_e + 0.670*U_e_f + 2.000*U_f_a + 0.400*U_b_f + 0.670*U_c_e"
+  },
+  {
+   "episode": 9911,
+   "claimed": 1.0,
+   "lp": 1.0,
+   "replayed": 1.0,
+   "mechanisms": [],
+   "op_counts": {},
+   "assertion": null,
+   "steps_applied": 26,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=['b', 'a'] parts=[0, 1]]  0.500*Y_I <= 1.000*U_a_b"
+  }
+ ],
+ "star_8N": [
+  {
+   "episode": 807,
+   "claimed": 1.24412,
+   "lp": 1.0,
+   "replayed": 6.583690987124463,
+   "mechanisms": [
+    "SOURCE_CANCEL"
+   ],
+   "op_counts": {
+    "SOURCE_CANCEL": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  1.165*Y_I <= 1.670*U_S1_v1 + 1.670*U_S2_v1 + 1.670*U_v1_t1 + 2.000*U_v1_t2 + 2.000*U_S1_r1 + 2.330*U_r1_t2 + 1.000*U_S2_r2 + 1.000*U_r2_t1 + 2.000*U_r1_r3"
+  },
+  {
+   "episode": 2661,
+   "claimed": 1.181818,
+   "lp": 1.0,
+   "replayed": 13.0,
+   "mechanisms": [
+    "SOURCE_CANCEL"
+   ],
+   "op_counts": {
+    "SOURCE_CANCEL": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  0.500*Y_I <= 1.400*U_S1_v1 + 2.000*U_S2_v1 + 2.000*U_v1_t1 + 1.000*U_v1_t2 + 1.400*U_S1_r1 + 1.000*U_r1_t2 + 1.600*U_S2_r2 + 1.600*U_r2_t1 + 1.000*U_r1_r3"
+  },
+  {
+   "episode": 5223,
+   "claimed": 2.0,
+   "lp": 1.0,
+   "replayed": 3.3333333333333335,
+   "mechanisms": [
+    "COLLAPSE_YST"
+   ],
+   "op_counts": {
+    "COLLAPSE_YST": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  1.000*Y_I_P0 + 1.000*Y_I_P1 + 0.500*Y_I <= 1.000*U_S1_v1 + 1.000*U_S2_v1 + 1.000*U_v1_t1 + 2.000*U_v1_t2 + 1.000*U_S1_r1 + 2.000*U_r1_t2 + 1.000*U_S2_r2 + 1.000*U_r2_t1"
+  },
+  {
+   "episode": 5755,
+   "claimed": 1.192308,
+   "lp": 1.0,
+   "replayed": 6.833333333333333,
+   "mechanisms": [
+    "SOURCE_CANCEL",
+    "CRYPTO"
+   ],
+   "op_counts": {
+    "SOURCE_CANCEL": 1,
+    "CRYPTO": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  1.500*Y_I <= 1.920*U_S1_v1 + 5.080*U_S2_v1 + 2.000*U_v1_t1 + 1.000*U_v1_t2 + 2.420*U_S1_r1 + 1.500*U_r1_t2 + 3.580*U_S2_r2 + 0.500*U_r2_t1 + 2.500*U_r1_r3"
+  }
+ ],
+ "ford_fulkerson_6N": [
+  {
+   "episode": 895,
+   "claimed": 2.64,
+   "lp": 2.0,
+   "replayed": 3.9764705882352938,
+   "mechanisms": [
+    "CRYPTO",
+    "SOURCE_CANCEL"
+   ],
+   "op_counts": {
+    "CRYPTO": 5,
+    "SOURCE_CANCEL": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  4.250*Y_I <= 6.000*U_s_a + 7.600*U_s_b + 2.900*U_a_c + 2.400*U_a_d + 2.500*U_b_c + 2.000*U_b_d + 3.000*U_c_t + 2.500*U_d_t + 4.400*U_a_b + 0.500*U_c_d"
+  },
+  {
+   "episode": 1310,
+   "claimed": 2.333333,
+   "lp": 2.0,
+   "replayed": null,
+   "mechanisms": [],
+   "op_counts": {},
+   "assertion": null,
+   "steps_applied": 41
+  },
+  {
+   "episode": 1903,
+   "claimed": 2.333333,
+   "lp": 2.0,
+   "replayed": 4.5,
+   "mechanisms": [
+    "COLLAPSE_YST"
+   ],
+   "op_counts": {
+    "COLLAPSE_YST": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  1.000*Y_I_P0 + 1.000*Y_I_P1 + 0.500*Y_I <= 2.000*U_s_a + 2.000*U_s_b + 1.000*U_a_c + 1.000*U_a_d + 1.000*U_c_t + 1.000*U_d_t + 1.000*U_a_b"
+  },
+  {
+   "episode": 5612,
+   "claimed": 2.333333,
+   "lp": 2.0,
+   "replayed": null,
+   "mechanisms": [],
+   "op_counts": {},
+   "assertion": null,
+   "steps_applied": 41
+  },
+  {
+   "episode": 6369,
+   "claimed": 4.33,
+   "lp": 2.0,
+   "replayed": 7.33,
+   "mechanisms": [
+    "SOURCE_CANCEL",
+    "CRYPTO"
+   ],
+   "op_counts": {
+    "SOURCE_CANCEL": 1,
+    "CRYPTO": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  1.000*Y_I <= 2.400*U_s_a + 2.270*U_s_b + 1.730*U_a_c + 1.730*U_a_d + 1.600*U_b_c + 1.600*U_b_d + 1.000*U_c_t + 1.000*U_d_t + 1.330*U_a_b"
+  }
+ ],
+ "hu_three_session_6N": [
+  {
+   "episode": 1909,
+   "claimed": 1.18037,
+   "lp": 1.1428571428571428,
+   "replayed": 3.7556207233626595,
+   "mechanisms": [
+    "DECODE",
+    "SOURCE_CANCEL",
+    "CRYPTO"
+   ],
+   "op_counts": {
+    "DECODE": 2,
+    "SOURCE_CANCEL": 1,
+    "CRYPTO": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  3.410*Y_I <= 3.020*U_v1_v2 + 2.000*U_v1_v6 + 4.120*U_v1_v4 + 6.300*U_v2_v3 + 4.600*U_v2_v5 + 5.280*U_v3_v6 + 7.400*U_v3_v4 + 5.700*U_v4_v5"
+  }
+ ],
+ "kramer_savari_ladder_8N": [
+  {
+   "episode": 2309,
+   "claimed": 1.04878,
+   "lp": 1.0,
+   "replayed": 2.2682926829268295,
+   "mechanisms": [
+    "SOURCE_CANCEL",
+    "CRYPTO"
+   ],
+   "op_counts": {
+    "SOURCE_CANCEL": 1,
+    "CRYPTO": 3
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  3.280*Y_I <= 2.000*U_s1_a1 + 1.500*U_s1_a2 + 1.330*U_s2_a1 + 2.830*U_s2_a2 + 1.330*U_a1_b1 + 2.830*U_a2_b2 + 1.330*U_a1_b2 + 2.830*U_a2_b1 + 1.500*U_b1_t1 + 1.670*U_b1_t2 + 1.500*U_b2_t1 + 1.670*U_b2_t2"
+  },
+  {
+   "episode": 2473,
+   "claimed": 1.0,
+   "lp": 1.0,
+   "replayed": 1.6,
+   "mechanisms": [
+    "COLLAPSE_YST"
+   ],
+   "op_counts": {
+    "COLLAPSE_YST": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=['s1'] parts=[0]]  1.000*Y_I_P0 + 0.667*Y_I <= 1.000*U_s1_a1 + 1.000*U_s1_a2 + 1.000*U_s2_a1 + 1.000*U_s2_a2 + 1.000*U_b1_t1 + 1.000*U_b1_t2 + 1.000*U_b2_t1 + 1.000*U_b2_t2"
+  },
+  {
+   "episode": 3475,
+   "claimed": 1.0,
+   "lp": 1.0,
+   "replayed": 1.6,
+   "mechanisms": [
+    "COLLAPSE_YST"
+   ],
+   "op_counts": {
+    "COLLAPSE_YST": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=['s1'] parts=[0]]  1.000*Y_I_P0 + 0.667*Y_I <= 1.000*U_s1_a1 + 1.000*U_s1_a2 + 1.000*U_s2_a1 + 1.000*U_s2_a2 + 1.000*U_b1_t1 + 1.000*U_b1_t2 + 1.000*U_b2_t1 + 1.000*U_b2_t2"
+  },
+  {
+   "episode": 4279,
+   "claimed": 1.0,
+   "lp": 1.0,
+   "replayed": null,
+   "mechanisms": [],
+   "op_counts": {},
+   "assertion": null,
+   "steps_applied": 41
+  },
+  {
+   "episode": 5534,
+   "claimed": 1.142857,
+   "lp": 1.0,
+   "replayed": null,
+   "mechanisms": [],
+   "op_counts": {},
+   "assertion": null,
+   "steps_applied": 41
+  },
+  {
+   "episode": 6391,
+   "claimed": 1.142857,
+   "lp": 1.0,
+   "replayed": 2.0,
+   "mechanisms": [
+    "COLLAPSE_YST"
+   ],
+   "op_counts": {
+    "COLLAPSE_YST": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=['t1'] parts=[0]]  1.000*Y_I_P0 + 1.333*Y_I <= 1.000*U_s1_a1 + 1.000*U_s1_a2 + 1.000*U_s2_a1 + 1.000*U_s2_a2 + 2.000*U_b1_t1 + 3.000*U_b1_t2 + 2.000*U_b2_t1 + 3.000*U_b2_t2"
+  },
+  {
+   "episode": 7148,
+   "claimed": 1.5,
+   "lp": 1.0,
+   "replayed": null,
+   "mechanisms": [],
+   "op_counts": {},
+   "assertion": null,
+   "steps_applied": 41
+  },
+  {
+   "episode": 8385,
+   "claimed": 1.714286,
+   "lp": 1.0,
+   "replayed": null,
+   "mechanisms": [],
+   "op_counts": {},
+   "assertion": null,
+   "steps_applied": 41
+  }
+ ],
+ "okamura_4N": [
+  {
+   "episode": 2711,
+   "claimed": 1.241628,
+   "lp": 1.0,
+   "replayed": 2.2255446390431444,
+   "mechanisms": [
+    "CRYPTO",
+    "DECODE",
+    "SOURCE_CANCEL"
+   ],
+   "op_counts": {
+    "CRYPTO": 7,
+    "DECODE": 3,
+    "SOURCE_CANCEL": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  7.803*Y_I <= 10.990*U_a_b + 5.910*U_b_c + 10.010*U_c_d + 13.090*U_a_d + 12.100*U_a_c"
+  },
+  {
+   "episode": 7816,
+   "claimed": 1.055675,
+   "lp": 1.0,
+   "replayed": 1.6857887874837028,
+   "mechanisms": [
+    "CRYPTO",
+    "SOURCE_CANCEL"
+   ],
+   "op_counts": {
+    "CRYPTO": 3,
+    "SOURCE_CANCEL": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  2.557*Y_I <= 2.730*U_a_b + 3.000*U_b_c + 3.270*U_c_d + 1.000*U_a_d + 2.930*U_a_c"
+  },
+  {
+   "episode": 9943,
+   "claimed": 1.081081,
+   "lp": 1.0,
+   "replayed": 1.6304347826086958,
+   "mechanisms": [
+    "CRYPTO",
+    "SOURCE_CANCEL"
+   ],
+   "op_counts": {
+    "CRYPTO": 8,
+    "SOURCE_CANCEL": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  6.133*Y_I <= 8.600*U_a_b + 7.400*U_b_c + 3.400*U_c_d + 4.600*U_a_d + 6.000*U_a_c"
+  }
+ ],
+ "al_bashabsheh_7N": [
+  {
+   "episode": 2957,
+   "claimed": 1.891837,
+   "lp": 1.5,
+   "replayed": 4.904166666666668,
+   "mechanisms": [
+    "DECODE",
+    "SOURCE_CANCEL"
+   ],
+   "op_counts": {
+    "DECODE": 5,
+    "SOURCE_CANCEL": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  3.200*Y_I <= 4.140*U_S1_S2 + 1.270*U_S1_v1 + 4.070*U_S2_v1 + 3.260*U_S3_v1 + 1.270*U_S1_t3 + 10.670*U_S2_t1 + 4.460*U_S3_t2 + 7.800*U_t1_v1 + 2.400*U_t2_v1 + 1.200*U_t3_v1 + 2.470*U_S1_t2 + 4.070*U_S2_t3"
+  }
+ ],
+ "hu_3pairs_6N": [
+  {
+   "episode": 5344,
+   "claimed": 1.30875,
+   "lp": 1.0,
+   "replayed": 2.55875,
+   "mechanisms": [
+    "SOURCE_CANCEL",
+    "CRYPTO"
+   ],
+   "op_counts": {
+    "SOURCE_CANCEL": 1,
+    "CRYPTO": 2
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  2.667*Y_I <= 2.330*U_a_c + 2.000*U_a_d + 2.670*U_a_e + 1.800*U_b_d + 2.470*U_b_e + 3.000*U_b_f + 3.530*U_c_f + 2.670*U_d_e"
+  },
+  {
+   "episode": 7665,
+   "claimed": 1.083333,
+   "lp": 1.0,
+   "replayed": 3.9999999999999996,
+   "mechanisms": [
+    "SOURCE_CANCEL",
+    "DECODE"
+   ],
+   "op_counts": {
+    "SOURCE_CANCEL": 1,
+    "DECODE": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  2.200*Y_I <= 2.000*U_a_c + 2.000*U_a_d + 1.800*U_a_e + 4.600*U_b_d + 4.400*U_b_e + 5.000*U_b_f + 3.600*U_c_f + 3.000*U_d_e"
+  },
+  {
+   "episode": 10101,
+   "claimed": 1.0,
+   "lp": 1.0,
+   "replayed": 4.0476190476190474,
+   "mechanisms": [
+    "DECODE",
+    "SOURCE_CANCEL"
+   ],
+   "op_counts": {
+    "DECODE": 1,
+    "SOURCE_CANCEL": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  1.750*Y_I <= 1.750*U_a_c + 2.000*U_a_d + 1.750*U_a_e + 3.500*U_b_d + 3.250*U_b_e + 4.000*U_b_f + 2.750*U_c_f + 2.250*U_d_e"
+  }
+ ],
+ "paper_7N": [
+  {
+   "episode": 5444,
+   "claimed": 1.039474,
+   "lp": 1.0,
+   "replayed": 5.937500000000001,
+   "mechanisms": [
+    "SOURCE_CANCEL",
+    "DECODE"
+   ],
+   "op_counts": {
+    "SOURCE_CANCEL": 1,
+    "DECODE": 2
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  1.333*Y_I <= 1.750*U_S1_S2 + 2.500*U_S1_v1 + 2.250*U_S2_v1 + 2.250*U_S3_v1 + 1.330*U_S1_t3 + 2.670*U_S2_t1 + 2.500*U_S3_t2 + 3.420*U_t1_v1 + 3.250*U_t2_v1 + 1.830*U_t3_v1"
+  }
+ ],
+ "butterfly_8N": [
+  {
+   "episode": 5499,
+   "claimed": 1.090909,
+   "lp": 1.0,
+   "replayed": 2.3333333333333335,
+   "mechanisms": [
+    "COLLAPSE_YST",
+    "CRYPTO"
+   ],
+   "op_counts": {
+    "COLLAPSE_YST": 1,
+    "CRYPTO": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=INTEGER \u03bb=1.0000 src=none parts=none]  1.000*Y_I_P0 + 1.000*Y_I_P1 + 2.000*Y_I <= 3.000*U_S1_S2 + 2.000*U_S2_S3 + 3.000*U_S3_S4 + 2.000*U_S1_S4 + 1.000*U_S1_t2 + 4.000*U_S2_t3 + 1.000*U_S3_t4 + 2.000*U_S4_t1 + 3.000*U_t1_t2 + 2.000*U_t2_t3 + 3.000*U_t3_t4 + 2.000*U_t1_t4"
+  }
+ ],
+ "grid_3x4_12N": [
+  {
+   "episode": 5937,
+   "claimed": 1.321997,
+   "lp": 1.0,
+   "replayed": 4.831460674157303,
+   "mechanisms": [
+    "DECODE",
+    "SOURCE_CANCEL"
+   ],
+   "op_counts": {
+    "DECODE": 3,
+    "SOURCE_CANCEL": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  2.077*Y_I <= 1.750*U_r0c0_r0c1 + 1.850*U_r0c0_r1c0 + 1.250*U_r0c1_r0c2 + 1.250*U_r0c1_r1c1 + 1.170*U_r0c2_r0c3 + 0.500*U_r0c2_r1c2 + 2.170*U_r0c3_r1c3 + 1.350*U_r1c0_r1c1 + 0.850*U_r1c0_r2c0 + 0.500*U_r1c1_r1c2 + 2.000*U_r1c1_r2c1 + 1.500*U_r1c2_r1c3 + 6.230*U_r1c3_r2c3 + 1.500*U_r2c0_r2c1 + 1.500*U_r2c1_r2c2 + 4.730*U_r2c2_r2c3"
+  }
+ ],
+ "two_k4_10N": [
+  {
+   "episode": 6984,
+   "claimed": 0.708824,
+   "lp": 0.6666666666666666,
+   "replayed": 6.0249999999999995,
+   "mechanisms": [
+    "SOURCE_CANCEL"
+   ],
+   "op_counts": {
+    "SOURCE_CANCEL": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  0.667*Y_I <= 0.400*U_a0_a1 + 1.000*U_a0_a2 + 0.800*U_a0_a3 + 0.600*U_a1_a2 + 0.400*U_a1_a3 + 1.000*U_a2_a3 + 0.250*U_b0_b1 + 1.000*U_b0_b2 + 0.750*U_b0_b3 + 1.250*U_b1_b2 + 1.000*U_b1_b3 + 1.750*U_b2_b3 + 1.000*U_a0_m + 0.600*U_m_b0 + 0.250*U_n_b1"
+  }
+ ],
+ "petersen_10N": [
+  {
+   "episode": 7627,
+   "claimed": 1.260986,
+   "lp": 1.25,
+   "replayed": 4.580152671755725,
+   "mechanisms": [
+    "DECODE",
+    "SOURCE_CANCEL"
+   ],
+   "op_counts": {
+    "DECODE": 3,
+    "SOURCE_CANCEL": 1
+   },
+   "assertion": null,
+   "steps_applied": 41,
+   "repr": "[proof=FRACTIONAL \u03bb=1.0000 src=none parts=none]  2.292*Y_I <= 3.170*U_2_3 + 7.170*U_5_8 + 5.500*U_0_5 + 0.330*U_1_6 + 2.670*U_1_2 + 3.000*U_2_7 + 1.500*U_3_4 + 2.000*U_4_9 + 2.000*U_0_4 + 3.170*U_3_8 + 1.330*U_6_9 + 1.000*U_0_1 + 3.000*U_6_8 + 4.830*U_5_7 + 1.330*U_7_9"
+  }
+ ]
+}

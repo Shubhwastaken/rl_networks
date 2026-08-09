@@ -60,9 +60,26 @@ def apply_n2_submodularity_all_at_once(
     for v in index.nodes:
         result.coeffs[index.source_idx(v)] = 0.0
 
-    # Step 4: RHS = ALL edges, each with coefficient -1
-    for e in index.edges:
-        result.coeffs[index.edge_idx(e)] = -1.0
+    # Step 4 REMOVED (2026-08-02): the RHS is now the ACCUMULATED capacity
+    # from summing the n partition IOs, not a reset.
+    #
+    # The old line was:
+    #     for e in index.edges: result.coeffs[index.edge_idx(e)] = -1.0
+    # i.e. it OVERWROTE the summed capacity with -1 on every edge. That is
+    # the same error class as the union (min shared capacity) and the old
+    # collapse (delete without paying): it discards accumulated RHS mass.
+    #
+    # It tested clean on all 17 registry graphs only by coincidence -- in
+    # an independent-set partition every edge is a cross edge, so it is a
+    # boundary edge of exactly 2 parts and the sum gives it -2, which the
+    # reset halved to -1 while the +2.0/-1.0 Y_I accounting absorbed the
+    # difference. Correct by accident on the family it was written for.
+    #
+    # Note the accumulated form carries capacity 2 per cross edge, so the
+    # bound it yields is 2|cut|/(|I|+internal) -- a factor 2 looser than
+    # the |E|/(|I|+internal) the reset produced. See _partition_bound_of /
+    # compute_optimal_bound, which define PB with the single-capacity
+    # convention; the two conventions must not be compared directly.
 
     return result
 
@@ -72,131 +89,57 @@ def apply_pairwise_submodularity(
     ineq_b   : Inequality,
     index    : EntropyIndex,
     sessions : List[Tuple[str, str]]
-) -> Tuple[Inequality, Inequality]:
+) -> Inequality:
     """
-    Applies h(A) + h(B) >= h(A|B) + h(A&B) to two chosen inequalities.
+    Combine two inequalities.  Returns a SINGLE inequality (the sum,
+    followed by the exact Y_ST collapse and source cancellation).
 
-    Returns (union_ineq, intersection_ineq).
-    Y_I collapse fires in union if union covers all sessions.
+    WHAT THIS REPLACED (2026-08-02) AND WHY
+    ---------------------------------------
+    This used to build a "union" by taking max() on LHS coefficients and
+    min() on RHS coefficients, and a matching "intersection" with min() on
+    the LHS and max() on the RHS.  Both were labelled submodularity.
+    Neither is: h(A)+h(B) >= h(A|B)+h(A&B) is a statement about SETS OF
+    RANDOM VARIABLES inside entropy terms, not about the coefficient
+    vectors of two inequalities.
+
+    The union counted SHARED RHS capacity once instead of twice.  On
+    36253 valid inequality pairs drawn from the real generator families
+    (node IOs, partition IOs, corrected crypto, corrected decode) it
+    produced 66 FALSE results.  Example, both inputs valid:
+        A = CRYPTO({a,b,c,s}) : Y_I <= U_a_d + U_b_d + U_c_t + U_c_d
+        B = PIO(P4)           : Y_ST_P4 + Y_I_P4 <= Y_S_d + U_a_d + U_b_d
+                                                    + U_d_t + U_c_d
+        union                 : both LHS added, shared edges counted once
+                                -> violation +1.0
+
+    The intersection was far worse: max() on two negative RHS
+    coefficients yields the LESS negative one, i.e. it SHRINKS capacity.
+    It produced 12665 FALSE results out of the same 36253 pairs (35%),
+    and every one went straight into the pool via pool.append(inter_ineq).
+    Minimal case on diamond_6N with two ordinary node IOs whose RHS
+    supports are disjoint, so the whole RHS vanishes:
+        A = IO(S1) : 0.5*Y_I <= Y_S_S1 + U_S1_v1 + U_S1_v2
+        B = IO(S2) : 0.5*Y_I <= Y_S_S2 + U_S2_v1 + U_S2_v2
+        inter      : 0.5*Y_I <= 0                  -> violation +1.0
+
+    There is no sound union worth keeping.  In this index every non-edge
+    variable is an exact multiple of r, so submodularity on the Y_ST
+    terms degenerates to inclusion-exclusion
+        |st_i|r + |st_j|r == |st_i U st_j|r + |st_i & st_j|r
+    -- an identity yielding nothing beyond addition.  The only repairable
+    variant (max on LHS, SUM on RHS) is componentwise <= A+B and so is
+    valid but strictly dominated by plain addition.
+
+    Plain addition produced 0 FALSE results on all 36253 pairs.
+
+    THE RULE this enforces: any operation combining two inequalities must
+    ADD RHS capacity -- never min it, max it, or overwrite it.
     """
-    union_ineq        = Inequality(index)
-    intersection_ineq = Inequality(index)
-
-    active_a = ineq_a.active_yst()
-    active_b = ineq_b.active_yst()
-
-    # --- UNION ---
-
-    # Y_ST: union of active sets — preserve fractional coefficients.
-    # Use max(coeff_a, coeff_b) so fractional weights are not silently
-    # overwritten with 1.0. For integer IOs both coeffs are 1.0 so
-    # max = 1.0 and behaviour is unchanged.
-    for i in (active_a | active_b):
-        c = max(ineq_a.coeffs[index.yst_idx(i)],
-                ineq_b.coeffs[index.yst_idx(i)])
-        union_ineq.coeffs[index.yst_idx(i)] = c
-
-    # Y_I(Pi,Pi): take max coefficient
-    for i in range(index.n()):
-        c = max(ineq_a.coeffs[index.yi_pi_idx(i)],
-                ineq_b.coeffs[index.yi_pi_idx(i)])
-        if c > 1e-9:
-            union_ineq.coeffs[index.yi_pi_idx(i)] = c
-
-    # Y_I: combining two scalar coefficients on the same variable h(Y_I).
-    #
-    # The correct operation depends on whether Y_ST terms are present:
-    #
-    # PARTITION IO PATHWAY (at least one input has Y_ST terms):
-    #   max() is valid here because the Y_ST collapse step will later
-    #   replace Y_ST terms with a c_min * h(Y_I) contribution via the
-    #   proven weighted subadditivity theorem.  The Y_I coefficient from
-    #   the non-Y_ST side rides through unchanged and the collapse adjusts
-    #   it correctly.
-    #
-    # PURE NODE IO PATHWAY (neither input has Y_ST terms):
-    #   Both inputs are scalar inequalities on the SAME variable h(Y_I).
-    #   Submodularity h(A)+h(B) >= h(A∪B)+h(A∩B) applies to sets of
-    #   random variables, not to scalar multiples of a single entropy term.
-    #   max(c_a, c_b) * h(Y_I) is NOT a valid bound — it makes the LHS
-    #   weaker than either input while the RHS sources/edges accumulate
-    #   (min), creating a denominator that cancel_source_terms can shrink
-    #   to near-zero, producing spuriously tight invalid bounds.
-    #
-    #   The only safe bound for the union of two node IOs is
-    #   min(c_a, c_b) * h(Y_I) — this is the largest coefficient that is
-    #   still valid for BOTH inputs, making pairwise submod on pure node
-    #   IOs a no-op for terminal form generation (min Y_I + max sources
-    #   means cancel_source_terms always reverts).  The agent correctly
-    #   learns that add() / STORE_AND_RESET is the productive path for
-    #   combining node IOs.
-    c_yi_a = ineq_a.coeffs[index.yi_idx()]
-    c_yi_b = ineq_b.coeffs[index.yi_idx()]
-    if active_a or active_b:
-        # Partition IO pathway: max() is valid, collapse handles it later
-        c_yi_union = max(c_yi_a, c_yi_b)
-    else:
-        # Pure node IO pathway: only min() is mathematically safe
-        c_yi_union = min(c_yi_a, c_yi_b)
-    if c_yi_union > 1e-9:
-        union_ineq.coeffs[index.yi_idx()] = c_yi_union
-
-    # RHS sources: union = more negative (min)
-    for v in index.nodes:
-        c = min(ineq_a.coeffs[index.source_idx(v)],
-                ineq_b.coeffs[index.source_idx(v)])
-        if c < -1e-9:
-            union_ineq.coeffs[index.source_idx(v)] = c
-
-    # RHS edges: union = more negative (min)
-    for e in index.edges:
-        c = min(ineq_a.coeffs[index.edge_idx(e)],
-                ineq_b.coeffs[index.edge_idx(e)])
-        if c < -1e-9:
-            union_ineq.coeffs[index.edge_idx(e)] = c
-
-    # Collapse Y_ST -> h(Y_I) if all sessions covered
-    union_ineq = _collapse_to_yi_if_valid(union_ineq, index, sessions)
-
-    # Also try source cancellation for node IO pathway
-    # (node IOs set Y_I directly, not via Y_ST, so _collapse_to_yi_if_valid
-    #  is a no-op for them — this catches that case)
-    union_ineq = _cancel_sources_for_node_ios(union_ineq, index, sessions)
-
-    # --- INTERSECTION ---
-
-    # Y_ST: intersection of active sets
-    for i in (active_a & active_b):
-        intersection_ineq.set_lhs(f"Y_ST_P{i}", 1.0)
-
-    # Y_I(Pi,Pi): take min coefficient
-    for i in range(index.n()):
-        c = min(ineq_a.coeffs[index.yi_pi_idx(i)],
-                ineq_b.coeffs[index.yi_pi_idx(i)])
-        if c > 1e-9:
-            intersection_ineq.coeffs[index.yi_pi_idx(i)] = c
-
-    # Y_I: take min coefficient for intersection
-    c_yi_inter = min(ineq_a.coeffs[index.yi_idx()],
-                     ineq_b.coeffs[index.yi_idx()])
-    if c_yi_inter > 1e-9:
-        intersection_ineq.coeffs[index.yi_idx()] = c_yi_inter
-
-    # RHS sources: intersection = less negative (max)
-    for v in index.nodes:
-        c = max(ineq_a.coeffs[index.source_idx(v)],
-                ineq_b.coeffs[index.source_idx(v)])
-        if c < -1e-9:
-            intersection_ineq.coeffs[index.source_idx(v)] = c
-
-    # RHS edges: intersection = less negative (max)
-    for e in index.edges:
-        c = max(ineq_a.coeffs[index.edge_idx(e)],
-                ineq_b.coeffs[index.edge_idx(e)])
-        if c < -1e-9:
-            intersection_ineq.coeffs[index.edge_idx(e)] = c
-
-    return union_ineq, intersection_ineq
+    result = ineq_a.add(ineq_b)
+    result = _collapse_to_yi_if_valid(result, index, sessions)
+    result = _cancel_sources_for_node_ios(result, index, sessions)
+    return result
 
 
 def _collapse_to_yi_if_valid(
@@ -209,25 +152,17 @@ def _collapse_to_yi_if_valid(
 
     Condition: sessions covered by active Y_ST == all sessions.
 
-    PROVEN FORMULA (Weighted Subadditivity Theorem):
-      For weights c_k > 0 and random variables X_k:
-        Σ_k c_k * h(X_k)  >=  c_min * h(X_1,...,X_n)
-      where c_min = min_k(c_k).
+    EXACT FORMULA (source independence), replacing the old c_min bound:
+        Σ_k c_k * h(Y_ST_Pk)  ==  K * h(Y_I),   K = Σ_k c_k*|st_k| / |I|
+      plus a matching deduction D for the source terms it deletes.
+      See the body for the derivation and for what c_min got wrong.
 
-      Proof:
-        Step 1: Σ c_k*h(X_k) >= c_min * Σ h(X_k)   [since c_k >= c_min, h >= 0]
-        Step 2: Σ h(X_k) >= h(X_1,...,X_n)           [subadditivity]
-        Step 3: Combine.
-
-      This is tight: K = c_min cannot be improved without further structure.
-
-    The sum-min formula (sum_coeff - min_coeff) was shown to be FALSE:
-      For independent X_k with equal entropy r, sum-min requires
-      c_min/c_sum >= (n-1)/n which fails for fractional weights.
+    The sum-min formula (sum_coeff - min_coeff) was shown to be FALSE and
+    is not used. c_min was valid but lossy; K supersedes it.
 
     Effect:
-      Y_ST terms replaced by c_min * h(Y_I).
-      Source terms for covered nodes zeroed (source independence).
+      Y_ST terms replaced by K * h(Y_I).
+      Source terms for covered nodes zeroed AND paid for via -D on Y_I.
     """
     active = ineq.active_yst()
     if not active:
@@ -237,25 +172,59 @@ def _collapse_to_yi_if_valid(
         return ineq
 
     result = ineq.copy()
+    n_sessions = len(sessions)
+    if n_sessions == 0:
+        return ineq
 
-    # Collect Y_ST coefficients
-    yst_coeffs = [ineq.coeffs[index.yst_idx(i)] for i in active]
-    min_coeff  = min(yst_coeffs)   # PROVEN valid collapse coefficient
+    # ── Step 1: Y_ST -> Y_I, as an EXACT identity (was: lossy c_min) ────────
+    # Under independent equal-rate sources every non-edge variable is an
+    # exact multiple of r:  h(Y_ST_Pk) = |st_k|*r  and  h(Y_I) = |I|*r.
+    # Therefore
+    #     sum_k c_k*h(Y_ST_Pk) == ( sum_k c_k*|st_k| / |I| ) * h(Y_I) == K*h(Y_I)
+    # which is an identity, not a bound.  c_min is a valid but strictly
+    # lossy under-estimate of K.  Cross-check: when every session touches
+    # two parts, sum_k |st_k| = 2|I| so K = 2 -- exactly the hard-coded
+    # +2.0 in apply_n2_submodularity_all_at_once, which this generalises.
+    K = sum(ineq.coeffs[index.yst_idx(i)] * len(index.st_sessions[i])
+            for i in active) / n_sessions
 
-    # Zero out all Y_ST terms
-    for i in range(index.n()):
-        result.coeffs[index.yst_idx(i)] = 0.0
-
-    # Add c_min * h(Y_I) — the only proven valid Y_I coefficient
-    result.coeffs[index.yi_idx()] += min_coeff
-
-    # Zero source terms for covered nodes
+    # ── Step 2: pay for the source deletion (this is what was missing) ─────
+    # Deleting sum_v |s_v|*h(Y_S_v) removes sum_v |s_v|*n_src(v)*r from the
+    # RHS, so the LHS must fall by the same amount -- i.e. the Y_I
+    # coefficient by D = sum_v |s_v|*n_src(v)/|I|.
+    #
+    # THE BUG THIS REPLACES (2026-08-02): the old body added c_min to Y_I
+    # and then zeroed the covered source terms unconditionally. The c_min
+    # pays only for removing Y_ST; nothing paid for the source deletion.
+    # On a pure partition IO that happened to be valid (it consumed
+    # exactly the 2 units of slack such an IO carries, slack 2 -> 0), but
+    # it is not a theorem: on 4000 random VALID inequalities carrying a
+    # Y_ST term the old code turned 91 of them FALSE.  Once a union has
+    # given the inequality Y_I mass from outside the Y_ST pathway, the
+    # unpaid deletion is exactly h(Y_I) * (that outside Y_I mass) -- the
+    # +0.5 violation on diamond_6N that produced 0.5*Y_I <= 0.5*U_v2_t2.
+    #
+    # Both steps here are exact, so the corrected collapse is SLACK
+    # PRESERVING and cannot turn a valid inequality false: 0 of the same
+    # 4000 turn false, with slack change 0 to machine precision.
     covered_nodes = set()
     for i in active:
         covered_nodes |= set(index.partitions[i])
-    for v in covered_nodes:
-        result.coeffs[index.source_idx(v)] = 0.0
 
+    D = 0.0
+    for v in covered_nodes:
+        c = result.coeffs[index.source_idx(v)]
+        if c < -1e-12:
+            n_src = sum(1 for s, _t in sessions if s == v)
+            D += abs(c) * n_src / n_sessions
+            result.coeffs[index.source_idx(v)] = 0.0
+
+    for i in range(index.n()):
+        result.coeffs[index.yst_idx(i)] = 0.0
+    result.coeffs[index.yi_idx()] += K - D
+
+    result.record_op("COLLAPSE_YST", {"K": float(K), "D": float(D),
+                                      "active": sorted(active)})
     return result
 
 
