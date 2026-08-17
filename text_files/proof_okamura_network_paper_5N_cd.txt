@@ -2,7 +2,7 @@
 STAGE 4 STATUS DOCUMENT: okamura_network_paper_5N
 ======================================================================
 
-STATUS: NO STAGE 4 ATTEMPT RECORDED
+STATUS: NO TERMINAL INEQUALITY FOUND
 
 NETWORK
   Nodes   : ['v1', 'v2', 'v3', 'v4', 'v5']
@@ -19,13 +19,13 @@ BOUNDS
   Best observed : none
 
 STAGE 4 COUNTS
-  Attempts             : 0
+  Attempts             : 377
   Valid novel episodes : 0
   Terminal episodes    : 0
-  No-terminal episodes : 0
-  CROSS_SUBMOD used    : 0
-  APPLY_CRYPTO used    : 0
-  APPLY_DECODE used    : 0
+  No-terminal episodes : 377
+  CROSS_SUBMOD used    : 89
+  APPLY_CRYPTO used    : 337
+  APPLY_DECODE used    : 288
 
 This is a status report, not a mathematical proof.
 ======================================================================

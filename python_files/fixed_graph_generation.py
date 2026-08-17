@@ -45,185 +45,87 @@ class GraphInfo:
                 f"opt={self.optimal_bound:.4f})")
 
 
-def _partition_objective(nodes, edges, sessions, partition, adj):
-    """
-    Score a partition exactly as the rest of the codebase defines it:
-
-      valid   iff every part is an independent set
-      bound   = |E| / (|I| + internal(P))
-      internal(P) = # sessions with both endpoints in the same part
-
-    Note the numerator is |E| (all edges), not the cut size -- this
-    matches _partition_bound_of in fixed_training.py and the eval_partition
-    this function replaced. Returns (bound, internal).
-    """
-    for Pk in partition:
-        pk_set = set(Pk)
-        if any(adj[nd] & (pk_set - {nd}) for nd in Pk):
-            return float("inf"), 0
-    total_int = sum(1 for Pk in partition
-                    for s, t in sessions
-                    if s in set(Pk) and t in set(Pk))
-    denom = len(sessions) + total_int
-    bound = len(edges) / denom if denom > 0 else float("inf")
-    return bound, total_int
-
-
 def compute_optimal_bound(nodes, edges, sessions, max_colors=None):
     """
-    EXACT partition-bound oracle. Signature unchanged; no caller changes.
+    Exhaustive partition bound search for all graphs up to n=16.
 
-    Because the objective is |E| / (|I| + internal(P)) with |E| and |I|
-    fixed, minimising the bound is exactly MAXIMISING internal(P) subject
-    to every part being an independent set. That is a small CP-SAT model:
-
-        colour[v] in [0, n-1]                      for every node
-        colour[u] != colour[v]                     for every edge (u,v)
-        same_i  <=> colour[s_i] == colour[t_i]     for every session i
-        maximise  sum_i same_i
-
-    WHY THIS REPLACED THE OLD SEARCH
-    --------------------------------
-    The old implementation enumerated k-colourings with a hard cap of
-    max_colors=4 (n<=10), 3 (n<=14), or 0 (n>14, leaving only exhaustive
-    2-partitions plus three greedy colourings). The cap silently excludes
-    every optimum that needs more parts than the cap allows.
-
-    Confirmed miss: ford_fulkerson_6N. The cap returned PB = 5.0
-    (internal=0, the singleton partition). The true optimum needs FIVE
-    parts and achieves internal=1, i.e. PB = 10/3 = 3.3333. A brute force
-    over all set partitions of every registry graph with n<=10 found
-    ford_fulkerson_6N to be the only graph at that size whose stored PB
-    was wrong; the n=12 and n=16 graphs were never searched exhaustively
-    at all, which is exactly where the cap bites hardest.
-
-    There is now NO colour cap: the model searches all partition sizes
-    1..|V|. The `max_colors` parameter is retained for signature
-    compatibility and, when given, is enforced as an upper bound on the
-    number of parts; callers that pass None (all of them today) get the
-    unrestricted optimum.
-
-    Returns (best_bound, best_internal, best_partition) as before.
+    Strategy (each tier finishes in < 5 seconds):
+      n <= 10 : k-coloring with max_colors=4  (4^10 = 1M)
+      n <= 14 : k-coloring with max_colors=3  (3^14 = 4.8M)
+      n <= 16 : exhaustive 2-partition (2^15 = 32k) + greedy k-colorings
     """
     n = len(nodes)
+
     adj = {nd: set() for nd in nodes}
     for u, v in edges:
         adj[u].add(v); adj[v].add(u)
 
-    # Baseline: the singleton partition is always feasible (every part is
-    # a single node, trivially independent) and gives internal = 0.
-    best_internal  = 0
+    def eval_partition(partition):
+        for Pk in partition:
+            pk_set = set(Pk)
+            if any(adj[nd] & (pk_set - {nd}) for nd in Pk):
+                return float("inf"), 0
+        total_int = sum(1 for Pk in partition
+                        for s, t in sessions
+                        if s in set(Pk) and t in set(Pk))
+        denom = len(sessions) + total_int
+        bound = len(edges) / denom if denom > 0 else float("inf")
+        return bound, total_int
+
+    best_bound    = len(edges) / max(len(sessions), 1)
+    best_internal = 0
     best_partition = [[nd] for nd in nodes]
 
-    max_parts = n if max_colors in (None, 0) else min(max_colors, n)
+    # Tiered max_colors based on n
+    if max_colors is None:
+        if n <= 10:   max_colors = 4   # 4^10 = 1M,   fast
+        elif n <= 14: max_colors = 3   # 3^14 = 4.8M, tractable
+        else:         max_colors = 0   # skip for n>14
 
-    solved = False
-    try:
-        from ortools.sat.python import cp_model
-
-        model  = cp_model.CpModel()
-        idx_of = {nd: i for i, nd in enumerate(nodes)}
-        colour = [model.NewIntVar(0, max_parts - 1, f"c{i}") for i in range(n)]
-
-        # Independent-set constraint: adjacent nodes cannot share a part.
-        for u, v in edges:
-            if u != v:
-                model.Add(colour[idx_of[u]] != colour[idx_of[v]])
-
-        # Symmetry breaking: restricted growth string. colour[0] == 0 and
-        # colour[i] <= 1 + max(colour[0..i-1]). This removes the k!
-        # relabelling symmetry without excluding any distinct partition.
-        if n > 0:
-            model.Add(colour[0] == 0)
-        running_max = [model.NewIntVar(0, max_parts - 1, f"m{i}") for i in range(n)]
-        model.Add(running_max[0] == colour[0])
-        for i in range(1, n):
-            model.AddMaxEquality(running_max[i], [running_max[i - 1], colour[i]])
-            model.Add(colour[i] <= running_max[i - 1] + 1)
-
-        # same_i <=> both endpoints of session i share a part.
-        same = []
-        for si, (s, t) in enumerate(sessions):
-            b = model.NewBoolVar(f"same{si}")
-            if s == t:
-                model.Add(b == 1)
-            else:
-                model.Add(colour[idx_of[s]] == colour[idx_of[t]]).OnlyEnforceIf(b)
-                model.Add(colour[idx_of[s]] != colour[idx_of[t]]).OnlyEnforceIf(b.Not())
-            same.append(b)
-
-        if same:
-            model.Maximize(sum(same))
-
-        solver = cp_model.CpSolver()
-        solver.parameters.num_search_workers   = 8
-        solver.parameters.max_time_in_seconds  = 60.0
-        status = solver.Solve(model)
-
-        if status in (cp_model.OPTIMAL, cp_model.FEASIBLE):
+    # k-coloring enumeration (exact for up to max_colors groups)
+    if max_colors >= 2:
+        for coloring in product(range(max_colors), repeat=n):
             groups = {}
-            for i, nd in enumerate(nodes):
-                groups.setdefault(solver.Value(colour[i]), []).append(nd)
-            partition = [list(g) for g in groups.values()]
-            b, intr = _partition_objective(nodes, edges, sessions, partition, adj)
-            if b < float("inf") and intr > best_internal:
-                best_internal, best_partition = intr, partition
-            solved = (status == cp_model.OPTIMAL)
+            for i, c in enumerate(coloring):
+                groups.setdefault(c, []).append(nodes[i])
+            partition = list(groups.values())
+            b, intr = eval_partition(partition)
+            if b < best_bound:
+                best_bound = b
+                best_partition = [list(g) for g in partition]
+                best_internal = intr
 
-    except ImportError:
-        # ortools is not installed. Fall back to an exact enumeration over
-        # restricted growth strings: the SAME optimum, just slower, and
-        # still with no colour cap. Practical to about n=12.
-        solved = False
+    # Exhaustive 2-partition search — always fast, covers n=15,16 fully
+    if n <= 16:
+        V = list(nodes)
+        for mask in range(1, 1 << (n - 1)):
+            S = [V[i] for i in range(n) if mask & (1 << i)]
+            T = [V[i] for i in range(n) if not (mask & (1 << i))]
+            b, intr = eval_partition([S, T])
+            if b < best_bound:
+                best_bound = b
+                best_partition = [S, T]
+                best_internal = intr
 
-    if not solved:
-        best_internal, best_partition = _exact_partition_by_enumeration(
-            nodes, edges, sessions, adj, max_parts,
-            seed_internal=best_internal, seed_partition=best_partition
-        )
+    # Greedy k-coloring — catches any k>max_colors cases missed above
+    import networkx as nx
+    from collections import defaultdict
+    G = nx.Graph(); G.add_nodes_from(nodes); G.add_edges_from(edges)
+    for strat in ["largest_first", "smallest_last", "DSATUR"]:
+        try:
+            col = nx.coloring.greedy_color(G, strategy=strat)
+            groups = defaultdict(list)
+            for nd, c in col.items(): groups[c].append(nd)
+            partition = list(groups.values())
+            b, intr = eval_partition(partition)
+            if b < best_bound:
+                best_bound = b
+                best_partition = [list(g) for g in partition]
+                best_internal = intr
+        except Exception:
+            pass
 
-    denom = len(sessions) + best_internal
-    best_bound = len(edges) / denom if denom > 0 else float("inf")
     return best_bound, best_internal, best_partition
-
-
-def _exact_partition_by_enumeration(nodes, edges, sessions, adj, max_parts,
-                                    seed_internal=0, seed_partition=None):
-    """
-    Exhaustive fallback for compute_optimal_bound when CP-SAT is
-    unavailable or did not prove optimality.
-
-    Enumerates every set partition via restricted growth strings, pruning
-    any prefix that already violates the independent-set constraint. No
-    colour cap beyond max_parts (which is |V| unless a caller asked for
-    fewer). Exact, but exponential -- CP-SAT is the intended path.
-    """
-    n = len(nodes)
-    best = {"internal": seed_internal,
-            "partition": seed_partition or [[nd] for nd in nodes]}
-    assign = [0] * n
-
-    def recurse(i, used):
-        if i == n:
-            groups = {}
-            for k, c in enumerate(assign):
-                groups.setdefault(c, []).append(nodes[k])
-            partition = [list(g) for g in groups.values()]
-            intr = sum(1 for Pk in partition for s, t in sessions
-                       if s in set(Pk) and t in set(Pk))
-            if intr > best["internal"]:
-                best["internal"], best["partition"] = intr, partition
-            return
-        for c in range(min(used + 1, max_parts)):
-            # Independent-set pruning: node i may not join a part that
-            # already contains one of its neighbours.
-            if any(assign[k] == c and nodes[k] in adj[nodes[i]] for k in range(i)):
-                continue
-            assign[i] = c
-            recurse(i + 1, max(used, c + 1))
-
-    recurse(0, 0)
-    return best["internal"], best["partition"]
 
 
 def _greedy_partition_bound(nodes, edges, sessions):

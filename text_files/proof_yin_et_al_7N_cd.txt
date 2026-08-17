@@ -2,7 +2,7 @@
 STAGE 4 STATUS DOCUMENT: yin_et_al_7N
 ======================================================================
 
-STATUS: NO STAGE 4 ATTEMPT RECORDED
+STATUS: NO TERMINAL INEQUALITY FOUND
 
 NETWORK
   Nodes   : ['v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7']
@@ -21,13 +21,13 @@ BOUNDS
   Best observed : none
 
 STAGE 4 COUNTS
-  Attempts             : 0
+  Attempts             : 380
   Valid novel episodes : 0
   Terminal episodes    : 0
-  No-terminal episodes : 0
-  CROSS_SUBMOD used    : 0
-  APPLY_CRYPTO used    : 0
-  APPLY_DECODE used    : 0
+  No-terminal episodes : 380
+  CROSS_SUBMOD used    : 104
+  APPLY_CRYPTO used    : 324
+  APPLY_DECODE used    : 249
 
 This is a status report, not a mathematical proof.
 ======================================================================

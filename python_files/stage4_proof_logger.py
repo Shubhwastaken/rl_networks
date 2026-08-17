@@ -181,13 +181,13 @@ def _snap_accumulator(env, index: EntropyIndex, label: str = "") -> List[Dict]:
 # Cross-submod detailed snapshot
 # ---------------------------------------------------------------------------
 
-def _snap_cross_submod(a, b, union_ineq, inter_ineq, index: EntropyIndex) -> Dict:
+def _snap_cross_submod(a, b, union_ineq, index: EntropyIndex) -> Dict:
     """
     Full derivation snapshot for a CROSS_SUBMOD / APPLY_SUBMODULARITY step.
 
     Records:
       - inputs A and B (full snapshots)
-      - union and intersection results
+      - the combined result (plain addition + YST collapse + source cancel)
       - whether the YST->YI collapse fired in the union
       - the c_min coefficient used in the collapse (= min of YST weights)
       - which sessions are covered by the union
@@ -227,7 +227,6 @@ def _snap_cross_submod(a, b, union_ineq, inter_ineq, index: EntropyIndex) -> Dic
         "input_A":           _snap_ineq(a,         index, label="A"),
         "input_B":           _snap_ineq(b,         index, label="B"),
         "union_result":      _snap_ineq(union_ineq, index, label="union"),
-        "inter_result":      _snap_ineq(inter_ineq, index, label="inter"),
         "collapse_fired":    collapse_fired,
         "c_min_used":        c_min,
         "yst_coeffs_before": yst_coeffs,
@@ -339,10 +338,10 @@ class Stage4ProofLogger:
                 a = env.accumulator[idx_i]
                 b = env.accumulator[idx_j]
                 # Run submod on copies — does NOT mutate env
-                u, inter = apply_pairwise_submodularity(
+                u = apply_pairwise_submodularity(
                     a.copy(), b.copy(), env.index, env.sessions
                 )
-                cross_detail = _snap_cross_submod(a, b, u, inter, index)
+                cross_detail = _snap_cross_submod(a, b, u, index)
 
         # ---- special pre-capture for STORE_AND_RESET ----
         store_detail = None
@@ -668,7 +667,8 @@ def generate_proof_document(log_path: str, graph_name: str,
                          f"has_YST = {d['input_B']['has_yst']}  |  "
                          f"active_YST = {d['input_B']['active_yst']}")
             lines.append("")
-            lines.append(f"  Applying h(A) + h(B) >= h(A∪B) + h(A∩B):")
+            lines.append(f"  Combining A + B (plain addition; see "
+                         f"apply_pairwise_submodularity):")
             lines.append(f"    Sessions covered by A : {d['sessions_in_A']}")
             lines.append(f"    Sessions covered by B : {d['sessions_in_B']}")
             lines.append(f"    Sessions in union     : {d['sessions_in_union']}")

@@ -2,7 +2,7 @@
 STAGE 4 STATUS DOCUMENT: okamura_seymour_8N
 ======================================================================
 
-STATUS: NO STAGE 4 ATTEMPT RECORDED
+STATUS: NO TERMINAL INEQUALITY FOUND
 
 NETWORK
   Nodes   : ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
@@ -25,13 +25,13 @@ BOUNDS
   Best observed : none
 
 STAGE 4 COUNTS
-  Attempts             : 0
+  Attempts             : 369
   Valid novel episodes : 0
   Terminal episodes    : 0
-  No-terminal episodes : 0
-  CROSS_SUBMOD used    : 0
-  APPLY_CRYPTO used    : 0
-  APPLY_DECODE used    : 0
+  No-terminal episodes : 369
+  CROSS_SUBMOD used    : 134
+  APPLY_CRYPTO used    : 43
+  APPLY_DECODE used    : 262
 
 This is a status report, not a mathematical proof.
 ======================================================================

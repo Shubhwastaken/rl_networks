@@ -99,7 +99,7 @@ for i in range(len(node_list)):
         u, v = node_list[i], node_list[j]
         a = node_ios[u]
         b = node_ios[v]
-        union_ineq, inter_ineq = apply_pairwise_submodularity(a, b, index, sessions)
+        union_ineq = apply_pairwise_submodularity(a, b, index, sessions)
         if union_ineq.check_valid_terminal_form():
             bound = union_ineq.extract_bound(len(sessions), len(edges), ipp)
             print(f"  Union({u},{v}): terminal=True, bound={bound:.4f}")
